@@ -1,0 +1,82 @@
+.attach-id-main {
+  padding: 10px 0px;
+}
+.attach-main-table {
+  /* display: flex; */
+  margin-top: 10px;
+  margin-bottom: 10px;
+  padding: 10px 20px;
+}
+.attach-div1 {
+  flex: 0.1;
+}
+.attach-div2 {
+  flex: 0.5;
+}
+.attach-div2 img {
+  margin-right: 1.5rem;
+}
+
+.attach-div3 {
+  flex: 0.3;
+}
+.attach-div4 {
+  flex: 0.4;
+}
+.attach-div5 {
+  flex: 0.2;
+}
+.attach-div6 {
+  flex: 0.1;
+}
+
+.attachid-btnDiv {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.attachid-btn {
+  background-color: #f1f3f4;
+  border-radius: 0.4rem;
+  color: #4b525c;
+  border: none;
+  padding: 8px 10px;
+  margin-right: 10px;
+  margin-top: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  /* font-family: 'Open Sans', Verdana, Arial, Helvetica, sans-serif; */
+  width: fit-content;
+  display: flex;
+  align-items: center;
+  box-shadow: 0px 3px 1px -2px rgb(0 0 0 / 20%),
+    0px 2px 2px 0px rgb(0 0 0 / 14%), 0px 1px 5px 0px rgb(0 0 0 / 12%);
+  margin-left: 20px;
+}
+
+.attachid-btn:hover {
+  color: #0354ff;
+}
+
+.attach-table-row {
+  display: flex;
+  padding: 10px 10px;
+}
+.download-icon-div {
+  width: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 30px;
+  border-radius: 15px;
+  box-shadow: 0px 3px 1px -2px rgb(0 0 0 / 20%),
+    0px 2px 2px 0px rgb(0 0 0 / 14%), 0px 1px 5px 0px rgb(0 0 0 / 12%);
+  cursor: pointer;
+}
+
+.makeAsLink {
+  /* color: rgb(30, 143, 235); */
+  cursor: pointer;
+}

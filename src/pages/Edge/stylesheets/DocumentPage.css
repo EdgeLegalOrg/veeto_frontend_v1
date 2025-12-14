@@ -1,0 +1,441 @@
+.document-containerDiv {
+  width: 100%;
+}
+
+.document-tableHeader {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 15px;
+  box-sizing: border-box;
+  width: 100%;
+  border-bottom: 1px solid #c0c4c7;
+  background-color: rgb(233, 233, 233);
+}
+
+.document-tableCol {
+  width: 14%;
+}
+
+.document-extraSm {
+  width: 4%;
+}
+.document-smallCol {
+  width: 8% !important;
+}
+
+.document-largeCol {
+  width: 22%;
+}
+
+.document-tableCol p,
+.document-smallCol p,
+.document-largeCol p {
+  font-size: 14px;
+  color: #212529;
+  font-weight: 600;
+}
+
+.document-tableContent {
+  width: 100%;
+}
+
+.document-tableRow {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 15px;
+  box-sizing: border-box;
+}
+
+.version-change-justify {
+  justify-content: flex-start;
+}
+
+.version-change-mr {
+  margin-right: 15px !important;
+}
+
+.document-tableRow:nth-child(odd) {
+  background-color: #fff;
+}
+.document-tableRow:nth-child(even) {
+  background-color: #f3f3f3;
+}
+
+.document-tableRow:hover {
+  background-color: #dceeff;
+  cursor: pointer;
+}
+
+.document-rowDiv {
+  width: 14%;
+  cursor: pointer;
+}
+
+.document-largeRowDiv {
+  display: flex;
+  flex-direction: row;
+  /* justify-content: flex-start;
+  align-items: center; */
+}
+
+.document-largeRowDiv p {
+  word-break: break-all;
+}
+
+.document-link {
+  color: blue;
+  text-decoration: underline;
+  cursor: pointer;
+  margin-left: 15px;
+}
+
+.document-extraSmRow {
+  width: 4%;
+}
+.document-smallRow {
+  width: 8% !important;
+}
+
+.document-fileIcon {
+  height: 25px;
+  width: 25px;
+}
+
+/**************  UPLOAD DOCUMENT  **************/
+
+.uploadDoc-popup-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.2);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.uploadDoc-popup-grid {
+  position: relative;
+  top: 0%;
+  left: 6%;
+  border-radius: 5px;
+  width: 70%;
+  text-align: center;
+  box-shadow: 0px 2px 4px -1px rgb(0 0 0 / 20%),
+    0px 4px 5px 0px rgb(0 0 0 / 14%), 0px 1px 10px 0px rgb(0 0 0 / 12%);
+}
+
+[data-bs-theme="light"] .uploadDoc-popup-grid {
+  background-color: white;
+}
+[data-bs-theme="dark"] .uploadDoc-popup-grid {
+  background-color: var(--background-dark);
+  color: var(--text-light);
+}
+
+
+[data-bs-theme="light"] .uploadDoc-heading {
+  color: white;
+  
+}
+
+.file__Uplaod__Bottom__Btns{
+  padding: 10px;
+  display: flex;
+  justify-content: end;
+  align-items: center;
+  gap: 10px;
+}
+
+.uploadDoc-header {
+  background-color: #002b5c;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 25px;
+}
+
+.uploadDoc-heading {
+  font-size: 1.2rem;
+}
+
+.close-form-btn {
+  border: none;
+  background-color: #002b5c;
+  color: #fff !important;
+  font-size: 0.8rem;
+  outline: none;
+}
+
+.close-form-btn img {
+  height: 1rem;
+  width: 1rem;
+}
+
+.uploadDoc-dropzone-div {
+  margin: 2rem 1.5rem;
+  border-radius: 4px;
+  border: 2px dashed #b6b5b5;
+  /* padding: 1.2rem 1rem; */
+  height: 100px;
+}
+
+.uploadDoc-dropzone-div span {
+  text-decoration: underline;
+  margin-top: 1rem;
+  font-weight: 600;
+}
+
+.uploadDoc-dropzone {
+  text-align: center;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+[data-bs-theme="light"] .uploadDoc-dropzone {
+  background-color: var(--background-light);
+}
+
+[data-bs-theme="dark"] .uploadDoc-dropzone {
+  background-color: var(--background-dark);
+  color: var(--text-light);
+}
+
+.uploadDoc-datePicker {
+  width: 60%;
+  display: flex;
+  justify-content: space-between;
+  margin-left: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.uploadDoc-dateDiv {
+  width: 30%;
+  margin-top: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  /* justify-content: left; */
+  text-align: left;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #888e92;
+}
+
+.uploadDoc-nameDiv {
+  width: 35%;
+  /* margin-top: 1.2rem; */
+  display: flex;
+  flex-direction: column;
+  /* justify-content: left; */
+  text-align: left;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #888e92;
+}
+
+.date-input {
+  padding: 5px 5px;
+  border: none;
+  outline: none;
+  border-radius: 4px;
+  box-shadow: 0px 3px 1px -2px rgb(0 0 0 / 20%),
+    0px 2px 2px 0px rgb(0 0 0 / 14%), 0px 1px 5px 0px rgb(0 0 0 / 12%);
+}
+
+.uploadDoc-filename-div {
+  width: 60%;
+  /* margin-top: 1.2rem; */
+  display: flex;
+  flex-direction: column;
+  /* justify-content: left; */
+  text-align: left;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #888e92;
+}
+
+.uploadDoc-name {
+  border: 1px solid #888e92;
+  border-radius: 4px;
+  outline: none;
+  padding: 5px 8px;
+}
+
+.uploadDoc-endDiv {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.uploadDoc-textArea {
+  width: 70%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin: 0 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.uploadDoc-comment-div {
+  width: 48%;
+  display: flex;
+  flex-direction: column;
+  /* justify-content: left; */
+  text-align: left;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #888e92;
+}
+
+.uploadDoc-buttonDiv {
+  width: 20%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+  margin-right: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.cancelButton {
+  width: 40%;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 5px;
+  padding: 5px 10px;
+  outline: none;
+  color: Black;
+  background-color: #c4cacd;
+  box-shadow: 0px 3px 1px -2px rgb(0 0 0 / 20%),
+    0px 2px 2px 0px rgb(0 0 0 / 14%), 0px 1px 5px 0px rgb(0 0 0 / 12%);
+}
+
+.addButton {
+  width: 40%;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 5px 10px;
+  color: Black;
+  background-color: #c4cacd;
+
+  border: none;
+
+  border-radius: 5px;
+  outline: none;
+  box-shadow: 0px 3px 1px -2px rgb(0 0 0 / 20%),
+    0px 2px 2px 0px rgb(0 0 0 / 14%), 0px 1px 5px 0px rgb(0 0 0 / 12%);
+}
+
+.comment {
+  border: 1px solid #888e92;
+  border-radius: 4px;
+  padding: 5px 5px;
+  outline: none;
+}
+
+/*************** Document Detail Page *********************/
+
+.docDetail-container {
+  width: 100%;
+}
+
+.docDetail-sectionDiv {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 20px 30px;
+  box-sizing: border-box;
+}
+
+.docDetail-iconDiv {
+  margin-top: 1rem;
+  margin-left: 2rem;
+}
+
+.docDetail-icon {
+  width: 130px;
+  height: 130px;
+}
+
+.docDetail-contentDiv {
+  width: 70%;
+}
+
+.docDetail-uploadBtn {
+  background-color: #f1f3f4;
+  border-radius: 0.4rem;
+  color: #4b525c;
+  border: none;
+  padding: 5px 35px;
+  margin-right: 7px;
+  margin-left: 9px;
+  margin-bottom: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  width: -moz-fit-content;
+  width: fit-content;
+  display: flex;
+  align-items: center;
+  box-shadow: 0px 3px 1px -2px rgb(0 0 0 / 20%),
+    0px 2px 2px 0px rgb(0 0 0 / 14%), 0px 1px 5px 0px rgb(0 0 0 / 12%);
+  letter-spacing: 1px;
+}
+
+.docDetail-inputDiv {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  width: 100%;
+  gap: 20px;
+  margin-bottom: 10px;
+}
+
+.docDetail-uploadDiv {
+  width: 25%;
+}
+
+.docDetail-fileName {
+  width: 50%;
+}
+
+.docDetail-input-sm {
+  width: 25%;
+}
+
+.docDetail-input-md {
+  width: 50%;
+}
+
+.docDetail-input-lg {
+  width: 78%;
+}
+
+.docDetail-clearFile {
+  background-color: transparent;
+  outline: none;
+  border: none;
+  padding: 15px;
+}
+
+.docDetail-closeIcon {
+  font-weight: 600;
+  font-size: 18px;
+}

@@ -1,0 +1,95 @@
+.st-detail-sec {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: flex-start;
+  width: 100%;
+  background-color: #fff;
+  border: 1px solid #b9b8b8;
+}
+
+.st-detail-left {
+  width: 50%;
+  padding: 16px 25px;
+}
+.st-detail-right {
+  width: 50%;
+  padding: 0;
+  border-left: 1px solid #b9b8b8;
+}
+
+.st-border {
+  border-bottom: 1px solid #b9b8b8;
+}
+
+.st-detail-left .st-detail-div {
+  margin-bottom: 16px;
+}
+
+.st-detail-left .st-detail-div label {
+  color: #002b5c;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.st-label-color {
+  color: #002b5c;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.add-adj-btn {
+  margin-top: 1.5rem;
+}
+
+.st-detail-right .st-right-inputs > label {
+  color: #002b5c;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.st-right-inputs {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 70%;
+  margin-bottom: 10px;
+}
+
+.adjustment-types {
+  margin-right: 20px;
+  display: flex;
+  align-items: center;
+}
+
+.adjustment-types > input {
+  width: 18px;
+  height: 18px;
+  margin-right: 6px;
+  cursor: pointer;
+}
+
+.adjustment-types > label {
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.usage-type-div {
+  margin-right: 20px;
+  display: flex;
+  align-items: center;
+}
+
+.usage-type-div > label {
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.usage-type-div > input {
+  width: 18px;
+  height: 18px;
+  margin-right: 6px;
+  cursor: pointer;
+}

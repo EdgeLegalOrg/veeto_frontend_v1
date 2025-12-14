@@ -1,0 +1,662 @@
+#searchPropertyDiv {
+  padding: 0;
+}
+
+#mainPropertyDiv {
+  padding: 0;
+}
+
+.propertyPopup-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.2);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.propertyPopup-grid {
+  position: relative;
+  top: 0%;
+  left: 8%;
+  /* background-color: #fff; */
+  border-radius: 5px;
+  width: 50%;
+  /* text-align: center; */
+  /* padding: 0px 10px 0px 10px; */
+  /* box-shadow: 0px 6px 35px rgba(85, 85, 85, 0.7); */
+  box-shadow: 0px 2px 4px -1px rgb(0 0 0 / 20%),
+    0px 4px 5px 0px rgb(0 0 0 / 14%), 0px 1px 10px 0px rgb(0 0 0 / 12%);
+}
+
+.propertyDiv {
+  /* margin: 10px 20px; */
+  padding-bottom: 20px;
+}
+
+.propertydatadiv {
+  min-height: 40px;
+  background-color: #f3f3f3 !important;
+  padding-top: 11px;
+  color: #1f252c;
+}
+
+.property-filterDiv {
+  margin-left: auto;
+  margin-right: 2.2rem;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
+
+.property-searchButton {
+  background-color: #dee2e5;
+  outline: none;
+  padding: 5px;
+  margin-top: 7px;
+  border: none;
+  color: rgb(73, 73, 73);
+  /* font-size: 16px; */
+}
+
+.property-paginationDiv {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
+
+.pagination-span {
+  margin: 0 6px;
+  font-size: 12px;
+  font-weight: 500;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  letter-spacing: 1px;
+}
+
+.onPage {
+  color: #4cb2f5;
+  border-color: #4cb2f5 !important;
+  box-shadow: 0px 2px 2px -1px rgb(76 178 245/ 20%),
+    0px 2px 2px 0px rgb(76 178 245 / 14%), 0px 1px 2px 0px rgb(76 178 245 / 12%);
+}
+
+.dots {
+  color: #212529;
+  font-size: 16px;
+  letter-spacing: 2px;
+  font-weight: 600;
+  padding-bottom: 5px;
+  outline: none;
+  border: none;
+  background-color: #dee2e5;
+}
+
+.shift {
+  cursor: pointer;
+  color: #4cb2f5;
+  font-size: 18px;
+  letter-spacing: 1px;
+  padding: 0;
+  outline: none;
+  border: none;
+  background-color: #dee2e5;
+}
+
+.shiftDisabled {
+  color: #212529;
+  font-size: 16px;
+  letter-spacing: 2px;
+  font-weight: 600;
+  padding-bottom: 5px;
+  background-color: #dee2e5;
+  outline: none;
+  border: none;
+}
+
+.changeButton {
+  margin: 0 8px;
+  outline: none;
+  border: none;
+  background-color: #dee2e5;
+}
+
+.changeButton:hover {
+  color: #4cb2f5;
+  /* border-color: #4cb2f5;
+  box-shadow: 0px 2px 2px -1px rgb(76 178 245/ 20%),
+    0px 2px 2px 0px rgb(76 178 245 / 14%), 0px 1px 2px 0px rgb(76 178 245 / 12%); */
+}
+
+.changeButtonDisable {
+  color: rgba(0, 0, 0, 0.3);
+  background-color: #dee2e5;
+  outline: none;
+  border: none;
+}
+
+.span-buttonDisabled {
+  width: 30px;
+  height: 30px;
+  border: 1px solid #cbc9c9;
+  border-radius: 4px;
+  box-shadow: 0px 2px 2px -1px rgb(0 0 0 / 20%),
+    0px 2px 2px 0px rgb(0 0 0 / 14%), 0px 1px 2px 0px rgb(0 0 0 / 12%);
+  background-color: #f1f3f4;
+  color: rgba(0, 0, 0, 0.3);
+  outline: none;
+}
+
+.span-button {
+  width: 30px;
+  height: 30px;
+  padding: 2px;
+  border: 1px solid #cbc9c9;
+  border-radius: 4px;
+  box-shadow: 0px 2px 2px -1px rgb(0 0 0 / 20%),
+    0px 2px 2px 0px rgb(0 0 0 / 14%), 0px 1px 2px 0px rgb(0 0 0 / 12%);
+  background-color: #f1f3f4;
+  cursor: pointer;
+}
+
+.span-button:hover {
+  color: #4cb2f5;
+  border-color: #4cb2f5;
+  box-shadow: 0px 2px 2px -1px rgb(76 178 245/ 20%),
+    0px 2px 2px 0px rgb(76 178 245 / 14%), 0px 1px 2px 0px rgb(76 178 245 / 12%);
+}
+
+.pageShift-button {
+  background-color: #dee2e5;
+  border: none;
+  margin-right: 1.5rem;
+  /* margin-top: 10px; */
+  /* font-size: 16px; */
+  outline: none;
+}
+
+.disabledButton {
+  color: rgba(0, 0, 0, 0.2);
+}
+
+.pageShift-button i {
+  font-size: 22px;
+}
+
+.propertydatadiv:hover {
+  background-color: #dceeff !important;
+}
+
+.lightpropertydatadiv {
+  background-color: #fff !important;
+  min-height: 40px;
+  padding-top: 11px;
+  color: #1f252c;
+}
+
+.lightpropertydatadiv:hover {
+  background-color: #dceeff !important;
+}
+
+.propertyPageHeadings {
+  background-color: #cdd2d6;
+  border-bottom: 1px solid lightgray;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 8px 30px;
+}
+
+.propertyPagesubHeads {
+  background-color: #fff;
+  /* padding: 20px 15px; */
+}
+
+.propertyPagesubHeads input {
+  width: 95%;
+  /* margin-bottom: 0%; */
+}
+
+.propertyPageBtns {
+  background-color: #f1f3f4;
+  border-radius: 0.4rem;
+  color: #4b525c;
+  box-shadow: 0px 3px 1px -2px rgb(0 0 0 / 20%),
+    0px 2px 2px 0px rgb(0 0 0 / 14%), 0px 1px 5px 0px rgb(0 0 0 / 12%);
+
+  padding: 6px 15px;
+  width: auto;
+  border: none;
+  /* margin-right: 3%; */
+  display: flex;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.propertyPageBtns:hover {
+  color: #0354ff;
+}
+
+.propertyPageBtns:disabled:hover {
+  cursor: no-drop;
+}
+
+.propertyPageHeads {
+  font-size: 16px;
+  margin-bottom: 0px;
+  color: #0c244c;
+  font-weight: 600;
+  font-family: "Poppins", "Mulish", sans-serif !important;
+  margin-right: 2.2rem;
+}
+
+.propertyPageHeads-btnDiv {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+  align-items: center;
+  width: 28%;
+}
+
+.associatedContacts-label {
+  font-weight: 600;
+}
+
+.associatedContacts-label-btn {
+  display: flex;
+  flex-direction: column;
+  margin-left: 10px;
+}
+
+.label-btn-img-1 {
+  margin-bottom: 1px;
+  width: 10px;
+  height: 10px;
+}
+
+.label-btn-img-2 {
+  width: 10px;
+  height: 10px;
+}
+
+.propertyPageFirstDiv {
+  padding-top: 15px;
+  padding-bottom: 10px;
+}
+
+.searchBtn {
+  margin: 5% 0 5% 70%;
+}
+
+.lotsScrollDiv {
+  overflow-x: hidden;
+  overflow-y: auto;
+  text-align: justify;
+  width: 100%;
+  max-height: 135px;
+}
+.lotsScrollDiv::-webkit-scrollbar {
+  width: 8px !important;
+  border-radius: 50% !important;
+}
+.lotsScrollDiv::-webkit-scrollbar-track {
+  background-color: rgb(255, 255, 255) !important;
+}
+.lotsScrollDiv::-webkit-scrollbar-thumb {
+  background-color: rgb(255, 255, 255) !important;
+}
+.lotsScrollDiv:hover::-webkit-scrollbar-thumb {
+  background-color: rgb(184, 184, 184) !important;
+}
+.popupFormInputs {
+  width: 90%;
+  margin-bottom: 10%;
+}
+
+.editBtn {
+  background-color: transparent;
+  border: none;
+  margin-bottom: 0.5rem;
+}
+.modal-header {
+  background-color: #002b5c;
+  color: white;
+  padding: 8px 20px;
+}
+.relatedMattersDiv h6 {
+  height: 55%;
+}
+
+.newPropertyBtnTray {
+  display: flex;
+  background-color: #c7c7c7;
+  padding: 0px 0;
+  justify-content: space-between;
+  padding-right: 20px;
+}
+
+.newPropertyMainBtns {
+  background-color: #c7c7c7;
+  border: none;
+  height: 3rem;
+}
+
+.newPropertyMainBtnsClicked {
+  background-color: white;
+}
+
+.leftPropertyDiv {
+  /* position: relative; */
+  background-color: #dee2e5;
+  padding-top: 30px;
+  /* padding-left: 10px;
+  padding-right: 10px; */
+}
+
+.hideSection {
+  display: none;
+}
+
+.particularPrprty:hover {
+  background-color: pink;
+}
+.generalDiv {
+  padding: 20px 30px;
+}
+/* .generalDiv input {
+  margin-bottom: 10px;
+} */
+
+.propertyButton-div {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  width: 22%;
+}
+
+.addNewLots-buttonDiv {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  width: 25%;
+}
+
+.propertyButton-delete {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  border-radius: 0.4rem;
+  color: #4b525c;
+  box-shadow: 0px 3px 1px -2px rgb(0 0 0 / 20%),
+    0px 2px 2px 0px rgb(0 0 0 / 14%), 0px 1px 5px 0px rgb(0 0 0 / 12%);
+  padding: 6px 15px;
+  margin-right: 3%;
+  font-size: 13px;
+  font-weight: 600;
+  background-color: #f1f3f4;
+  border: 1px solid #f1f3f4;
+}
+
+.propertyButton-delete:hover {
+  color: #0354ff;
+}
+
+.propertyHeaderContainer {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  width: 89%;
+}
+
+.editProperty-btnDiv {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+  align-items: center;
+  width: 40%;
+}
+
+.addPropertyLot-btnDiv {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+  align-items: center;
+  width: 25%;
+}
+
+/* @media(max-width:400px{
+    
+}) */
+
+/** Confirmation Pop up **/
+.confirmation-popup-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.2);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Light theme styles */
+[data-bs-theme="light"] .confirmation-popup-grid {
+  position: relative;
+  top: 0%;
+  left: 8%;
+  border-radius: 5px;
+  width: 45%;
+  box-shadow: 0px 2px 4px -1px rgb(0 0 0 / 20%),
+    0px 4px 5px 0px rgb(0 0 0 / 14%), 0px 1px 10px 0px rgb(0 0 0 / 12%);
+  background-color: var(--background-light);
+}
+
+/* Dark theme styles */
+[data-bs-theme="dark"] .confirmation-popup-grid {
+  position: relative;
+  top: 0%;
+  left: 8%;
+  border-radius: 5px;
+  width: 45%;
+  box-shadow: 0px 2px 4px -1px rgb(0 0 0 / 20%),
+    0px 4px 5px 0px rgb(0 0 0 / 14%), 0px 1px 10px 0px rgb(0 0 0 / 12%);
+  background-color: var(--background-dark);
+  color: var(--text-light);
+}
+
+.confirmation-header {
+  background-color: #002b5c;
+  color: #fff;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 25px;
+}
+
+.confirmation-heading {
+  font-size: 1.2rem;
+}
+
+.confirmation-para {
+  font-size: 1.2rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  margin: 1rem;
+  padding: 10px;
+}
+
+.close-form-btn {
+  border: none;
+  background-color: #002b5c;
+  color: #fff !important;
+  font-size: 0.8rem;
+  outline: none;
+}
+
+.close-form-btn img {
+  height: 1rem;
+  width: 1rem;
+}
+
+.confirmation-buttonDiv {
+  width: 95%;
+  margin: auto;
+  margin-top: 1.6rem;
+  margin-bottom: 1.6rem;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.confirmation-buttonDiv .cancelButton {
+  width: 20%;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border-radius: 5px;
+  padding: 5px 10px;
+  outline: none;
+  color: Black;
+  margin: 0 10px;
+  background-color: #c4cacd;
+  box-shadow: 0px 3px 1px -2px rgb(0 0 0 / 20%),
+    0px 2px 2px 0px rgb(0 0 0 / 14%), 0px 1px 5px 0px rgb(0 0 0 / 12%);
+}
+
+.confirmation-buttonDiv .addButton {
+  width: 20%;
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 5px 8px;
+  color: Black;
+  margin: 0 10px;
+  background-color: #c4cacd;
+  border-radius: 5px;
+  outline: none;
+  box-shadow: 0px 3px 1px -2px rgb(0 0 0 / 20%),
+    0px 2px 2px 0px rgb(0 0 0 / 14%), 0px 1px 5px 0px rgb(0 0 0 / 12%);
+}
+
+.existingPerson-div {
+  margin: 1rem;
+  padding: 10px;
+}
+
+.existingPerson-header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 8px;
+  background-color: #dee2e5;
+  color: #0c244c;
+}
+
+.existingPerson-header p {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.existingPerson-name {
+  width: 18%;
+}
+.existingPerson-email {
+  width: 38%;
+  word-wrap: break-word;
+}
+
+.existingPerson-contentDiv {
+  min-height: 50px;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.existingPerson-content {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 8px;
+}
+
+.existingPerson-content p {
+  font-size: 14px;
+}
+
+.rowWise {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+.rowWise select {
+  width: 86%;
+  padding: 2px;
+}
+
+.property-tableFooter {
+  /* width: 84%; */
+  /* margin-top: 10px; */
+  background-color: #dee2e5;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 5px;
+  height: 45px;
+  font-size: 15px;
+  /* position: fixed;
+  bottom: 0; */
+}
+
+.new-property-label {
+  background-color: #dee2e5;
+}
+
+.new-property-label h3 {
+  color: #0c244c;
+}
+
+.colorSubHeads {
+  padding: 15px 0;
+  background-color: #dee2e5;
+  width: 100%;
+}
+
+.changeColSize-2 {
+  width: 16% !important;
+}
+
+.colorSubHeads h6 {
+  /* background-color: #dee2e5;
+   */
+  color: #555;
+  font-weight: 600;
+  margin: 0px;
+}
+
+.noRecordDiv {
+  min-height: 40px;
+  align-items: center;
+  background-color: #f3f3f3 !important;
+  padding: 10px 0;
+  color: #1f252c;
+}
+
+.alignDiv {
+  margin: 0px 7px 9px 0px;
+}

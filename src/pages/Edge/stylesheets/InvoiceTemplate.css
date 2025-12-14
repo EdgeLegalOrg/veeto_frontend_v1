@@ -1,0 +1,196 @@
+.invoice-tempName {
+  font-size: 16px;
+  color: rgb(12, 36, 76);
+  font-weight: 600;
+  margin-right: 2.2rem;
+}
+
+.invoice-tempDetail {
+  padding: 10px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.invoice-container {
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.invoice-header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #e7e7e7;
+  padding: 8px;
+}
+
+.invoice-label {
+  width: 25%;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.invoice-label:last-child {
+  text-align: right;
+}
+
+.invoice-desc {
+  padding: 8px;
+  width: 95%;
+}
+
+.invoice-topDiv {
+  margin-bottom: 2rem;
+}
+
+.invoice-serviceLine {
+  width: 60%;
+  position: relative;
+}
+
+.invoice-serviceMin {
+  min-height: 40vh;
+}
+
+[data-bs-theme='light'] .invoice-serviceLine-clear {
+  padding: 5px;
+  position: absolute;
+  font-size: 13px;
+  color: var(--text-dark);
+  font-weight: 600;
+  text-decoration: underline;
+  top: 14%;
+  right: 8%;
+  cursor: pointer;
+}
+
+[data-bs-theme='dark'] .invoice-serviceLine-clear {
+  padding: 5px;
+  position: absolute;
+  font-size: 13px;
+  color: var(--text-light);
+  font-weight: 600;
+  text-decoration: underline;
+  top: 14%;
+  right: 8%;
+  cursor: pointer;
+}
+
+.invoice-serviceLine-clear:hover {
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.invoice-selectedList {
+  width: 100%;
+  /* max-height: 45vh;
+  overflow-y: auto; */
+}
+.invoice-selectedList::-webkit-scrollbar {
+  width: 6px !important;
+  border-radius: 50% !important;
+}
+.invoice-selectedList::-webkit-scrollbar-track {
+  background-color: rgb(255, 255, 255) !important;
+}
+.invoice-selectedList::-webkit-scrollbar-thumb {
+  background-color: #c0c4c7 !important;
+  width: 4px;
+  border-radius: 2px;
+}
+.invoice-selectedList:hover::-webkit-scrollbar-thumb {
+  background-color: #c0c4c7 !important;
+}
+
+.invoice-selected {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 25px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.invoice-selected:last-child {
+  border-bottom: none;
+}
+
+.invoice-selectedDetail span {
+  font-size: 12px;
+}
+
+.invoice-selectedDelete {
+  background-color: transparent;
+  border: none;
+  outline: none;
+  margin-right: 7%;
+  font-size: 18px;
+  color: rgb(12, 36, 76);
+  font-weight: 700;
+}
+
+.invoice-selectedDelete:hover {
+  background-color: transparent;
+}
+
+[data-bs-theme='light'] .invoice-selectedDelete svg {
+  color: var(--text-dark);
+}
+
+[data-bs-theme='dark'] .invoice-selectedDelete svg {
+  color: var(--text-light);
+}
+
+.invoice-radio-label {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.invoice-radio-li {
+  display: flex;
+  align-items: center;
+  margin: 10px 0;
+  cursor: pointer;
+}
+
+.invoice-radio-li input {
+  width: 18px;
+  height: 18px;
+  margin-right: 10px;
+  cursor: pointer;
+}
+
+.add-billing .invoice-radio-li {
+  margin: 10px 10px;
+}
+
+.add-billing .invoice-radio-li:first-child {
+  margin-left: 0;
+}
+
+.export-btn {
+  margin-left: 30px;
+  /* margin-right: 30px; */
+  padding: 0px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* .export-btn:hover {
+  background-color: #1890ff;
+} */
+
+.export-btn > input {
+  width: 20px;
+  height: 20px;
+  margin-right: 14px;
+  border: 1px solid #002b5c;
+  cursor: pointer;
+}
+
+.export-btn > label {
+  font-size: 16px !important;
+  font-weight: 500;
+  cursor: pointer;
+}

@@ -1,0 +1,217 @@
+.role-containerDiv {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 100%;
+}
+.role-hide {
+  display: none;
+}
+
+.role-show {
+  display: block;
+  width: 41.8%;
+  animation-name: moveInRight;
+  animation-duration: 0.6s;
+  /* transition: transform 0.5s ease-in-out; */
+  /* transform: translate3d(0, 0, 0); */
+}
+.role-leftDiv {
+  width: 100%;
+  animation-name: moveInLeft;
+  animation-duration: 0.6s;
+  /* transition: transform 0.5s ease-in-out; */
+  /* transform: translate3d(0, 0, 0); */
+}
+
+.role-filterDiv {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 15px;
+  box-sizing: border-box;
+  width: 100%;
+  border-bottom: 1px solid #c0c4c7;
+  background-color: rgb(233, 233, 233);
+}
+
+.role-nameDiv {
+  width: 35%;
+}
+
+.role-descDiv {
+  width: 48%;
+}
+
+.role-searchIconDiv {
+  width: 4%;
+}
+
+.role-searchIconDiv .searchButton {
+  background-color: rgb(233, 233, 233);
+}
+
+.role-label {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 1px 10px;
+  cursor: pointer;
+}
+
+.role-smallLabel {
+  width: 80%;
+}
+
+.role-label p {
+  font-size: 16px;
+  color: #212529;
+  font-weight: 600;
+}
+
+.role-filterInputDiv {
+  width: 100%;
+}
+
+.role-filterInput {
+  width: 100%;
+  outline: none;
+  font-size: 14px;
+  border: 1px solid #c0c4c7;
+  border-radius: 4px;
+  padding: 1px;
+}
+
+.role-listContainer {
+  width: 100%;
+}
+
+.role-listDiv {
+  width: 100%;
+  padding: 10px 18px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.role-listDiv:nth-child(odd) {
+  background-color: #fff;
+}
+.role-listDiv:nth-child(even) {
+  background-color: #f3f3f3;
+}
+.role-listDiv:hover {
+  background-color: #dceeff;
+  cursor: pointer;
+}
+
+.role-namePara {
+  color: #1f252c;
+  font-size: 15px;
+  width: 35%;
+}
+
+.role-descPara {
+  color: #1f252c;
+  font-size: 15px;
+  width: 60%;
+}
+
+.role-rightContainer {
+  width: 100%;
+  /* background-color: #fff; */
+}
+
+.role-createDiv {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 15px;
+  box-sizing: border-box;
+  border-bottom: 1px solid #c0c4c7;
+}
+
+.role-createContent {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.role-createContent span {
+  color: #1f252c;
+  font-size: 14px;
+  font-weight: 500;
+  margin-right: 5px;
+}
+
+.createSmall {
+  width: 38%;
+}
+
+.createLarge {
+  width: 57%;
+}
+
+.role-createInput {
+  width: 75%;
+  outline: none;
+  font-size: 13px;
+  border: 1px solid #c0c4c7;
+  border-radius: 4px;
+  padding: 2px 8px;
+}
+
+.role-typeDiv {
+  padding: 15px;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: auto;
+}
+
+/***** Role Type *****/
+
+.roleType-container {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.roleType-col {
+  width: 48%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  max-height: 65vh;
+  flex-wrap: wrap;
+}
+
+.roleType-contentDiv {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.roleType-check {
+  width: 18px;
+  height: 18px;
+  margin-right: 10px;
+}
+
+.roleType-label {
+  width: 88%;
+}

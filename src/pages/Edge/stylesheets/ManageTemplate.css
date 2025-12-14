@@ -1,0 +1,142 @@
+.template-containerDiv {
+  width: 100%;
+}
+.template-tableHeader {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 10px 20px;
+  box-sizing: border-box;
+  width: 100%;
+  border-bottom: 1px solid #c0c4c7;
+  background-color: rgb(233, 233, 233);
+}
+
+.template-esCol {
+  width: 4%;
+}
+
+.template-esCol .searchButton {
+  background-color: transparent;
+}
+
+.template-esCol p {
+  font-size: 14px;
+  color: #212529;
+  font-weight: 600;
+}
+
+.template-tableCol {
+  width: 14%;
+}
+
+.template-largeTableCol {
+  width: 18%;
+}
+
+.template-xlCol {
+  width: 22%;
+}
+
+.template-smallCol {
+  width: 10% !important;
+}
+.template-colLabel {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  margin-bottom: 2px;
+  padding-right: 4px;
+  box-sizing: border-box;
+}
+
+.template-colLabel p {
+  font-size: 14px;
+  /* color: #212529; */
+  /* font-weight: 500; */
+}
+
+.template-tableContent {
+  width: 100%;
+}
+
+.template-tableRow {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  box-sizing: border-box;
+}
+
+.template-tableRow:nth-child(odd) {
+  background-color: #fff;
+}
+.template-tableRow:nth-child(even) {
+  background-color: #f3f3f3;
+}
+.template-tableRow:hover {
+  background-color: #dceeff;
+  cursor: pointer;
+}
+
+.template-rowDiv {
+  width: 14%;
+}
+
+.template-esRow {
+  width: 4%;
+}
+
+.template-largeRowDiv {
+  width: 18%;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.template-xlRowDiv {
+  width: 22%;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.template-smallRow {
+  width: 10% !important;
+}
+
+.template-filterInput {
+  width: 100%;
+  outline: none;
+  font-size: 14px;
+  border: 1px solid #c0c4c7;
+  border-radius: 4px;
+  padding: 1px 2px;
+}
+
+.template-nameLink {
+  color: blue;
+  text-decoration: underline;
+  cursor: pointer;
+  margin-left: 15px;
+  word-break: break-all;
+}
+
+.template-fileIcon {
+  height: 30px;
+  width: 30px;
+  margin-right: 5px;
+}
+
+.template-editIcon {
+  font-size: 20px;
+  cursor: pointer;
+}

@@ -1,0 +1,159 @@
+.preview-invoiceDiv {
+  width: 100%;
+  padding: 25px 10px;
+}
+
+.pre-tm-container {
+  width: 800px;
+  min-width: 500px;
+  margin: auto;
+  box-shadow: 0 3px 5px -1px rgba(0, 0, 0, 0.2), 0 5px 8px 0 rgba(0, 0, 0, 0.14),
+    0 1px 14px 0 rgba(0, 0, 0, 0.12);
+  padding-bottom: 20px;
+  background-color: #fff;
+}
+
+.pre-tm-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 16px 16px;
+  background-color: #3bb0b9;
+}
+
+.pre-tm-brandImg {
+  width: 50%;
+  height: 100px;
+}
+
+.tm-brandImg {
+  width: 100%;
+  height: 100%;
+}
+
+.pre-tm-headContent {
+  width: 50%;
+  display: flex;
+  justify-content: space-between;
+}
+
+.pre-tm-headContent .pre-tm-re {
+  margin-right: 10px;
+  font-weight: bold;
+  color: #fff;
+}
+
+.pre-tm-headContent .pre-tm-re-content {
+  width: 90%;
+  color: #fff;
+}
+
+.pre-tm-mailInfo {
+  display: flex;
+  justify-content: space-between;
+  padding: 16px;
+}
+
+.pre-label-text {
+  font-size: 16px;
+  font-weight: bold;
+  color: #000;
+}
+
+.pre-tm-billTo {
+  width: 55%;
+}
+
+.pre-tm-billTo > p {
+  font-size: 16px;
+  color: black;
+}
+
+.pre-tm-otherDetails {
+  width: 42%;
+}
+
+.pre-tm-otherDetails .other-details {
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+
+.pre-tm-otherDetails .other-details > label {
+  width: 34%;
+  margin-right: 16px;
+}
+
+.pre-tm-otherDetails .other-details > p {
+  width: 66%;
+}
+
+.pre-tm-body {
+  width: 100%;
+}
+
+.pre-tm-tableHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 16px 16px;
+  background-color: #e7e7e7;
+}
+
+.table-colDiv.lg {
+  width: 36%;
+}
+
+.table-colDiv.sm {
+  width: 12%;
+}
+
+.pre-tm-tableRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 16px 16px;
+  border-bottom: 1px solid #e7e7e7;
+}
+
+.pre-tm-tableRow:nth-child(even) {
+  background-color: #fff;
+}
+
+.pre-tm-tableRow:nth-child(odd) {
+  background-color: #f3f3f3;
+}
+
+.pre-tm-taxContainer {
+  width: 100%;
+  padding-top: 10px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.pre-tm-taxDetails {
+  width: 50%;
+}
+
+.pre-tm-tax {
+  display: flex;
+  padding: 8px;
+}
+
+.pre-tm-tax.bgf2 {
+  background-color: #f2f2f2;
+}
+
+.pre-tm-tax.bge7 {
+  background-color: #e7e7e7;
+}
+
+.pre-tm-tax.bgCyan {
+  background-color: #39a9b4;
+  margin-top: 8px;
+}
+
+.pre-tm-tax.bgCyan > p {
+  font-weight: bold;
+  color: #fff;
+}

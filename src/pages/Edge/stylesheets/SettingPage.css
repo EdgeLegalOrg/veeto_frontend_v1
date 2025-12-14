@@ -1,0 +1,61 @@
+.settingPage-body {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 15px;
+}
+.settingPage-contentDiv {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.settingPage-checkbox {
+  width: 30%;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.settingPage-inputDiv {
+  width: 65%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.setting-checkbox {
+  margin-right: 15px;
+  width: 16px;
+  height: 16px;
+  border-radius: 2px;
+}
+
+.setting-checkbox:hover {
+  cursor: pointer;
+}
+
+.setting-checkbox[type='checkbox']:checked {
+  /* background-color: #a77e2d !important; */
+  color: #ffffff !important;
+}
+.setting-checkbox[type='checkbox']:after {
+  box-shadow: none !important;
+}
+
+.setting-errorInput {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  width: 46%;
+}
+
+.setting-errorInput span {
+  color: red;
+  font-size: 12px;
+  padding-left: 15px;
+}

@@ -1,0 +1,35 @@
+.xero-option {
+  width: 100%;
+  padding: 12px 30px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.xero-option p {
+  color: rgb(63, 81, 181);
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.xero-option:nth-child(odd) {
+  background-color: #fff;
+}
+.xero-option:nth-child(even) {
+  background-color: #f3f3f3;
+}
+.xero-option:hover {
+  background-color: #dceeff;
+  cursor: pointer;
+}
+
+.xeroSetting-container {
+  width: 94%;
+  margin: auto;
+  box-sizing: border-box;
+}
+
+.xero-input {
+  margin-bottom: 10px;
+}

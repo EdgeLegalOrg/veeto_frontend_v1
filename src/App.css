@@ -1,0 +1,46 @@
+:root {
+  --background-light: #f3f6f9;
+  --background-dark: #202328;
+  --background-primary: #405189;
+  --text-light: #ffffff;
+  --text-dark: #000000;
+  --vz-input-bg-light: #ffffff;
+  --vz-input-bg-dark: #262a2f;
+}
+
+p {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+button[disabled] {
+  opacity: 0.5 !important;
+}
+
+/* Light theme styles */
+[data-bs-theme='light'] .MuiInputBase-input {
+  color: var(--text-dark) !important;
+  border: 1px solid #ced4da !important;
+  background: var(--vz-input-bg-light) !important;
+}
+
+/* Dark theme styles */
+[data-bs-theme='dark'] .MuiInputBase-input {
+  color: var(--text-light) !important;
+  border: 1px solid #2a2f34 !important;
+  background: var(--vz-input-bg-dark) !important;
+}
+
+.pe-cursor {
+  cursor: pointer;
+}
+
+.underline {
+  text-decoration: underline;
+}
+
+.input-error {
+  color: #f44336;
+  font-size: 0.875em;
+  font-weight: 300;
+}

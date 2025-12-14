@@ -1,0 +1,565 @@
+.safe-custody-btns-div {
+  background-color: #f0f0f0;
+  display: flex;
+  height: 50px;
+}
+
+.safecustodyyDiv {
+  margin: 40px 30px;
+}
+
+.safeCustodyPageHead {
+  background-color: #cdd2d6;
+}
+
+.safe-custody-btns {
+  background-color: transparent;
+  background-repeat: no-repeat;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 20px;
+}
+
+.safe-custody-btns-clicked {
+  background-color: #ffff;
+  height: 50px;
+  font-weight: 600;
+  color: #002b5c;
+  border-bottom: 3px solid #002b5c;
+}
+
+.safe-custody-div {
+  /* margin: 2%; */
+  padding-bottom: 20px;
+  background-color: #ffff;
+  min-height: 100vh;
+  height: 100%;
+}
+
+.changeSize {
+  width: 14%;
+}
+
+.all-custodydatadiv {
+  min-height: 40px;
+  align-items: center;
+  background-color: #fff;
+  color: #1f252c;
+  /* padding: 1.5% 2% 1% 2%; */
+}
+
+.all-custodydatadiv:hover {
+  background-color: #dceeff;
+  cursor: pointer;
+}
+
+.all-lightcustodydatadiv {
+  background-color: #f3f3f3;
+  min-height: 40px;
+  align-items: center;
+  /* padding-top: 11px;
+  padding-left: 2rem; */
+  color: #1f252c;
+  /* padding: 1.5% 2% 1% 2%; */
+}
+
+.all-lightcustodydatadiv:hover {
+  background-color: #dceeff;
+  cursor: pointer;
+}
+
+.custodyContentPadding {
+  padding: 1% 2% 0.2% 2%;
+  justify-content: space-between !important;
+}
+
+.contentsInfo {
+  display: flex;
+  width: 100%;
+}
+
+.contentsInfo span {
+  flex: 0.3;
+  /* color: #a0a5aa; */
+}
+.contentsInfo p {
+  flex: 0.7;
+}
+.data-show-div {
+  display: flex;
+}
+
+.safeContentsTop {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 8px 20px;
+  background-color: #cdd2d6;
+}
+
+/* .rowHead {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+} */
+
+.custodyPageBtns {
+  width: 45%;
+  margin-left: 2.2rem;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.custodyPageBtns button {
+  background-color: #f1f3f4;
+  border: none;
+  border-radius: 5px;
+  color: #4b525c;
+  outline: none;
+  padding: 5px 12px;
+  margin-right: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  width: fit-content;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  box-shadow: 0px 3px 1px -2px rgb(0 0 0 / 20%),
+    0px 2px 2px 0px rgb(0 0 0 / 14%), 0px 1px 5px 0px rgb(0 0 0 / 12%);
+}
+
+.custodyPageBtns button:hover {
+  color: #0354ff;
+}
+
+.contentPageBtns {
+  width: 20%;
+  margin-left: 4%;
+}
+
+.contentPageBtns button {
+  background-color: #f1f3f4;
+  border: none;
+  border-radius: 5px;
+  color: #4b525c;
+  outline: none;
+  padding: 5px 12px;
+  margin-right: 3%;
+  font-size: 13px;
+  /* font-family: 'Open Sans', Verdana, Arial, Helvetica, sans-serif; */
+  font-weight: 600;
+  box-shadow: 0px 3px 1px -2px rgb(0 0 0 / 20%),
+    0px 2px 2px 0px rgb(0 0 0 / 14%), 0px 1px 5px 0px rgb(0 0 0 / 12%);
+}
+
+.contentPageBtns button:hover {
+  color: #0354ff;
+}
+
+.associatedDocs {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 8px 20px;
+  background-color: #cdd2d6;
+}
+
+.associatedDocsHead {
+  padding-top: 1.5%;
+  padding-bottom: 1%;
+  background-color: #dee2e5;
+}
+
+.associatedDocsHead label {
+  font-weight: bold;
+}
+
+.popupAddContents {
+  background-color: #002b5c;
+  border-radius: 0.4rem;
+  color: white;
+  padding: 0.5% 2%;
+  margin-right: 2%;
+}
+
+.recepientsTop {
+  width: 25%;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  margin-left: 4%;
+}
+
+.safeContacts {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 1% 2%;
+  background-color: #cdd2d6;
+}
+
+.associatedContacts {
+  margin-top: 0%;
+}
+
+.associatedContacts label {
+  margin-bottom: 0.5rem;
+}
+
+.associatedContacts input {
+  width: 90%;
+}
+
+.selectsFileDiv {
+  display: flex;
+  justify-content: space-between;
+  background-color: #dee2e5;
+  padding: 1% 2% 1% 2%;
+}
+
+.safeSelectHeads label {
+  margin-bottom: 5px;
+}
+
+.safeSelectHeads {
+  padding: 1.5% 2% 1% 2%;
+  justify-content: space-between !important;
+  background-color: #dee2e5;
+}
+
+.safeSelectHeads input {
+  width: 100%;
+}
+
+.dropdownStatus {
+  margin-left: 20%;
+}
+.associatedd {
+  height: 50px;
+  border-bottom: 1px solid lightgray;
+  padding-top: 10px;
+}
+.popup-content {
+  padding: 10px 15px;
+}
+.popup-content select {
+  position: absolute;
+  z-index: 3;
+  top: 74px;
+  right: 20px;
+  width: 150px;
+  outline: none;
+}
+.popup-content select::-webkit-scrollbar {
+  width: 0px;
+}
+
+.prepareReceipt-searchContact {
+  outline: none;
+  padding: 2px 10px;
+  width: 40%;
+}
+
+.prepareReceipt-searchContact-optionDiv {
+  position: absolute;
+  z-index: 3;
+  top: 120px;
+  left: 15px;
+  width: 42%;
+  max-height: 145px;
+  overflow-y: auto;
+  outline: none;
+  background-color: #f3f3f3;
+  padding: 5px 0px;
+  box-shadow: 0px 3px 5px rgb(204, 203, 203), -2px 3px 5px rgb(204, 203, 203),
+    2px 3px 5px rgb(204, 203, 203);
+}
+
+.prepareReceipt-searchContact-option {
+  padding: 0 10px;
+}
+
+.prepareReceipt-searchContact-option:hover {
+  background-color: rgb(204, 203, 203);
+}
+
+.filter-input {
+  width: 200px;
+  height: 30px;
+  border: none;
+  outline: none;
+  color: rgb(56, 56, 56);
+  border: 1px solid rgb(134, 134, 134);
+  margin-right: 20px;
+}
+.title-div-popup {
+  background-color: #002b5c;
+  color: white;
+  padding: 10px 10px;
+}
+.title-div-popup h3 {
+  margin-bottom: 0;
+  font-size: 24px;
+}
+.contact-listt {
+  max-height: 300px;
+  overflow-y: scroll;
+}
+.smaller-div {
+  flex: 0.2;
+  display: flex;
+  align-items: center;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+.larger-div {
+  flex: 0.5;
+  display: flex;
+  align-items: center;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+.medium-div {
+  flex: 0.3;
+  padding-top: 5px;
+  display: flex;
+  padding-bottom: 5px;
+  align-items: center;
+}
+hr {
+  margin-top: 0px;
+  margin-bottom: 0px;
+}
+.larger-div h3 {
+  font-size: 18px;
+  color: rgb(53, 53, 53);
+  margin-bottom: 0px;
+}
+.medium-div h3 {
+  font-size: 18px;
+  color: rgb(53, 53, 53);
+  margin-bottom: 0;
+}
+.documentData {
+  max-height: 150px;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  border-bottom: 1px solid lightgray;
+}
+.documentData::-webkit-scrollbar {
+  width: 0px;
+}
+.prepare-btn-div {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  padding: 10px 20px;
+}
+
+.allContent-div {
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 2px;
+  padding: 10px;
+  width: 50%;
+  min-height: 40px;
+  max-height: 100px;
+  overflow: auto;
+  overflow-wrap: unset;
+  resize: horizontal;
+}
+
+.allContent-div p {
+  font-size: 14px;
+}
+
+.safecustody-textArea {
+  width: 50%;
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  outline: none;
+  font-size: 14px;
+  max-height: 100px;
+  overflow: auto;
+  overflow-wrap: unset;
+  resize: horizontal;
+  word-break: keep-all;
+}
+
+.document-nameDiv {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  word-break: break-all;
+  width: 100%;
+}
+
+.document-nameDiv img {
+  margin-right: 1.5rem;
+}
+
+.receiptParent-div {
+  padding: 0 10px;
+}
+
+.receiptBundle {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.receiptContainer {
+  padding: 10px 0;
+  /* background-color: #dee2e5; */
+}
+
+.changeJustify {
+  justify-content: space-between !important;
+}
+
+.receiptLabel {
+  /* color: #0c244c; */
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.rowDocumentHead {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.documentCol-1 {
+  width: 7%;
+  padding: 0 10px;
+  /* display: flex;
+  align-items: center;
+  justify-content: space-between; */
+}
+
+.alignDivText {
+  text-align: center;
+}
+
+.documentCol-2 {
+  width: 20%;
+  padding: 0 10px;
+}
+
+.changePadding {
+  padding: 0 !important;
+}
+
+.showCursor {
+  cursor: pointer;
+}
+
+.receiptBtn-div {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.receiptBtn-div button {
+  margin: 5px;
+  /* background-color: #f1f3f4;
+  border: none;
+  border-radius: 5px;
+  color: #4b525c;
+  outline: none;
+  padding: 5px 12px;
+  margin-right: 10px;
+  margin-left: 10px;
+  font-size: 13px; */
+  /* font-family: 'Open Sans', Verdana, Arial, Helvetica, sans-serif; */
+  /* font-weight: 600;
+  box-shadow: 0px 3px 1px -2px rgb(0 0 0 / 20%),
+    0px 2px 2px 0px rgb(0 0 0 / 14%), 0px 1px 5px 0px rgb(0 0 0 / 12%); */
+}
+
+/* .receiptBtn-div button:hover {
+  color: #0354ff;
+} */
+
+.prepareReceipt-commentDiv {
+  width: 90%;
+  margin: auto;
+  margin-top: 10px;
+}
+
+.prepareReceipt-comment {
+  width: 100%;
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.prepare-headerDiv {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.prepare-contactDiv {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 35%;
+}
+
+.prepare-contactDiv label {
+  font-size: 12px;
+  margin-left: 4px;
+}
+
+.prepare-contactDiv input {
+  width: 100%;
+  border-radius: 10px;
+  padding: 4px 8px;
+  font-size: 14px;
+  border: 1px solid #cdd2d6;
+}
+
+.prepare-addBtnDiv {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.prepare-addBtnDiv button {
+  border: none;
+  border-radius: 8px;
+  color: #4b525c;
+  font-size: 13px;
+  background-color: #f1f3f4;
+  outline: none;
+  padding: 5px 12px;
+  margin-right: 10px;
+  font-weight: 600;
+  box-shadow: 0px 3px 1px -2px rgb(0 0 0 / 20%),
+    0px 2px 2px 0px rgb(0 0 0 / 14%), 0px 1px 5px 0px rgb(0 0 0 / 12%);
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
+
+.col-1.sm {
+  width: 4%;
+}

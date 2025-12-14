@@ -1,0 +1,201 @@
+/* Modal.css */
+.file_directory_modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 9999;
+}
+
+.file_directory_modal-content {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  max-width: 1000px;
+  width: 95vw;
+}
+.file_directory_modal-header {
+  background-color: #6e7780;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  color: white;
+  height: 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.file_directory_modal-header p {
+  margin: 0px;
+  padding-left: 10px;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.file_directory_modal-header img {
+  cursor: pointer;
+}
+.file_directory_modal-file-folder-content {
+  padding: 0px 10px 10px 10px;
+  height: 85vh;
+}
+
+.file_directory_modal.form-modal .file_directory_modal-file-folder-content {
+  padding: 0px 10px 10px 10px;
+  height: 80vh;
+}
+
+.file_directory_modal-flex {
+  display: flex;
+  height: 81%;
+}
+
+.file_directory_modal.form-modal .file_directory_modal-flex{
+  display: flex;
+  height: 94%;
+}
+
+.file_directory_sidebar {
+  width: 40%;
+  margin-right: 20px;
+  font-size: 16px;
+}
+
+.file_directory_main-content {
+  flex: 1;
+}
+
+.file_directory_header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.file_directory_modal input[type='text'] {
+  width: 100%;
+  padding: 10px;
+}
+
+.file_directory_search-box {
+  display: flex;
+  align-items: center;
+  padding-left: 5px;
+  border-radius: 5px;
+  margin-bottom: 10px;
+  border: 1px solid lightgray;
+  margin-top: 5px;
+}
+.file_directory_search-bar {
+  height: 8px;
+  border: none;
+  outline: none;
+  border-radius: 8px;
+}
+
+.file_directory_folder-directory {
+  margin-top: 10px;
+  height: 90%;
+  overflow-y: auto;
+}
+
+.file_directory_folder-directory::-webkit-scrollbar {
+  width: 0.2em;
+  height: 0.2em;
+}
+
+.file_directory_folder-directory::-webkit-scrollbar-track {
+  -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+}
+
+.file_directory_folder-directory::-webkit-scrollbar-thumb {
+  background-color: darkgrey;
+  outline: 1px solid darkgrey;
+}
+
+.file_directory_folder-item {
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+}
+
+.file_directory_folder-icon {
+  margin-right: 6px;
+  height: 25px;
+  width: 25px;
+}
+
+.file_directory_folder-icon-arrow {
+  margin-right: 2px;
+  height: 25px;
+  width: 25px;
+}
+.file_directory_folder-icon-down-arrow {
+  margin-right: 2px;
+  height: 18px;
+  width: 25px;
+}
+
+.file_directory_modal-btns {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.file_directory_select-button {
+  height: 30px;
+  border-radius: 8px;
+  min-width: 80px;
+  background-color: darkblue;
+  color: white;
+  cursor: pointer;
+}
+.file_directory_cancel-button {
+  height: 30px;
+  border-radius: 8px;
+  min-width: 80px;
+  border-color: darkblue;
+  background-color: white;
+  color: darkblue;
+  cursor: pointer;
+}
+
+.file_directory_indendFolder {
+  padding-left: 5px;
+}
+
+.file_directory_align-center {
+  display: flex;
+  /* align-items: center; */
+}
+
+.file_directory_right-bar-files {
+  padding-left: 10px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  padding-left: 28px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  cursor: pointer;
+}
+
+.file_directory_active {
+  background: lightblue;
+}
+
+.file_directory_ml-6 {
+  margin-left: 30px;
+}
+
+.file_directory_no-file-found {
+  text-align: center;
+}
+.file_directory_no-file-found p {
+  font-weight: 400;
+  font-size: 16px;
+}

@@ -1,0 +1,528 @@
+.user-pageHeadContainer {
+  width: 100%;
+  background-color: #fff;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 5px 15px;
+}
+
+.user-pageIconDiv {
+  margin-right: 15px;
+}
+
+.user-pageIconBtn {
+  background-color: transparent;
+  outline: none;
+  border: none;
+  padding: 0;
+  margin-right: 15px;
+}
+
+.user-pageIcon-big {
+  border-radius: 8px;
+  width: 45px;
+  height: 45px;
+}
+
+.user-pageIcon {
+  border-radius: 8px;
+  width: 40px;
+  height: 40px;
+}
+
+.user-iconBorder {
+  border: 2px solid #cfd6d7;
+  border-radius: 8px;
+}
+
+.user-pageNameDiv {
+  margin-right: 15px;
+}
+
+.user-pageName-1 {
+  font-size: 12px;
+  font-weight: 600;
+  margin: 0;
+  color: rgb(12, 36, 76);
+}
+
+.user-pageName-2 {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0;
+  line-height: 1;
+  color: rgb(12, 36, 76);
+}
+
+.user-containerDiv {
+  width: 100%;
+  /* background-color: #fff; */
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-start;
+  /* height: calc(100vh - 105px); */
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.user-leftDiv {
+  width: 100%;
+  animation-name: moveInLeft;
+  animation-duration: 0.6s;
+  border-right: 1px solid #c0c4c7;
+  height: 100%;
+}
+
+.user-leftHeaderDiv {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 10px;
+  background-color: #cdd2d6;
+}
+
+.user-headerBtnDiv {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  margin-left: 10px;
+  margin-right: 10px;
+}
+
+.user-btnIcon {
+  height: 16px;
+  width: 16px;
+  margin-right: 8px;
+}
+
+.user-bigIcon {
+  height: 20px;
+  width: 20px;
+  margin-right: 8px;
+}
+
+.user-headerBtn {
+  background-color: transparent;
+  outline: none;
+  border: none;
+  font-size: 14px;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  margin-left: 10px;
+  margin-right: 10px;
+  color: #4c5561;
+  font-weight: 600;
+}
+
+.user-headerBtn:disabled {
+  color: #8c9899;
+}
+
+.user-tableContainer {
+  width: 100%;
+}
+
+.user-tableHeader {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  width: 100%;
+  padding: 5px 15px;
+  box-sizing: border-box;
+  background-color: #dee2e5;
+}
+
+.user-tableCol-small {
+  width: 4%;
+}
+
+.user-tableCol-small .searchButton {
+  padding-top: 5px;
+  margin-top: 0;
+  background-color: transparent;
+}
+
+.user-tableCol {
+  width: 15%;
+  margin-right: 1.5%;
+}
+
+.user-colLabel {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding-right: 12px;
+  box-sizing: border-box;
+  cursor: pointer;
+  width: 90%;
+}
+
+.user-colLabel p {
+  font-size: 14px;
+  font-weight: 600;
+  /* color: #4c5561; */
+}
+
+.user-tableFilter {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  width: 100%;
+  padding: 5px 15px;
+  box-sizing: border-box;
+  background-color: #fff;
+  border-bottom: 1px solid #e4e8e9;
+}
+
+.user-filterInput {
+  width: 85%;
+  outline: none;
+  font-size: 14px;
+  border: 1px solid #c0c4c7;
+  border-radius: 4px;
+  padding: 1px;
+}
+
+.user-tableRowDiv {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  width: 100%;
+  padding: 8px 15px;
+  box-sizing: border-box;
+  border-bottom: 1.5px solid #e4e8e9;
+}
+
+.user-tableRowDiv:nth-child(even) {
+  background-color: #fff;
+}
+
+.user-tableRowDiv:nth-child(odd) {
+  background-color: #f3f3f3;
+}
+
+.user-tableRowDiv:hover {
+  background-color: #dceeff;
+  cursor: pointer;
+}
+
+.user-contentDiv-small {
+  width: 4%;
+}
+
+.user-contentDiv {
+  width: 15%;
+  margin-right: 1.5%;
+  padding: 8px 5px;
+  box-sizing: border-box;
+}
+
+.user-contentDiv p {
+  font-size: 14px;
+  font-weight: 500;
+  color: #4c5561;
+}
+
+.user-hide {
+  display: none;
+}
+
+.user-show {
+  display: block;
+  width: 34.9%;
+  animation-name: moveInRight;
+  animation-duration: 0.6s;
+  height: 100%;
+
+  /* transition: transform 0.5s ease-in-out; */
+  /* transform: translate3d(0, 0, 0); */
+}
+
+/************* Add User ***********/
+
+.addUser-container {
+  position: relative;
+  height: 100%;
+}
+
+.addUser-topStyle {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 20px;
+  border: 1px solid lightgray;
+  background-color: rgb(233, 233, 233);
+}
+
+.addUser-titleDiv {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.addUser-close {
+  background-color: transparent;
+  border: none;
+  outline: none;
+  margin-right: 15px;
+  padding: 0;
+  color: rgb(12, 36, 76);
+}
+
+.addUser-plus {
+  font-size: 22px;
+  font-weight: 600;
+  margin-right: 15px;
+  color: rgb(12, 36, 76);
+}
+
+.addUser-heading {
+  font-size: 16px;
+  font-weight: 600;
+  color: rgb(12, 36, 76);
+}
+
+.addUser-bodyDiv {
+  width: 100%;
+  padding: 15px;
+}
+
+.addUser-personDiv {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.addUser-person {
+  font-size: 14px;
+  margin-right: 20px;
+  font-weight: 500;
+  margin-bottom: 9px;
+}
+
+.addUser-searchDiv {
+  width: 65%;
+}
+
+.addUser-person span {
+  color: red;
+}
+
+.addUser-roleDiv {
+  width: 100%;
+  margin-top: 25px;
+}
+
+.addUser-roleDiv > p{
+  font-weight: 500;
+}
+
+.addUser-roleHeader {
+  color: rgb(12, 36, 76);
+  font-weight: 600;
+}
+
+.addUser-roleContainer {
+  width: 100%;
+  margin: auto;
+}
+
+.addUser-roleHead {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  /* background-color: rgb(233, 233, 233);
+  border: 1px solid #c0c4c7; */
+  border-radius: 2px;
+  margin-top: 10px;
+  padding: 8px 15px;
+}
+
+.addUser-siteHeadPara {
+  color: gray;
+  font-weight: 600;
+  width: 35%;
+}
+
+.addUser-roleHeadPara {
+  color: gray;
+  font-weight: 600;
+  width: 63%;
+}
+
+.addUser-roleHeadCheck {
+  margin-right: 15px;
+}
+
+.addUser-roleList {
+  width: 100%;
+  padding: 8px 0;
+  /* border: 1px solid #c0c4c7; */
+  border-top: none;
+  min-height: 35vh;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.addUser-roleList::-webkit-scrollbar {
+  width: 4px !important;
+  border-radius: 50% !important;
+}
+.addUser-roleList::-webkit-scrollbar-track {
+  /* background-color: rgb(255, 255, 255) !important; */
+}
+.addUser-roleList::-webkit-scrollbar-thumb {
+  /* background-color: #c0c4c7 !important; */
+  width: 4px;
+  border-radius: 2px;
+}
+.addUser-roleList:hover::-webkit-scrollbar-thumb {
+  /* background-color: #c0c4c7 !important; */
+}
+
+.addUser-roleName {
+  width: 35%;
+}
+
+.addUser-option {
+  width: 63%;
+}
+
+.addUser-role {
+  padding: 4px 15px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2px;
+  border-bottom: 1px solid #c0c4c7;
+}
+
+.addUser-role:last-child {
+  border-bottom: none;
+}
+
+.addUser-check {
+  width: 15px;
+  height: 15px;
+  margin-right: 15px;
+}
+
+.addUser-btnDiv {
+  /* position: absolute;
+  bottom: 10px;
+  left: 15px; */
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 15px;
+  margin-top: 1rem;
+}
+
+.addUser-btn {
+  outline: none;
+  padding: 6px 20px;
+  border-radius: 4px;
+  color: #fff;
+  border: none;
+  margin-right: 20px;
+  font-size: 14px;
+}
+
+.addUser-blue {
+  background-color: #0384cc;
+}
+
+.addUser-gray {
+  background-color: #9ba7ac;
+}
+
+.addUser-form {
+  width: 100%;
+}
+
+.addUser-inputDiv {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  margin-top: 10px;
+}
+
+.addUser-input {
+  width: 90%;
+  border: 1px solid #c0c4c7;
+  border-radius: 4px;
+  padding: 4px 8px;
+  outline: none;
+}
+
+.addUser-pass {
+  width: 90%;
+  border: 1px solid #c0c4c7;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 8px;
+  color: #7b7f81;
+}
+
+.addUser-passInput {
+  outline: none;
+  border: none;
+  padding: 0;
+  width: 90%;
+}
+
+.addUser-passIcon {
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.addUser-label {
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.addUser-label span {
+  color: red;
+}
+
+.addUser-details {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  margin: 10px 0;
+}
+
+.addUser-details label {
+  font-size: 14px;
+  font-weight: 500;
+  margin-right: 25px;
+}
+
+.addUser-details p {
+  font-size: 14px;
+  font-weight: 500;
+}

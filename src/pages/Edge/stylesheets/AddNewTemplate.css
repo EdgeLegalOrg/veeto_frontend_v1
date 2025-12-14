@@ -1,0 +1,197 @@
+.tempForm-popup-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.2);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.tempForm-popup-grid {
+  position: relative;
+  top: 0%;
+  left: 6%;
+  background-color: #fff;
+  border-radius: 5px;
+  width: 70%;
+  /* height: 60vh; */
+  /* max-height: 68vh;
+  overflow-y: auto; */
+  text-align: center;
+  /* padding: 0px 10px 0px 10px; */
+  /* box-shadow: 0px 6px 35px rgba(85, 85, 85, 0.7); */
+  box-shadow: 0px 2px 4px -1px rgb(0 0 0 / 20%),
+    0px 4px 5px 0px rgb(0 0 0 / 14%), 0px 1px 10px 0px rgb(0 0 0 / 12%);
+  display: flex;
+  flex-direction: column;
+}
+
+.w60 {
+  width: 60% !important;
+}
+
+.w55 {
+  width: 55% !important;
+}
+
+.tempForm-header {
+  background-color: #002b5c;
+  color: #fff;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 25px;
+  /* position: sticky; */
+  /* top: 0; */
+  /* left: 0; */
+  /* z-index: 999; */
+}
+
+.tempForm-heading {
+  font-size: 1.2rem;
+}
+
+.close-form-btn {
+  border: none;
+  background-color: #002b5c;
+  color: #fff !important;
+  font-size: 0.8rem;
+  outline: none;
+}
+
+.close-form-btn img {
+  height: 1rem;
+  width: 1rem;
+}
+
+.tempForm-dropzone-div {
+  margin: .5rem 1rem;
+  border-radius: 10px;
+  border: 2px dashed #b6b5b5;
+  /* padding: 1.2rem 1rem; */
+  min-height: 100px;
+}
+
+.tempForm-dropzone-div span {
+  text-decoration: underline;
+  margin-top: 1rem;
+  font-weight: 600;
+}
+
+.tempForm-dropzone {
+  text-align: center;
+  width: 100%;
+  min-height: inherit;
+  /* background-color: #fafafa; */
+  color: #a7a6a6;
+  cursor: pointer;
+}
+
+.tempForm-gridContent {
+  max-height: 50vh;
+  min-height: 20vh;
+  overflow-y: auto;
+}
+
+.tempForm-btnSection {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  align-items: center;
+  margin: 12px 10px;
+}
+
+.tempForm-btnSection .cancelButton {
+  width: 10%;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 5px;
+  padding: 5px 10px;
+  outline: none;
+  color: Black;
+  margin-right: 10px;
+  background-color: #c4cacd;
+  box-shadow: 0px 3px 1px -2px rgb(0 0 0 / 20%),
+    0px 2px 2px 0px rgb(0 0 0 / 14%), 0px 1px 5px 0px rgb(0 0 0 / 12%);
+}
+
+.tempForm-btnSection .addButton {
+  width: 10%;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 5px 10px;
+  color: Black;
+  background-color: #c4cacd;
+  border: none;
+  border-radius: 5px;
+  outline: none;
+  margin-left: 10px;
+  box-shadow: 0px 3px 1px -2px rgb(0 0 0 / 20%),
+    0px 2px 2px 0px rgb(0 0 0 / 14%), 0px 1px 5px 0px rgb(0 0 0 / 12%);
+}
+
+.tempForm-inputSection {
+  width: 95%;
+  margin: auto;
+  padding: 0 1.5rem;
+}
+
+.tempForm-inputSection .tempForm-inputContainer:last-child {
+  /* margin-bottom: 10rem; */
+}
+
+.tempForm-inputContainer span {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.tempForm-inputContainer {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+
+.tempForm-inputContainer:first-child{
+  margin-top: 20px;
+}
+
+.tempForm-w90 {
+  width: 90% !important;
+  margin: auto;
+}
+
+.tempForm-w80 {
+  width: 80% !important;
+  margin: auto;
+}
+
+.tempForm-jcE {
+  justify-content: space-evenly !important;
+}
+
+.tempForm-fls {
+  justify-content: flex-start !important;
+}
+
+.tempForm-btnClose {
+  outline: none;
+  background-color: transparent;
+  border: none;
+  padding: 0;
+  font-size: 22px;
+  color: #5a5b5c;
+}
+
+.comment {
+  border: 1px solid #888e92;
+  border-radius: 4px;
+  padding: 5px 5px;
+  outline: none;
+}

@@ -1,0 +1,167 @@
+.companyInfo-body {
+  height: 100%;
+  width: 100%;
+}
+.companyInfo-inputDiv {
+  display: flex !important;
+  flex-wrap: wrap;
+  flex-direction: row;
+  margin-top: 10px;
+  padding-left: 2px;
+}
+
+.companyInfo-inputDiv .mr-bottom {
+  margin-bottom: 3rem;
+}
+
+.companyInfo-label {
+  height: 55px;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding-left: 30px;
+  background-color: rgb(233, 233, 233);
+  margin-top: 20px;
+}
+.companyInfo-label h3 {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 0;
+}
+
+.companyInfo-section-1 {
+  margin-bottom: 2rem;
+}
+
+/************* Company Sites *******************/
+
+.companySites-tableContainer {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.companySites-tableDiv {
+  width: inherit;
+}
+
+.companySites-tableHeader {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: flex-start;
+  padding: 5px 15px;
+  box-sizing: border-box;
+  background-color: rgb(233, 233, 233);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.companySites-tableCol-sm {
+  width: 5%;
+  margin-right: 8px;
+}
+
+.companySites-tableCol-md {
+  width: 10%;
+  margin-right: 8px;
+}
+
+.companySites-tableCol-lg {
+  width: 16%;
+  margin-right: 8px;
+}
+
+.companySites-tableCol-xlg {
+  width: 70%;
+  margin-right: 8px;
+}
+
+.companySites-labelDiv {
+  width: 90%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+
+.companySites-labelDisclaimer {
+  width: 90%;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  cursor: pointer;
+}
+
+.companySites-inputFilter {
+  width: 90%;
+  outline: none;
+  font-size: 14px;
+  border: 1px solid #c0c4c7;
+  border-radius: 4px;
+  padding: 1px 2px;
+}
+
+.companySites-rowDiv {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 10px 15px;
+  box-sizing: border-box;
+  font-size: 14px;
+}
+
+.companySites-rowDiv:nth-child(even) {
+  background-color: #fff;
+}
+.companySites-rowDiv:nth-child(odd) {
+  background-color: #f3f3f3;
+}
+
+.companySites-rowDiv:hover {
+  background-color: #dceeff;
+  cursor: pointer;
+}
+
+.companySites-row-sm {
+  width: 5%;
+  margin-right: 8px;
+}
+
+.companySites-row-md {
+  width: 10%;
+  margin-right: 8px;
+}
+
+.companySites-row-lg {
+  width: 16%;
+  margin-right: 8px;
+}
+
+.companySites-row-xlg {
+  width: 70%;
+  margin-right: 8px;
+}
+
+.companySites-editBtn {
+  padding: none;
+  margin: none;
+  outline: none;
+  border: none;
+  background-color: transparent;
+}
+
+.companySites-editIcon {
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.siteInfo-bankList {
+  margin-top: 1.5rem;
+}
+
+.bankList-tableDiv {
+  width: 100%;
+}

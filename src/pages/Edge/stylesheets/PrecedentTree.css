@@ -1,0 +1,86 @@
+.tree-popup {
+  padding: 0 25px 25px 25px;
+  display: flex;
+  align-items: flex-start;
+  box-sizing: border-box;
+}
+
+.tree-struc {
+  width: 36%;
+  margin-right: 30px;
+  max-height: 56vh;
+  overflow-y: auto;
+}
+
+.tree-right {
+  width: 64%;
+}
+
+.pt-search {
+  outline: none;
+  font-size: 15px;
+  border: 1px solid #808285;
+  border-radius: 4px;
+  padding: 3px 8px;
+  width: 90%;
+  color: #000;
+}
+
+.pt-search::placeholder {
+  color: rgb(68, 67, 67);
+}
+
+.pt-search:disabled {
+  opacity: 0.8;
+  cursor: no-drop;
+}
+
+.tree-struc .tree-folder,
+.tree-file {
+  cursor: pointer;
+}
+
+.tree-struc .tree-folder {
+  margin-top: 10px;
+}
+
+.tree-struc .tree-folder .tree-folder-content {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.tree-struc .tree-folder .tree-folder-content p {
+  margin: 0 10px;
+}
+
+.tree-file {
+  font-size: 15px;
+  font-weight: 500;
+  margin: 14px 0;
+}
+
+.tree-file .tree-file-icon {
+  height: 20px;
+  width: 20px;
+  margin-right: 10px;
+}
+
+.tree-struc .display-content {
+  display: block;
+  padding-left: 20px;
+}
+
+.highlight {
+  background-color: #1890ff;
+  padding: 2px 5px;
+  border-radius: 4px;
+  color: #fff;
+  font-weight: 500 !important;
+}
+
+.no-file {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 600;
+}

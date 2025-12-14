@@ -1,0 +1,26 @@
+import React, { useEffect } from "react";
+import withRouter from "../Components/Common/withRouter";
+
+//redux
+import { useSelector } from "react-redux";
+import { createSelector } from "reselect";
+
+const NonAuthLayout = ({ children }) => {
+  // simple selector for a single primitive value — no need for createSelector
+  const selectLayoutModeType = (state) => state.Layout.layoutModeType;
+  const layoutModeType = useSelector(selectLayoutModeType);
+
+  useEffect(() => {
+    if (layoutModeType === "dark") {
+      document.body.setAttribute("data-bs-theme", "dark");
+    } else {
+      document.body.setAttribute("data-bs-theme", "light");
+    }
+    return () => {
+      document.body.removeAttribute("data-bs-theme");
+    };
+  }, [layoutModeType]);
+  return <div>{children}</div>;
+};
+
+export default withRouter(NonAuthLayout);

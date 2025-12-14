@@ -1,0 +1,307 @@
+.searchField-containerDiv {
+}
+
+.searchField-inputDiv {
+  position: relative;
+}
+
+/* .oh .customToast-body:not(.scrollable) {
+  overflow-y: hidden;
+} */
+
+.searchField-optionDiv {
+  position: absolute;
+  /* margin-left: 9px; */
+  z-index: 3;
+  min-width: 92%;
+  max-height: 190px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  /* outline: none; */
+  /* background-color: #f3f3f3; */
+  padding: 5px 0px;
+  /* box-shadow: 0px 3px 5px rgb(204, 203, 203), -2px 3px 5px rgb(204, 203, 203),
+    2px 3px 5px rgb(204, 203, 203); */
+  box-shadow: rgba(99, 99, 99, 0.2) 0px 2px 8px 0px;
+}
+
+.searchField-optionDiv.smallWidth {
+  min-width: 100%;
+}
+
+.searchField-option-div {
+  width: 100%;
+  /* margin: auto; */
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 15px;
+  cursor: pointer;
+}
+
+.searchField-option-div:hover {
+  background-color: var(--background-primary);
+  color: var(--text-light);
+}
+
+.searchField-option {
+  padding: 5px 10px;
+  cursor: pointer;
+  text-align: left;
+  font-size: 14px;
+}
+.searchField-option:hover {
+  background-color: var(--background-primary);
+  color: var(--text-light);
+}
+
+.customToast-popup-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.2);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  z-index: 100;
+}
+
+[data-bs-theme="light"] .customToast-popup-grid {
+  position: relative;
+  top: 0%;
+  left: 8%;
+  background-color: var(--background-light);
+  border-radius: 5px;
+  width: 60%;
+  box-shadow: 0px 2px 4px -1px rgb(0 0 0 / 20%),
+    0px 4px 5px 0px rgb(0 0 0 / 14%), 0px 1px 10px 0px rgb(0 0 0 / 12%);
+  /* max-height: 80vh; */
+  /* overflow-y: auto; */
+  display: flex;
+  flex-direction: column;
+}
+
+[data-bs-theme="dark"] .customToast-popup-grid {
+  position: relative;
+  top: 0%;
+  left: 8%;
+  background-color: var(--background-dark);
+  border-radius: 5px;
+  width: 60%;
+  box-shadow: 0px 2px 4px -1px rgb(0 0 0 / 20%),
+    0px 4px 5px 0px rgb(0 0 0 / 14%), 0px 1px 10px 0px rgb(0 0 0 / 12%);
+  /* max-height: 80vh; */
+  /* overflow-y: auto; */
+  display: flex;
+  flex-direction: column;
+}
+
+.customToast-header {
+  /* background-color: #002b5c;
+  color: #fff; */
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 7px 25px;
+}
+
+.customToast-heading {
+  font-size: 1.2rem;
+  margin-bottom: 0;
+}
+
+.customToast-body {
+  /* padding: 15px; */
+  min-height: 40vh;
+  max-height: 60vh;
+  overflow-y: auto;
+  margin-top: 20px;
+}
+
+.customToast-inputDiv {
+  display: flex !important;
+  flex-wrap: wrap;
+  flex-direction: row;
+  margin: auto;
+  margin-top: 10px;
+  padding-left: 2px;
+  width: 98%;
+}
+
+.customToast-buttonDiv {
+  width: 95%;
+  margin: auto;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.customToast-btns {
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+}
+
+.customToast-buttonDiv .cancelButton {
+  width: 120px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border-radius: 5px;
+  padding: 5px 10px;
+  outline: none;
+  color: Black;
+  margin: 0 10px;
+  background-color: #c4cacd;
+  box-shadow: 0px 3px 1px -2px rgb(0 0 0 / 20%),
+    0px 2px 2px 0px rgb(0 0 0 / 14%), 0px 1px 5px 0px rgb(0 0 0 / 12%);
+}
+
+.customToast-buttonDiv .addButton {
+  width: 120px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 5px 8px;
+  color: Black;
+  margin: 0 10px;
+  background-color: #c4cacd;
+  border-radius: 5px;
+  outline: none;
+  box-shadow: 0px 3px 1px -2px rgb(0 0 0 / 20%),
+    0px 2px 2px 0px rgb(0 0 0 / 14%), 0px 1px 5px 0px rgb(0 0 0 / 12%);
+}
+
+.custom-searchInput {
+  outline: none;
+  font-size: 15px;
+  border: none;
+  padding: 0;
+  margin-right: 5px;
+  width: 80%;
+}
+
+.custom-searchDiv {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  border: 1px solid #c0c4c7;
+  border-radius: 4px;
+  padding: 4px 8px;
+}
+
+.custom-clsBtn {
+  border: none;
+  outline: none;
+  padding: none;
+  background-color: transparent;
+  height: 20px;
+}
+
+.custom-clsIcon {
+  font-size: 12px;
+  margin-bottom: 5px;
+}
+
+.selected-option {
+  background-color: var(--background-primary);
+  color: var(--background-light);
+}
+
+.tooltip .tooltip-inner {
+  max-width: 30rem;
+  word-break: keep-all;
+  white-space: normal;
+}
+
+.search-adornment {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+
+.custom-card {
+  border: 2px solid #cdcdcd;
+  border-radius: 4px;
+  background-color: #fff;
+  padding: 18px 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.16), 0 2px 4px rgba(0, 0, 0, 0.23);
+  position: relative;
+}
+
+/* .custom-card:hover {
+  box-shadow: 0 5px 8px rgba(0, 0, 0, 0.18), 0 6px 6px rgba(0, 0, 0, 0.2);
+} */
+
+.custom-card.md {
+  width: 32%;
+}
+
+.cc-heading {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.cc-body {
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+}
+
+.cc-body .cc-num {
+  color: #007990;
+  margin-right: 4px;
+  font-weight: 600;
+}
+
+.cc-link {
+  position: absolute;
+  bottom: 6px;
+  right: 10px;
+  cursor: pointer;
+  color: #4f5b5c;
+}
+
+.cst-header {
+  background-color: #002b5c;
+}
+
+.cst-header-content {
+  color: #fff;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  /* margin: 12px 25px; */
+}
+
+.cst-header-content > h2 {
+  margin: 12px 25px;
+}
+
+.cst-header-content .customToast-btns .mc-addBtns {
+  height: fit-content;
+  align-items: center;
+}
+
+.cst-header-content .customToast-btns .close-form-btn {
+  padding: 12px;
+  background-color: transparent;
+}
+
+.cst-header-content .customToast-btns .close-form-btn:hover {
+  background-color: red;
+}
+
+.contact__header__filters {
+  display: flex;
+  gap: 5px;
+  padding-top: 20px;
+}

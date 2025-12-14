@@ -1,0 +1,12 @@
+@import '../config/default/variables';
+
+@each $size in $gutter-space {
+  .max-h#{$size}{
+    max-height: #{$size}px;
+  }
+
+  .max-#{$size}vh{
+    max-height: #{$size}vh;
+    overflow-y: auto;
+  }
+}

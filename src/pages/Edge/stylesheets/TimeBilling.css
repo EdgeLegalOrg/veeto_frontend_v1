@@ -1,0 +1,43 @@
+.radioContainer {
+  margin: 18px 0;
+}
+
+.radioDiv {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.radioDiv input {
+  margin-right: 10px;
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.tb-description {
+  width: 90%;
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid rgba(0, 0, 0, 0.47);
+  outline: none;
+  font-size: 15px;
+  max-height: 100px;
+  overflow: auto;
+  overflow-wrap: unset;
+  resize: horizontal;
+  word-break: keep-all;
+  position: relative;
+  color: rgb(94, 94, 94);
+  font-weight: 600;
+  margin: 18px 0;
+}
+
+.tb-description::placeholder {
+  color: rgba(0, 0, 0, 1);
+  font-weight: 500;
+}
+
+.tb-description:focus {
+  border: 1px solid #3f51b5;
+}
