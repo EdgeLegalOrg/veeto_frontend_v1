@@ -82,7 +82,7 @@ export const formatCurrency = (amount) => {
 export const checkHasPermission = (key) => {
   const userDetails = JSON.parse(window.localStorage.getItem("userDetails"));
 
-  const authorities = userDetails.authorities;
+  const authorities = userDetails?.authorities || [];
 
   if (authorities.length) {
     return authorities.includes(key);

@@ -38,12 +38,21 @@ const PaymentList = (props) => {
     fetchPaymentList();
   }, []);
 
+  useEffect(() => {
+    if (props.refreshList) {
+      fetchPaymentList();
+    }
+  }, [props.refreshList]);
+
   const fetchPaymentList = async () => {
     setLoading(true);
     try {
       const { data } = await getEligiblePayments();
       if (data.success) {
         setList(data?.data?.invoicePaymentList || []);
+        if (props.handleRefresh) {
+          props.handleRefresh(false);
+        }
       } else {
         toast.error("Something went wrong, please try later.");
       }
@@ -159,7 +168,9 @@ const PaymentList = (props) => {
         }
       }
 
-      fetchPaymentList();
+      if (props.handleRefresh) {
+        props.handleRefresh(true);
+      }
     } catch (error) {
       console.error("Something went wrong", error);
       toast.error("Something went wrong, please try later.");
@@ -229,11 +240,12 @@ const PaymentList = (props) => {
                       <Input type="checkbox" checked={isSelected(payment)} />
                     </td>
                     <td>
-                      <p className="mb-0">
+                      {/*<p className="mb-0">
                         {siteCode
                           ? `${siteCode}-${payment.paymentNumber}`
                           : payment.paymentNumber}
-                      </p>
+					</p>*/}
+                      <p className="mb-0">{payment.paymentNumStr}</p>
                     </td>
                     <td>
                       <p className="mb-0">{payment.matterNumber}</p>

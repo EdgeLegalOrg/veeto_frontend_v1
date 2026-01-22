@@ -468,7 +468,8 @@ const PaymentTable = (props) => {
               <td></td>
               <td>
                 <p className="mb-0">
-                  {payment.paymentNumber ? `${payment.paymentNumber}` : ""}
+				{/*{payment.paymentNumber ? `${payment.paymentNumber}` : ""}*/}
+				  {payment.paymentNumStr ? `${payment.paymentNumStr}` : ""}
                 </p>
               </td>
               <td>

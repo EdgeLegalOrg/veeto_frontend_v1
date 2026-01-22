@@ -215,7 +215,8 @@ const InvoiceList = (props) => {
                 className={`${expandOrCollapse(invoice) && "pe-cursor"}`}
               >
                 <td>
-                  <p className="mb-0">{invoice.invoiceNumber}</p>
+				{/*<p className="mb-0">{invoice.invoiceNumber}</p>*/}
+				  <p className="mb-0">{invoice.invoiceNumStr}</p>
                 </td>
                 <td>
                   <p className="mb-0">

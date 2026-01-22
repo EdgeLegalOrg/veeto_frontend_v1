@@ -29,7 +29,8 @@ const ReceivedPaymentDetails = (props) => {
           {list.map((payment) => (
             <tr key={payment.paymentId} className="pe-cursor">
               <td>
-                <p className="mb-0">{payment.paymentNumber}</p>
+			  {/*<p className="mb-0">{payment.paymentNumber}</p>*/}
+			  <p className="mb-0">{payment.paymentNumStr}</p>
               </td>
               <td>
                 <p className="mb-0">
@@ -45,7 +46,8 @@ const ReceivedPaymentDetails = (props) => {
                 </p>
               </td>
               <td>
-                <p className="mb-0">{`$${payment.amount}`}</p>
+			    {/*<p className="mb-0">{`$${payment.amount}`}</p>*/}
+				<p className="mb-0">{`$${payment.totalPaymentAmount}`}</p>
               </td>
               <td></td>
               <td>

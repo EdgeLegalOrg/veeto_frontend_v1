@@ -37,7 +37,8 @@ const ViewPaymentDetails = (props) => {
               Payment Number
             </label>
             <p className='deposit-info fs-15'>
-              {data.paymentNumber ? `# ${data.paymentNumber}` : ''}
+              {/*data.paymentNumber ? `# ${data.paymentNumber}` : ''*/}
+			  {data.paymentNumStr ? `# ${data.paymentNumStr}` : ''}
             </p>
           </div>
           <div className='deposit-label-info col-md-4'>

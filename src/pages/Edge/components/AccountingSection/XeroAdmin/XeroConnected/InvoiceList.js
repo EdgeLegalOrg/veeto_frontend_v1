@@ -38,12 +38,22 @@ const InvoiceList = (props) => {
     fetchInvoiceList();
   }, []);
 
+  useEffect(() => {
+    if (props.refreshList) {
+      fetchInvoiceList();
+    }
+  }, [props.refreshList]);
+
   const fetchInvoiceList = async () => {
     setLoading(true);
     try {
       const { data } = await getEligibleInvoice();
       if (data.success) {
         setList(data?.data?.invoiceList || []);
+
+        if (props.handleRefresh) {
+          props.handleRefresh(false);
+        }
       } else {
         toast.warning("Something went wrong, please try later.");
       }
@@ -112,7 +122,9 @@ const InvoiceList = (props) => {
         }
       }
 
-      fetchInvoiceList();
+      if (props.handleRefresh) {
+        props.handleRefresh(true);
+      }
     } catch (error) {
       console.error("Something went wrong", error);
       toast.error("Something went wrong, please try later.");
@@ -177,11 +189,15 @@ const InvoiceList = (props) => {
                       <Input type="checkbox" checked={isSelected(invoice.id)} />
                     </td>
                     <td>
-                      <p className="mb-0">
+                      {/*
+					  <p className="mb-0">
                         {siteCode
                           ? `${siteCode}-${invoice.invoiceNumber}`
                           : invoice.invoiceNumber}
+						
                       </p>
+					  */}
+                      <p className="mb-0">{invoice.invoiceNumStr}</p>
                     </td>
                     <td>
                       <p className="mb-0">{invoice.matterNumber}</p>
