@@ -17,7 +17,7 @@ import {
 } from "reactstrap";
 import { convertSubstring, findDisplayname } from "../../utils/utilFunc";
 import {
-  allStaffMember,
+  allStaffMemberAndAccountInfoStaff,
   getInvoiceofMatter,
   getMatterDetail,
   getMattersList,
@@ -215,7 +215,7 @@ const MatterList = () => {
   const fetchStaffList = async () => {
     try {
       setLoading(true);
-      const { data } = await allStaffMember({ staffActive: "" });
+      const { data } = await allStaffMemberAndAccountInfoStaff();
       let arr = [];
       if (data.success) {
         if (

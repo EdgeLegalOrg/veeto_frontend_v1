@@ -9,7 +9,7 @@ import { removeAllStorage } from '../Edge/utils/utilFunc';
 const Logout = (props) => {
   const token = Cookies.get('userJWT');
   function logout() {
-    toast.success('You are Logged out', { autoClose: 2000 });
+    //toast.success('You are Logged out', { autoClose: 2000 });
 
     Cookies.remove('userJWT');
     Cookies.remove('userId');

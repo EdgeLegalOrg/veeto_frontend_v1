@@ -708,6 +708,12 @@ export const allStaffMember = (filters) =>
       filters.staffActive === false ? false : filters.staffActive
     }&sortOn=${filters.sortOn ?? ""}&sortType=${filters.sortType ?? ""}`
   );
+
+  export const allStaffMemberAndAccountInfoStaff = () =>
+  API.get(
+    `/api/staff/by-account-site?requestId=${uuidv1()}`
+  );
+  
 export const editStaffDetails = (formData) =>
   API.put(`/api/staff`, {
     requestId: uuidv1(),
