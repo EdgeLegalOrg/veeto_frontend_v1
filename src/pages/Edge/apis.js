@@ -261,6 +261,9 @@ export const deleteTimeBilling = (ids) =>
 export const getInvoiceofMatter = (id) =>
   API.get(`/api/invoice/matter/${id}?requestId=${uuidv1()}`);
 
+export const getUnpaidInvoiceOfMatter = (id) =>
+  API.get(`/api/invoice/matter/${id}/final-unpaid?requestId=${uuidv1()}`);
+
 export const getInvoiceById = (id) =>
   API.get(`/api/invoice/${id}?requestId=${uuidv1()}`);
 

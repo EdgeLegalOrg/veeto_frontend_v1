@@ -45,10 +45,6 @@ const ReceivePayment = (props) => {
     fetchEnumList();
   }, []);
 
-  useEffect(() => {
-    parseList(props.list);
-  }, [props.list]);
-
   const parseList = (arg) => {
     let arr = [];
     arr = arg.filter(
@@ -62,7 +58,7 @@ const ReceivePayment = (props) => {
     for (let a in arr) {
       let item = arr[a];
       arr[a].error = { valid: true, message: "Amount entered is not correct." };
-      formArr.push({ invoiceId: item.id, amount: 0 });
+      formArr.push({ invoiceId: item.id, amount: 0, matterId: item.matterId});
     }
     setList(arr);
     setFormData({ ...formData, invoicePaymentList: formArr });
@@ -200,7 +196,7 @@ const ReceivePayment = (props) => {
     let d = {
       ...formData,
       invoicePaymentList: invoiceList,
-      matterId: props.matterData.id,
+      // matterId: props.matterData.id,
     };
 
     setLoading(true);
@@ -393,12 +389,15 @@ const ReceivePayment = (props) => {
             <div className="mt-3">{accountDetails()}</div>
           </div>
           <InvoiceToBePaid
+            matterId={props.matterData.id}
             matterNumber={props.matterData.matterNumber}
             // list={props.list}
             list={list}
             setList={setList}
             formData={formData}
             setFormData={setFormData}
+            setLoading={setLoading}
+            parseList={parseList}
           />
         </div>
         {loading && <LoadingPage />}

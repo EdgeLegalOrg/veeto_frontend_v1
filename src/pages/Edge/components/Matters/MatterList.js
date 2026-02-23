@@ -355,12 +355,12 @@ const MatterList = () => {
   const handleArchived = () => {
     if (showArchived) {
       setShowArchived(false);
-      setFilterInput({ ...filterInput, archived: false });
-      handleRefreshList({ ...filterInput, archived: false });
+      setFilterInput({ ...filterInput, archived: false, sortOn: "" });
+      handleRefreshList({ ...filterInput, archived: false, sortOn: "" });
     } else {
       setShowArchived(true);
-      setFilterInput({ ...filterInput, archived: true });
-      handleRefreshList({ ...filterInput, archived: true });
+      setFilterInput({ ...filterInput, archived: true, sortOn: "archiveNumber"});
+      handleRefreshList({ ...filterInput, archived: true, sortOn: "archiveNumber" });
     }
   };
 
@@ -483,106 +483,103 @@ const MatterList = () => {
                 <Table responsive={true} striped={true} hover={true}>
                   <thead className="mb-2">
                     <tr>
+                      {showArchived && (
+                        <th>
+                          <div
+                            className="d-flex"
+                            onClick={() => handleSortByLabel("archiveNumber")}
+                          >
+                            <label>Archive No.</label>
+                            <div className="associatedContacts-label-btn labelCursor">
+                              {sortOrder === "asc" &&
+                              sortField === "archiveNumber" ? (
+                                <img
+                                  src={upArrowColoured}
+                                  alt="asc"
+                                  className="label-btn-img-1"
+                                />
+                              ) : (
+                                <img
+                                  src={upArrow}
+                                  alt="asc"
+                                  className="label-btn-img-1"
+                                />
+                              )}
+                              {sortOrder === "desc" &&
+                              sortField === "archiveNumber" ? (
+                                <img
+                                  src={downArrowColoured}
+                                  alt="desc"
+                                  className="label-btn-img-2"
+                                />
+                              ) : (
+                                <img
+                                  src={downArrow}
+                                  alt="desc"
+                                  className="label-btn-img-2"
+                                />
+                              )}
+                            </div>
+                          </div>
+                          <Input
+                            type="text"
+                            name="archiveNumber"
+                            placeholder="Archive Number"
+                            value={filterInput.archiveNumber}
+                            onChange={filterChange}
+                            onKeyDown={(e) =>
+                              e.key === "Enter" && handleRefreshList()
+                            }
+                          />
+                        </th>
+                      )}
                       <th>
-                        {showArchived ? (
-                          <>
-                            <div
-                              className="d-flex"
-                              onClick={() => handleSortByLabel("archiveNumber")}
-                            >
-                              <label>Archive No.</label>
-                              <div className="associatedContacts-label-btn labelCursor">
-                                {sortOrder === "asc" &&
-                                sortField === "archiveNumber" ? (
-                                  <img
-                                    src={upArrowColoured}
-                                    alt="asc"
-                                    className="label-btn-img-1"
-                                  />
-                                ) : (
-                                  <img
-                                    src={upArrow}
-                                    alt="asc"
-                                    className="label-btn-img-1"
-                                  />
-                                )}
-                                {sortOrder === "desc" &&
-                                sortField === "archiveNumber" ? (
-                                  <img
-                                    src={downArrowColoured}
-                                    alt="desc"
-                                    className="label-btn-img-2"
-                                  />
-                                ) : (
-                                  <img
-                                    src={downArrow}
-                                    alt="desc"
-                                    className="label-btn-img-2"
-                                  />
-                                )}
-                              </div>
-                            </div>
-                            <Input
-                              type="text"
-                              name="archiveNumber"
-                              placeholder="Archive Number"
-                              value={filterInput.archiveNumber}
-                              onChange={filterChange}
-                              onKeyDown={(e) =>
-                                e.key === "Enter" && handleRefreshList()
-                              }
-                            />
-                          </>
-                        ) : (
-                          <>
-                            <div
-                              className="d-flex"
-                              onClick={() => handleSortByLabel("matterNumber")}
-                            >
-                              <label>Matter No.</label>
-                              <div className="associatedContacts-label-btn labelCursor">
-                                {sortOrder === "asc" &&
-                                sortField === "matterNumber" ? (
-                                  <img
-                                    src={upArrowColoured}
-                                    alt="asc"
-                                    className="label-btn-img-1"
-                                  />
-                                ) : (
-                                  <img
-                                    src={upArrow}
-                                    alt="asc"
-                                    className="label-btn-img-1"
-                                  />
-                                )}
-                                {sortOrder === "desc" &&
-                                sortField === "matterNumber" ? (
-                                  <img
-                                    src={downArrowColoured}
-                                    alt="desc"
-                                    className="label-btn-img-2"
-                                  />
-                                ) : (
-                                  <img
-                                    src={downArrow}
-                                    alt="desc"
-                                    className="label-btn-img-2"
-                                  />
-                                )}
-                              </div>
-                            </div>
-                            <Input
-                              type="text"
-                              name="matterNumber"
-                              placeholder="Matter Number"
-                              value={filterInput.matterNumber}
-                              onChange={filterChange}
-                              onKeyDown={(e) =>
-                                e.key === "Enter" && handleRefreshList()
-                              }
-                            />
-                          </>
-                        )}
+                        <div
+                          className="d-flex"
+                          onClick={() => handleSortByLabel("matterNumber")}
+                        >
+                          <label>Matter No.</label>
+                          <div className="associatedContacts-label-btn labelCursor">
+                            {sortOrder === "asc" &&
+                            sortField === "matterNumber" ? (
+                              <img
+                                src={upArrowColoured}
+                                alt="asc"
+                                className="label-btn-img-1"
+                              />
+                            ) : (
+                              <img
+                                src={upArrow}
+                                alt="asc"
+                                className="label-btn-img-1"
+                              />
+                            )}
+                            {sortOrder === "desc" &&
+                            sortField === "matterNumber" ? (
+                              <img
+                                src={downArrowColoured}
+                                alt="desc"
+                                className="label-btn-img-2"
+                              />
+                            ) : (
+                              <img
+                                src={downArrow}
+                                alt="desc"
+                                className="label-btn-img-2"
+                              />
+                            )}
+                          </div>
+                        </div>
+                        <Input
+                          type="text"
+                          name="matterNumber"
+                          placeholder="Matter Number"
+                          value={filterInput.matterNumber}
+                          onChange={filterChange}
+                          onKeyDown={(e) =>
+                            e.key === "Enter" && handleRefreshList()
+                          }
+                        />
                       </th>
                       <th>
                         <div className="d-flex">
@@ -831,12 +828,13 @@ const MatterList = () => {
                         onClick={() => fetchMatterDetail(matter.id)}
                         className="pe-cursor"
                       >
+                        {showArchived && (
+                          <td>
+                            <p className="mb-0">{matter.archiveNumber}</p>
+                          </td>
+                        )}
                         <td>
-                          <p className="mb-0">
-                            {showArchived
-                              ? matter.archiveNumber
-                              : matter.matterNumber}
-                          </p>
+                          <p className="mb-0">{matter.matterNumber}</p>
                         </td>
                         <td style={{ minWidth: "250px" }}>
                           <TooltipWrapper

@@ -1,12 +1,34 @@
 import React, { useEffect, useState } from "react";
-import { Input, Table } from "reactstrap";
+import { Table } from "reactstrap";
 import { formatDateFunc, roundToDigit } from "../../../utils/utilFunc";
 import { get } from "../../../utils/Json";
 import { TextInputField } from "pages/Edge/components/InputField";
+import { getUnpaidInvoiceOfMatter } from "../../../apis";
 
 const InvoiceToBePaid = (props) => {
-  const { formData, setFormData } = props;
+  const { formData, setFormData, matterId, setLoading, parseList } = props;
   const [list, setList] = useState([]);
+
+  useEffect(() => {
+    if (matterId) {
+      fetchUnpaidInvoices();
+    }
+  }, [matterId]);
+
+  const fetchUnpaidInvoices = async () => {
+    setLoading(true);
+    try {
+      const { data } = await getUnpaidInvoiceOfMatter(matterId);
+      if (data && data.success) {
+        let invoiceList = data?.data?.invoiceList || [];
+        parseList(invoiceList);
+      }
+    } catch (error) {
+      console.error("Error fetching unpaid invoices:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (props.list && props.list.length > 0) {
@@ -103,7 +125,7 @@ const InvoiceToBePaid = (props) => {
           {list?.map((invoice, index) => (
             <tr key={invoice.id} className="pe-cursor align-middle">
               <td>
-                <p className="m-0">{props.matterNumber}</p>
+                <p className="m-0">{invoice.matterNumber}</p>
               </td>
               <td>
                 <p className="m-0">{invoice.invoiceNumber}</p>
