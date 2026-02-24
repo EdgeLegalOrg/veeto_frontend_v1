@@ -1019,3 +1019,8 @@ export const editAddressInfo = (formData) =>
 
 export const deleteAddress = (ids) =>
   API.delete(`/api/siteinfo/address?requestId=${uuidv1()}&addressIds=${ids}`);
+
+export const checkContactsLinked = (contactIds, contactTypes) =>
+  API.get(
+    `/api/contacts/isLinked/${contactIds}?type=${contactTypes}&requestId=${uuidv1()}`
+  );

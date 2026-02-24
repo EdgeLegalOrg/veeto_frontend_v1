@@ -23,7 +23,7 @@ import { MdSearch } from "react-icons/md";
 import { AiOutlineClose } from "react-icons/ai";
 import Pagination from "../Pagination";
 import SingleContact from "./SingleContact";
-import { allContacts, deleteContacts } from "../../apis";
+import { allContacts, deleteContacts, checkContactsLinked } from "../../apis";
 import "../../stylesheets/contacts.css";
 import { convertSubstring } from "../../utils/utilFunc";
 import BreadCrumb from "../../../../Components/Common/BreadCrumb";
@@ -126,6 +126,7 @@ function Contacts(props) {
   const [personList, setPersonList] = useState([]);
   const [companyList, setCompanyList] = useState([]);
   const [selectedContact, setSelectedContact] = useState(contactDetails);
+  const [linkedWarningModal, setLinkedWarningModal] = useState(false);
 
   const filterPersons = (data) => {
     const persons = data.filter((contact) => contact.contactType === "PERSON");
@@ -423,13 +424,36 @@ function Contacts(props) {
   const isContactSelected = (ind) => selectedContactInd.indexOf(ind) !== -1;
 
   const handleDeleteSeletedContact = () => {
-    if (selectedContactInd?.length !== 0) {
-      setConfirmScreen(true);
-    } else {
+    if (selectedContactInd?.length === 0) {
       toast.warning(
-        "One or more contacts need to be selected before you can Delete contacts"
+        "One or more contacts need to be selected before you can Delete contacts",
       );
+      return;
     }
+
+    setIsLoading(true);
+
+    checkContactsLinked(selectedContactId, selectedContactType)
+      .then((res) => {
+        if (res?.data?.success) {
+          const isLinked = res.data.data;
+
+          if (isLinked) {
+            setLinkedWarningModal(true);
+          } else {
+            setConfirmScreen(true);
+          }
+        } else {
+          toast.error("Unable to verify linked contacts.");
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        toast.error("Server error while checking linked contacts.");
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   };
 
   const handleSetInitial = () => {
@@ -1258,6 +1282,40 @@ function Contacts(props) {
                         types={selectedContactType}
                         setAllInitial={handleSetInitial}
                       />
+                    </ModalBody>
+                  </Modal>
+                )}
+                {linkedWarningModal && (
+                  <Modal
+                    isOpen={linkedWarningModal}
+                    toggle={() => setLinkedWarningModal(false)}
+                    backdrop="static"
+                    centered
+                    size="md"
+                  >
+                    <ModalHeader
+                      toggle={() => setLinkedWarningModal(false)}
+                      className="bg-light p-3"
+                    >
+                      Cannot Delete Contact
+                    </ModalHeader>
+
+                    <ModalBody className="text-center">
+                      <div className="p-4">
+                        <p>
+                        The selected contact(s) are linked to matters and cannot
+                        be deleted.
+                        </p>
+                      </div>
+
+                      <div className="d-flex align-items-center justify-content-end p-2 border-top">
+                        <Button
+                          color="success"
+                          onClick={() => setLinkedWarningModal(false)}
+                        >
+                          OK
+                        </Button>
+                      </div>
                     </ModalBody>
                   </Modal>
                 )}

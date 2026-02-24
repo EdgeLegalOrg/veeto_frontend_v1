@@ -417,7 +417,7 @@ const MatterList = () => {
                   </div>
                   <div className="d-flex align-items-center">
                     <div className="mx-1">
-                      <p className="mb-0">Archived Matter</p>
+                      <p className="mb-0">Archived Matters</p>
                       <FormGroup switch>
                         <Input
                           type="switch"
