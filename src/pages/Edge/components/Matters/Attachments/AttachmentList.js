@@ -37,6 +37,7 @@ const initFilter = {
 };
 
 const AttachmentList = (props) => {
+  const { setExtraButtons } = props;
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [filteredList, setFilteredList] = useState([]);
@@ -67,6 +68,23 @@ const AttachmentList = (props) => {
       }, 10);
     }
   }, [props.data]);
+
+  useEffect(() => {
+    if (setExtraButtons) {
+      setExtraButtons(
+        <div className="d-flex align-items-center">
+          <Button
+            color="success"
+            onClick={() => setAdd(true)}
+            className="d-flex mx-2"
+          >
+            <span className="plusdiv">+</span>Add
+          </Button>
+          {showDeleteButton()}
+        </div>,
+      );
+    }
+  }, [setExtraButtons, attachList]);
 
   const handleSelectAll = (e) => {
     if (e.target.checked) {
@@ -309,7 +327,7 @@ const AttachmentList = (props) => {
 
   return (
     <div className="mx-2">
-      <div className="d-flex align-items-center justify-content-end mb-2">
+      {/* <div className="d-flex align-items-center justify-content-end mb-2">
         <div className="d-flex mx-4">
           <Button
             color="success"
@@ -320,10 +338,7 @@ const AttachmentList = (props) => {
           </Button>
           {showDeleteButton()}
         </div>
-        {/* <button className='custodyAddbtn' onClick={() => toast.warning('edit')}>
-          Edit
-        </button> */}
-      </div>
+      </div> */}
 
       <Table responsive={true} striped={true} hover={true}>
         <thead className="mb-2 bg-light">

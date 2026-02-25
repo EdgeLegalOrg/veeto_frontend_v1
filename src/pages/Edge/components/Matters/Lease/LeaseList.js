@@ -4,6 +4,7 @@ import EditLease from './EditLease';
 import { Button } from 'reactstrap';
 
 const LeaseList = (props) => {
+  const { setExtraButtons } = props;
   const [data, setData] = useState(null);
   const [add, setAdd] = useState(false);
   const [edit, setEdit] = useState(false);
@@ -54,12 +55,14 @@ const LeaseList = (props) => {
           close={() => setEdit(false)}
           matterId={props?.data?.id}
           data={data}
+          setExtraButtons={setExtraButtons}
         />
       ) : (
         <AddLease
           refresh={props.refresh}
           close={() => setAdd(false)}
           matterId={props?.data?.id}
+          setExtraButtons={setExtraButtons}
         />
       )}
 

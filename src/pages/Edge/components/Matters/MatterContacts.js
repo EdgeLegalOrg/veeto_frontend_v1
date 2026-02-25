@@ -37,7 +37,7 @@ const initFilter = {
 };
 
 const MatterContacts = (props) => {
-  const { refresh } = props;
+  const { refresh, setExtraButtons } = props;
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [data, setData] = useState(props.data);
@@ -59,6 +59,23 @@ const MatterContacts = (props) => {
   const [labelSort, setLabelSort] = useState("");
   const [selectedContact, setSelectedContact] = useState(null);
   const [isReload, setIsReload] = useState(false);
+
+  useEffect(() => {
+    if (setExtraButtons) {
+      setExtraButtons(
+        <div className="d-flex align-items-center">
+          <Button
+            color="success"
+            disabled={disabled}
+            onClick={() => setLinkContact(true)}
+            className="d-flex mx-2"
+          >
+            <span className="plusdiv">+</span>Link
+          </Button>
+        </div>,
+      );
+    }
+  }, [disabled, setExtraButtons]);
 
   useEffect(() => {
     if (props.data) {
@@ -268,7 +285,7 @@ const MatterContacts = (props) => {
 
   return (
     <div className="mx-2">
-      <div className="d-flex align-items-center justify-content-end mb-2">
+      {/* <div className="d-flex align-items-center justify-content-end mb-2">
         <Button
           color="success"
           disabled={disabled}
@@ -277,14 +294,8 @@ const MatterContacts = (props) => {
         >
           <span className="plusdiv">+</span>Link
         </Button>
-        {/* <button
-          className='custodyAddbtn'
-          disabled={disabled}
-          onClick={handleDeleteAlert}
-        >
-          <span className='plusdiv'>-</span>Unlink
-        </button> */}
-      </div>
+        
+      </div> */}
 
       <Table responsive={true} striped={true} hover={true}>
         <thead className="mb-2 bg-light">

@@ -53,6 +53,7 @@ const initialState = {
 };
 
 const GeneralDetails = (props) => {
+  const { setExtraButtons } = props;
   const dispatch = useDispatch();
   const [formData, setFormData] = useState(initialState);
   const [staffList, setStaffList] = useState([]);
@@ -116,17 +117,31 @@ const GeneralDetails = (props) => {
   }, [props.data, types]);
 
   useEffect(() => {
+    if (setExtraButtons) {
+      setExtraButtons(
+        <div className="d-flex align-items-center">
+          {canUpdateMatter && (
+            <Button color="success" onClick={handleSubmit} className="mx-2">
+              Save
+            </Button>
+          )}
+        </div>,
+      );
+    }
+  }, [setExtraButtons, canUpdateMatter, formData]); 
+
+  useEffect(() => {
     setStaffList(props.staffList);
   }, [props.staffList]);
 
   useEffect(() => {
     const isChanged = JSON.stringify(formData) !== JSON.stringify(props.data);
     dispatch(
-      updateFormStatusAction({ key: "isFormChanged", value: isChanged })
+      updateFormStatusAction({ key: "isFormChanged", value: isChanged }),
     );
   }, [formData, props.data]);
 
-  const getStatus = (arg) => {
+  const getStatus = (arg) => {  
     if (arg.subType) {
       filterStatus({ value: arg.subType });
     }
@@ -265,7 +280,7 @@ const GeneralDetails = (props) => {
 
   return (
     <div className="mx-2">
-      {saveButton()}
+      {/* {saveButton()} */}
       <div className="row mt-3">
         <div className="col-md-4">
           <SelectInputField

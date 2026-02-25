@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 const PropertyList = (props) => {
+  const { setExtraButtons } = props;
   const [pList, setPList] = useState([]);
   const [selectedList, setSelectedList] = useState([]);
 
@@ -8,13 +9,25 @@ const PropertyList = (props) => {
     setPList(props?.data?.propertyList);
   }, [props.data]);
 
+  useEffect(() => {
+    if (setExtraButtons) {
+      setExtraButtons(
+        <div className="d-flex align-items-center">
+          <button className="custodyAddbtn mx-2">
+            <span className="plusdiv">+</span>Link
+          </button>
+        </div>,
+      );
+    }
+  }, [setExtraButtons]);
+
   return (
     <div>
       <div className='mc-header-btns'>
         <p className='mc-heading'>Property</p>
-        <button className='custodyAddbtn'>
+        {/* <button className='custodyAddbtn'>
           <span className='plusdiv'>+</span>Link
-        </button>
+        </button> */}
       </div>
       <div className='mc-header'>
         <div className='mc-col xsm'>

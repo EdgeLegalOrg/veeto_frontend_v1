@@ -4,6 +4,7 @@ import AddEstate from './AddEstate';
 import EditEState from './EditEstate';
 
 const EstateList = (props) => {
+  const { setExtraButtons } = props;
   const [data, setData] = useState(null);
   const [add, setAdd] = useState(false);
   const [edit, setEdit] = useState(false);
@@ -49,12 +50,14 @@ const EstateList = (props) => {
           close={() => setEdit(false)}
           matterId={props?.data?.id}
           data={data}
+          setExtraButtons={setExtraButtons}
         />
       ) : (
         <AddEstate
           refresh={props.refresh}
           close={() => setAdd(false)}
           matterId={props?.data?.id}
+          setExtraButtons={setExtraButtons}
         />
       )}
 

@@ -62,6 +62,7 @@ const MatterDetail = (props) => {
   const [selected, setSelected] = useState("");
   const [displayTab, setDisplayTab] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [extraButtons, setExtraButtons] = useState(null);
   const { formStatus, navigationEditForm } = useSelector(
     (state) => state.Layout
   );
@@ -155,6 +156,7 @@ const MatterDetail = (props) => {
       );
     }
     setSelected(val);
+    setExtraButtons(null);
   };
 
   const handleRefresh = (listRefresh = false) => {
@@ -197,31 +199,86 @@ const MatterDetail = (props) => {
   const displaySection = () => {
     switch (selected) {
       case "CONTACTS":
-        return <MatterContacts data={data} refresh={handleRefresh} />;
+        return (
+          <MatterContacts
+            data={data}
+            refresh={handleRefresh}
+            setExtraButtons={setExtraButtons}
+          />
+        );
       case "INVOICES":
-        return <InvoiceList data={data} refresh={handleRefresh} />;
+        return (
+          <InvoiceList
+            data={data}
+            refresh={handleRefresh}
+            setExtraButtons={setExtraButtons}
+          />
+        );
       case "TIME_BILLING":
         return (
           <TimeBillingList
             staffList={staffList}
             data={data}
             refresh={handleRefresh}
+            setExtraButtons={setExtraButtons}
           />
         );
       case "CONVEYANCE":
-        return <ConveyanceList data={data} refresh={handleRefresh} />;
+        return (
+          <ConveyanceList
+            data={data}
+            refresh={handleRefresh}
+            setExtraButtons={setExtraButtons}
+          />
+        );
       case "BUSINESS_SALE_PURCHASE":
-        return <BusinessTab data={data} refresh={handleRefresh} />;
+        return (
+          <BusinessTab
+            data={data}
+            refresh={handleRefresh}
+            setExtraButtons={setExtraButtons}
+          />
+        );
       case "PROPERTY":
-        return <PropertyList data={data} refresh={handleRefresh} />;
+        return (
+          <PropertyList
+            data={data}
+            refresh={handleRefresh}
+            setExtraButtons={setExtraButtons}
+          />
+        );
       case "FAMILY_LAW":
-        return <DetailSection data={data} refresh={handleRefresh} />;
+        return (
+          <DetailSection
+            data={data}
+            refresh={handleRefresh}
+            setExtraButtons={setExtraButtons}
+          />
+        );
       case "ESTATE":
-        return <EstateList data={data} refresh={handleRefresh} />;
+        return (
+          <EstateList
+            data={data}
+            refresh={handleRefresh}
+            setExtraButtons={setExtraButtons}
+          />
+        );
       case "LEASE":
-        return <LeaseList data={data} refresh={handleRefresh} />;
+        return (
+          <LeaseList
+            data={data}
+            refresh={handleRefresh}
+            setExtraButtons={setExtraButtons}
+          />
+        );
       case "ATTACHMENTS":
-        return <AttachmentList data={data} refresh={handleRefresh} />;
+        return (
+          <AttachmentList
+            data={data}
+            refresh={handleRefresh}
+            setExtraButtons={setExtraButtons}
+          />
+        );
       case "BASIC":
         return (
           <GeneralDetails
@@ -229,12 +286,25 @@ const MatterDetail = (props) => {
             refresh={handleRefresh}
             staffList={staffList}
             refreshListing={refreshListing}
+            setExtraButtons={setExtraButtons}
           />
         );
       case "MARRIAGE_DEFACTO":
-        return <MarriageDefactoDetail data={data} refresh={handleRefresh} />;
+        return (
+          <MarriageDefactoDetail
+            data={data}
+            refresh={handleRefresh}
+            setExtraButtons={setExtraButtons}
+          />
+        );
       case "CHECKLIST":
-        return <ChecklistTab data={data} refresh={handleRefresh} />;
+        return (
+          <ChecklistTab
+            data={data}
+            refresh={handleRefresh}
+            setExtraButtons={setExtraButtons}
+          />
+        );
       default:
         return <></>;
     }
@@ -249,7 +319,7 @@ const MatterDetail = (props) => {
   };
 
   const handleSettlementTab = () => {
-    if (formStatus.isFormChanged) {
+    if (formStatus.isFormChanged) { 
       return dispatch(
         updateFormStatusAction({
           key: "isShowModal",
@@ -395,6 +465,7 @@ const MatterDetail = (props) => {
           getClass={getClass}
           list={displayTab}
           data={data}
+          extraButtons={extraButtons}
         />
         {displaySection()}
       </>

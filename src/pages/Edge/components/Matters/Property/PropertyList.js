@@ -28,6 +28,7 @@ const initFilter = {
   titleReferences: "",
 };
 const PropertyList = (props) => {
+  const { setExtraButtons } = props;
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [filteredList, setFilteredList] = useState([]);
@@ -47,6 +48,29 @@ const PropertyList = (props) => {
     setPList(props?.data?.propertyList);
     setFilteredList(props?.data?.propertyList);
   }, [props.data]);
+
+  useEffect(() => {
+    if (setExtraButtons) {
+      setExtraButtons(
+        <div className="d-flex align-items-center">
+          <Button
+            color="success"
+            onClick={() => setOpen(true)}
+            className="d-flex mx-2"
+          >
+            <span className="plusdiv">+</span>Link
+          </Button>
+          <Button
+            color="danger"
+            onClick={handleDeleteAlert}
+            className="d-flex mx-2"
+          >
+            <span className="plusdiv">-</span>Unlink
+          </Button>
+        </div>,
+      );
+    }
+  }, [setExtraButtons, pList, selectedList]);
 
   const handleFilter = (e) => {
     const { name, value } = e.target;
@@ -206,7 +230,7 @@ const PropertyList = (props) => {
 
   return (
     <div className="mx-2">
-      <div className="d-flex align-items-center justify-content-end mb-2">
+      {/* <div className="d-flex align-items-center justify-content-end mb-2">
         <Button
           color="success"
           onClick={() => setOpen(true)}
@@ -221,7 +245,7 @@ const PropertyList = (props) => {
         >
           <span className="plusdiv">-</span>Unlink
         </Button>
-      </div>
+      </div> */}
 
       <Table responsive={true} striped={true} hover={true}>
         <thead className="mb-2 bg-light">

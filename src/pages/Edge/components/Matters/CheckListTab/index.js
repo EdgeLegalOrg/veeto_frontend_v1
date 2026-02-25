@@ -5,6 +5,7 @@ import "../../../stylesheets/CheckListTab.css";
 import LoadingPage from "pages/Edge/utils/LoadingPage";
 
 const ChecklistTab = (props) => {
+  const { setExtraButtons } = props;
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState({});
   const [taskList, setTaskList] = useState([]);
@@ -15,6 +16,24 @@ const ChecklistTab = (props) => {
       setData(props.data);
     }
   }, [props.data]);
+
+  useEffect(() => {
+    if (setExtraButtons) {
+      setExtraButtons(
+        <div className="d-flex align-items-center">
+          {data.checklistTracker && (
+            <button
+              type="button"
+              className="mx-2 btn btn-success"
+              onClick={handleUpdateTask}
+            >
+              Save
+            </button>
+          )}
+        </div>,
+      );
+    }
+  }, [setExtraButtons, data, taskList]);
 
   const getTaskList = (arg) => {
     if (arg?.checklistTracker?.taskList?.length) {
@@ -272,11 +291,11 @@ const ChecklistTab = (props) => {
   return (
     <>
       <div className="mx-4">
-        <div className="row mt-1">
+        {/* <div className="row mt-1">
           <div className="d-flex align-items-center justify-content-end p-2">
             {updateBtn()}
           </div>
-        </div>
+        </div> */}
         {ui()}
       </div>
       {loading && <LoadingPage />}

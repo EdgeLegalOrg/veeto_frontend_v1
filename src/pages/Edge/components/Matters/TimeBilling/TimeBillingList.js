@@ -25,6 +25,7 @@ const initFilter = {
 };
 
 const TimeBillingList = (props) => {
+  const { setExtraButtons } = props;
   // const { formStatus } = useSelector((state) => state.Layout);
   const [formStatus, setFormStatus] = useState({
     isFormChanged: false,
@@ -49,6 +50,25 @@ const TimeBillingList = (props) => {
       }
     }
   }, [props.data]);
+
+  useEffect(() => {
+    if (setExtraButtons) {
+      setExtraButtons(
+        <div className="d-flex align-items-center">
+          <Button color="success" onClick={handleAdd} className="d-flex mx-2">
+            <span className="plusdiv">+</span>Add
+          </Button>
+          <Button
+            color="danger"
+            onClick={handleDeleteAlert}
+            className="d-flex mx-2"
+          >
+            <span className="plusdiv">-</span>Delete
+          </Button>
+        </div>,
+      );
+    }
+  }, [setExtraButtons, billingList]);
 
   const updateFormStatusAction = ({ key, value }) => {
     return setFormStatus((prev) => ({
@@ -241,13 +261,10 @@ const TimeBillingList = (props) => {
 
   return (
     <div className="mx-2">
-      <div className="d-flex align-items-center justify-content-end mb-2">
+      {/* <div className="d-flex align-items-center justify-content-end mb-2">
         <Button color="success" onClick={handleAdd} className="d-flex mx-2">
           <span className="plusdiv">+</span>Add
         </Button>
-        {/* <button className='custodyAddbtn' onClick={handleUpdate}>
-          Update
-        </button> */}
         <Button
           color="danger"
           onClick={handleDeleteAlert}
@@ -255,7 +272,7 @@ const TimeBillingList = (props) => {
         >
           <span className="plusdiv">-</span>Delete
         </Button>
-      </div>
+      </div> */}
 
       <Table responsive={true} striped={true} hover={true}>
         <thead className="mb-2 bg-light">

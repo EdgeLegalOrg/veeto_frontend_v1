@@ -19,6 +19,7 @@ import EditInvoice from "./EditInvoice";
 import { CREATEINVOICE, CREATEPAYMENT } from "pages/Edge/utils/RightConstants";
 
 const InvoiceList = (props) => {
+  const { setExtraButtons } = props;
   const history = useNavigate();
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -38,6 +39,17 @@ const InvoiceList = (props) => {
       setList(props?.data?.invoiceList);
     }
   }, [props.data]);
+
+  useEffect(() => {
+    if (setExtraButtons) {
+      setExtraButtons(
+        <div className="d-flex align-items-center">
+          {showAddButton()}
+          {showReceivePaymentButton()}
+        </div>,
+      );
+    }
+  }, [list, setExtraButtons]);
 
   const fetchEnums = () => {
     const enumList = JSON.parse(window.localStorage.getItem("enumList"));
@@ -168,12 +180,12 @@ const InvoiceList = (props) => {
 
   return (
     <div className="mx-2">
-      <div className="d-flex align-items-center justify-content-end mb-2">
+      {/* <div className="d-flex align-items-center justify-content-end mb-2">
         <div className="d-flex mx-4">
           {showAddButton()}
           {showReceivePaymentButton()}
         </div>
-      </div>
+      </div> */}
 
       <Table responsive={true} striped={true} hover={true}>
         <thead className="mb-2 bg-light">

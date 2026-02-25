@@ -71,6 +71,9 @@ const MatterTabList = (props) => {
           return null;
         }
       })}
+      <div className="ms-auto d-flex align-items-center">
+        {props.extraButtons}
+      </div>
     </Nav>
   );
 };

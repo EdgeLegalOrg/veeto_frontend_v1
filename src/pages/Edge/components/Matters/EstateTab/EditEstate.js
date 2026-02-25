@@ -40,6 +40,7 @@ const initialState = {
 };
 
 const EditEState = (props) => {
+  const { setExtraButtons } = props;
   const dispatch = useDispatch();
   const [formData, setFormData] = useState(initialState);
   const [loading, setLoading] = useState(false);
@@ -74,6 +75,23 @@ const EditEState = (props) => {
       updateFormStatusAction({ key: "isFormChanged", value: isChanged })
     );
   }, [formData, props.data]);
+
+  useEffect(() => {
+    if (setExtraButtons) {
+      setExtraButtons(
+        <div className="d-flex align-items-center">
+          <Button
+            type="submit"
+            color="success"
+            onClick={handleSubmit}
+            className="mx-2"
+          >
+            Save
+          </Button>
+        </div>,
+      );
+    }
+  }, [setExtraButtons, formData, submitted]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -130,16 +148,8 @@ const EditEState = (props) => {
           gridSize={'70%'}
         > */}
 
-        <div className="row mt-4">
+        {/* <div className="row">
           <div className="d-flex align-items-center justify-content-end p-2 border-top">
-            {/* <Button
-              type="button"
-              color="danger"
-              onClick={props.close}
-              className="mx-1"
-            >
-              Cancel
-            </Button> */}
             <Button
               type="submit"
               color="success"
@@ -149,7 +159,7 @@ const EditEState = (props) => {
               Save
             </Button>
           </div>
-        </div>
+        </div> */}
 
         <div className="row">
           <div className="col-md-4 mb-3">

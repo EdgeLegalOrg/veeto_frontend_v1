@@ -6,6 +6,7 @@ import ConveyanceDetails from './ConveyanceDetails';
 import { Button, Modal, ModalHeader, ModalBody } from 'reactstrap';
 
 const ConveyanceList = (props) => {
+  const { setExtraButtons } = props;
   const [data, setData] = useState(null);
   const [add, setAdd] = useState(false);
   const [edit, setEdit] = useState(false);
@@ -50,6 +51,7 @@ const ConveyanceList = (props) => {
           matterId={props?.data?.id}
           matter={props?.data}
           data={data}
+          setExtraButtons={setExtraButtons}
         />
       ) : (
         <AddConveyancing
@@ -57,6 +59,7 @@ const ConveyanceList = (props) => {
           close={() => setAdd(false)}
           matterId={props?.data?.id}
           matter={props?.data}
+          setExtraButtons={setExtraButtons}
         />
       )}
 

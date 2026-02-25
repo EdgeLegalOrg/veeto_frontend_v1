@@ -53,6 +53,7 @@ const initialState = {
 };
 
 const AddBusiness = (props) => {
+  const { setExtraButtons } = props;
   const dispatch = useDispatch();
   const [formData, setFormData] = useState(initialState);
   const [lengthType, setLengthType] = useState([]);
@@ -95,6 +96,23 @@ const AddBusiness = (props) => {
       updateFormStatusAction({ key: "isFormChanged", value: isChanged })
     );
   }, [formData, initialState]);
+
+  useEffect(() => {
+    if (setExtraButtons) {
+      setExtraButtons(
+        <div className="d-flex align-items-center">
+          <Button
+            type="submit"
+            color="success"
+            onClick={handleSubmit}
+            className="mx-2"
+          >
+            Save
+          </Button>
+        </div>,
+      );
+    }
+  }, [setExtraButtons, formData, submitted]);
 
   const findDisplayname = (from, val = "") => {
     if (val) {
@@ -161,17 +179,8 @@ const AddBusiness = (props) => {
           bodyStyle={{ marginTop: "0px" }}
           gridSize={"70%"}
         > */}
-      <div className="row mt-2">
+      {/* <div className="row mt-2">
         <div className="d-flex align-items-center justify-content-end">
-          {/* <Button
-              type="button"
-              color="danger"
-              onClick={props.close}
-              className="mx-1"
-              
-            >
-              Cancel
-            </Button> */}
           <Button
             type="submit"
             color="success"
@@ -181,7 +190,7 @@ const AddBusiness = (props) => {
             Save
           </Button>
         </div>
-      </div>
+      </div> */}
 
       <div className="mb-2">
         <div className="row mt-3">

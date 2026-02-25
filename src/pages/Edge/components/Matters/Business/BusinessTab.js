@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { Button, Modal, ModalHeader, ModalBody } from 'reactstrap';
-import LoadingPage from '../../../utils/LoadingPage';
-import AddBusiness from './AddBusiness';
-import BusinessDetails from './BusinessDetails';
-import EditBusiness from './EditBusiness';
+import React, { useState, useEffect } from "react";
+import { Button, Modal, ModalHeader, ModalBody } from "reactstrap";
+import LoadingPage from "../../../utils/LoadingPage";
+import AddBusiness from "./AddBusiness";
+import BusinessDetails from "./BusinessDetails";
+import EditBusiness from "./EditBusiness";
 
 const BusinessTab = (props) => {
+  const { setExtraButtons } = props;
   const [data, setData] = useState(null);
   const [add, setAdd] = useState(false);
   const [edit, setEdit] = useState(false);
@@ -60,6 +61,7 @@ const BusinessTab = (props) => {
           close={() => setEdit(false)}
           matterId={props?.data?.id}
           matter={props?.data}
+          setExtraButtons={setExtraButtons}
         />
       ) : (
         <AddBusiness
@@ -67,6 +69,7 @@ const BusinessTab = (props) => {
           close={() => setAdd(false)}
           matterId={props?.data?.id}
           matter={props?.data}
+          setExtraButtons={setExtraButtons}
         />
       )}
       {add && (

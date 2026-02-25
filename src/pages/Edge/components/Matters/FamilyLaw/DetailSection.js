@@ -22,6 +22,7 @@ const initialState = {
 };
 
 const DetailSection = (props) => {
+  const { setExtraButtons } = props;
   const [data, setData] = useState(null);
   const [edit, setEdit] = useState(false);
   const [add, setAdd] = useState(false);
@@ -143,12 +144,14 @@ const DetailSection = (props) => {
           matterId={props?.data?.id}
           refresh={props.refresh}
           data={data}
+          setExtraButtons={setExtraButtons}
         />
       ) : (
         <AddFamilyLaw
           close={() => setAdd(false)}
           matterId={props?.data?.id}
           refresh={props.refresh}
+          setExtraButtons={setExtraButtons}
         />
       )}
 
