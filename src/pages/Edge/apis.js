@@ -513,6 +513,9 @@ export const deleteUnregisteredLot = (id) =>
 export const deletePropertyById = (id) =>
   API.delete(`/api/property/${id}?requestId=${uuidv1()}`);
 
+export const checkPropertyLinkedToMatter = (id) =>
+  API.get(`/api/property/islinked/${id}?requestId=${uuidv1()}`);
+
 // Document Section
 export const getDocuments = (filterData) =>
   API.get(

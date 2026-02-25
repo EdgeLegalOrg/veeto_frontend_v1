@@ -2083,7 +2083,9 @@ export const AlertPopup = (props) => {
 
   const handleYesBtn = () => {
     setEnableButton(false);
-    handleFunc();
+    if (handleFunc) {
+      handleFunc();
+    }
     closeForm();
   };
 
@@ -2131,14 +2133,16 @@ export const AlertPopup = (props) => {
           >
             {btn1}
           </Button>
-          <Button
-            className="mx-1"
-            color="success"
-            disabled={!enableButton}
-            onClick={handleYesBtn}
-          >
-            {btn2}
-          </Button>
+          {btn2 && (
+            <Button
+              className="mx-1"
+              color="success"
+              disabled={!enableButton}
+              onClick={handleYesBtn}
+            >
+              {btn2}
+            </Button>
+          )}
         </div>
       </div>
     </div>

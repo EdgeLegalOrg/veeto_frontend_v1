@@ -33,6 +33,7 @@ import {
   fetchPropertyById,
   deletePropertyFromList,
   deletePropertyById,
+  checkPropertyLinkedToMatter,
 } from "../../apis";
 import {
   Card,
@@ -106,12 +107,33 @@ const ConfirmationPopup = (props) => {
     propertyId,
     backToSearch,
     setdisableButton,
+    setShowAlert,
+    setAlertMsg,
+    setAlertOptions,
   } = props;
 
   const deletePropertyOnMain = async () => {
-    let str = selected.join(",");
+    if (selected.length === 0) return;
     try {
-      const res = await deletePropertyFromList(str);
+      const linkedResponses = await Promise.all(
+        selected.map((id) => checkPropertyLinkedToMatter(id))
+      );
+
+      const anyLinked = linkedResponses.some(
+        (r) => r && r.data === true
+      );
+
+      if (anyLinked) {
+        setAlertMsg(
+          "One or more selected properties are linked to matters and cannot be deleted."
+        );
+
+        setAlertOptions({ btn1: "OK", btn2: "", handleFunc: null });
+        setShowAlert(true);
+        return;
+      }
+      
+      const res = await deletePropertyFromList(selected.join(","));
       setSelected([]);
       setBoolVal(false);
       closeForm();
@@ -120,14 +142,25 @@ const ConfirmationPopup = (props) => {
     }
   };
 
-  function deleteProperty() {
+  async function deleteProperty() {
     const id = propertyId;
-    deletePropertyById(id).then((response) => {
+    try {
+      const res = await checkPropertyLinkedToMatter(id);
+      if (res && res.data) {
+        setAlertMsg("You can't delete this property because it is linked to a matter.");
+        setAlertOptions({ btn1: "OK", btn2: "", handleFunc: null });
+        setShowAlert(true);
+        return;
+      }
+      
+      await deletePropertyById(id);
       closeForm();
       setdisableButton(false);
       setBoolVal(false);
       backToSearch();
-    });
+    } catch (err) {
+      console.error(err);
+    }
   }
 
   return (
@@ -219,6 +252,11 @@ function RenderProperty() {
   const [warningData, setWarningData] = useState([]);
   const [showAlert, setShowAlert] = useState(false);
   const [alertMsg, setAlertMsg] = useState("");
+  const [alertOptions, setAlertOptions] = useState({
+    btn1: "Close",
+    btn2: "Refresh",
+    handleFunc: () => fetchPropertyData(specificProperty.id),
+  });
 
   const [submitted, setSubmitted] = useState(false);
   const [formStatusNew, setFormStatusNew] = useState({
@@ -2746,6 +2784,9 @@ function RenderProperty() {
                   propertyId={specificProperty?.id}
                   backToSearch={backToSearch}
                   setdisableButton={setdisableButton}
+                  setShowAlert={setShowAlert}
+                  setAlertMsg={setAlertMsg}
+                  setAlertOptions={setAlertOptions}
                 />
               </ModalBody>
             </Modal>
@@ -2769,9 +2810,9 @@ function RenderProperty() {
                 <AlertPopup
                   closeForm={() => setShowAlert(false)}
                   message={alertMsg}
-                  btn1={"Close"}
-                  btn2={"Refresh"}
-                  handleFunc={() => fetchPropertyData(specificProperty.id)}
+                  btn1={alertOptions.btn1}
+                  btn2={alertOptions.btn2}
+                  handleFunc={alertOptions.handleFunc}
                 />
               </ModalBody>
             </Modal>
