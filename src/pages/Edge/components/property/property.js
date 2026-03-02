@@ -128,17 +128,22 @@ const ConfirmationPopup = (props) => {
           "One or more selected properties are linked to matters and cannot be deleted."
         );
 
-        setAlertOptions({ btn1: "OK", btn2: "", handleFunc: null });
+        setAlertOptions({ btn1: "", btn2: "OK", handleFunc: null });
         setShowAlert(true);
+        closeForm();
+        setdisableButton(false);
+        setBoolVal(false);
         return;
       }
       
       const res = await deletePropertyFromList(selected.join(","));
       setSelected([]);
       setBoolVal(false);
+      setdisableButton(false);
       closeForm();
     } catch (err) {
       console.error(err);
+      setdisableButton(false);
     }
   };
 
@@ -148,8 +153,11 @@ const ConfirmationPopup = (props) => {
       const res = await checkPropertyLinkedToMatter(id);
       if (res && res.data) {
         setAlertMsg("You can't delete this property because it is linked to a matter.");
-        setAlertOptions({ btn1: "OK", btn2: "", handleFunc: null });
+        setAlertOptions({ btn1: "", btn2: "OK", handleFunc: null });
         setShowAlert(true);
+        closeForm();
+        setdisableButton(false);
+        setBoolVal(false);
         return;
       }
       
@@ -2762,14 +2770,20 @@ function RenderProperty() {
           {showConfirm && (
             <Modal
               isOpen={showConfirm}
-              toggle={() => setShowConfirm(false)}
+              toggle={() => {
+                setShowConfirm(false);
+                setdisableButton(false);
+              }}
               backdrop="static"
               scrollable={true}
               size="md"
               centered
             >
               <ModalHeader
-                toggle={() => setShowConfirm(false)}
+                toggle={() => {
+                  setShowConfirm(false);
+                  setdisableButton(false);
+                }}
                 className="bg-light p-3"
               >
                 Confirm Your Action

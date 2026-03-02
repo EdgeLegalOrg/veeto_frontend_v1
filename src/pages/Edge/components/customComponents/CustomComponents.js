@@ -2125,14 +2125,16 @@ export const AlertPopup = (props) => {
         </div>
 
         <div className="d-flex align-items-center justify-content-end p-2 border-top">
-          <Button
-            className="mx-1"
-            color="danger"
-            onClick={handleNoFunc || closeForm}
-            disabled={!enableButton}
-          >
-            {btn1}
-          </Button>
+          {btn1 && (
+            <Button
+              className="mx-1"
+              color="danger"
+              onClick={handleNoFunc || closeForm}
+              disabled={!enableButton}
+            >
+              {btn1}
+            </Button>
+          )}
           {btn2 && (
             <Button
               className="mx-1"

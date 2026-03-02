@@ -100,6 +100,9 @@ const ViewDepositSlip = (props) => {
             <p>{payment.paymentId}</p>
           </td>
           <td>
+            <p>{payment.matterNumber}</p>
+          </td>
+          <td>
             <p>{payment.paymentType}</p>
           </td>
           <td>
@@ -126,6 +129,7 @@ const ViewDepositSlip = (props) => {
               </span>
               <span>{`Total:  $ ${findTotal(arg)}`}</span>
             </td>
+            <td></td>
           </tr>
         </tbody>
       );
@@ -214,6 +218,9 @@ const ViewDepositSlip = (props) => {
               <th></th>
               <th>
                 <p>Payment Id</p>
+              </th>
+              <th>
+                <p>Matter Number</p>
               </th>
               <th>
                 <p>Payment Type</p>
