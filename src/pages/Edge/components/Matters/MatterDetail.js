@@ -204,6 +204,7 @@ const MatterDetail = (props) => {
             data={data}
             refresh={handleRefresh}
             setExtraButtons={setExtraButtons}
+            isArchived={data?.flagArchived}
           />
         );
       case "INVOICES":
@@ -212,6 +213,7 @@ const MatterDetail = (props) => {
             data={data}
             refresh={handleRefresh}
             setExtraButtons={setExtraButtons}
+            isArchived={data?.flagArchived}
           />
         );
       case "TIME_BILLING":
@@ -221,6 +223,7 @@ const MatterDetail = (props) => {
             data={data}
             refresh={handleRefresh}
             setExtraButtons={setExtraButtons}
+            isArchived={data?.flagArchived}
           />
         );
       case "CONVEYANCE":
@@ -229,6 +232,7 @@ const MatterDetail = (props) => {
             data={data}
             refresh={handleRefresh}
             setExtraButtons={setExtraButtons}
+            isArchived={data?.flagArchived}
           />
         );
       case "BUSINESS_SALE_PURCHASE":
@@ -237,6 +241,7 @@ const MatterDetail = (props) => {
             data={data}
             refresh={handleRefresh}
             setExtraButtons={setExtraButtons}
+            isArchived={data?.flagArchived}
           />
         );
       case "PROPERTY":
@@ -245,6 +250,7 @@ const MatterDetail = (props) => {
             data={data}
             refresh={handleRefresh}
             setExtraButtons={setExtraButtons}
+            isArchived={data?.flagArchived}
           />
         );
       case "FAMILY_LAW":
@@ -253,6 +259,7 @@ const MatterDetail = (props) => {
             data={data}
             refresh={handleRefresh}
             setExtraButtons={setExtraButtons}
+            isArchived={data?.flagArchived}
           />
         );
       case "ESTATE":
@@ -261,6 +268,7 @@ const MatterDetail = (props) => {
             data={data}
             refresh={handleRefresh}
             setExtraButtons={setExtraButtons}
+            isArchived={data?.flagArchived}
           />
         );
       case "LEASE":
@@ -269,6 +277,7 @@ const MatterDetail = (props) => {
             data={data}
             refresh={handleRefresh}
             setExtraButtons={setExtraButtons}
+            isArchived={data?.flagArchived}
           />
         );
       case "ATTACHMENTS":
@@ -277,6 +286,7 @@ const MatterDetail = (props) => {
             data={data}
             refresh={handleRefresh}
             setExtraButtons={setExtraButtons}
+            isArchived={data?.flagArchived}
           />
         );
       case "BASIC":
@@ -287,6 +297,7 @@ const MatterDetail = (props) => {
             staffList={staffList}
             refreshListing={refreshListing}
             setExtraButtons={setExtraButtons}
+            isArchived={data?.flagArchived}
           />
         );
       case "MARRIAGE_DEFACTO":
@@ -295,6 +306,7 @@ const MatterDetail = (props) => {
             data={data}
             refresh={handleRefresh}
             setExtraButtons={setExtraButtons}
+            isArchived={data?.flagArchived}
           />
         );
       case "CHECKLIST":
@@ -303,6 +315,7 @@ const MatterDetail = (props) => {
             data={data}
             refresh={handleRefresh}
             setExtraButtons={setExtraButtons}
+            isArchived={data?.flagArchived}
           />
         );
       default:

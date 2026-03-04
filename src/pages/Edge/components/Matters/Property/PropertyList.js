@@ -55,6 +55,7 @@ const PropertyList = (props) => {
         <div className="d-flex align-items-center">
           <Button
             color="success"
+            disabled={props.isArchived}
             onClick={() => setOpen(true)}
             className="d-flex mx-2"
           >
@@ -62,6 +63,7 @@ const PropertyList = (props) => {
           </Button>
           <Button
             color="danger"
+            disabled={props.isArchived}
             onClick={handleDeleteAlert}
             className="d-flex mx-2"
           >

@@ -1462,6 +1462,7 @@ const MatterList = () => {
           staffList={staffList}
           refreshListing={fetchMatterList}
           refresh={handleRefresh}
+          isArchivedMode={showArchived}
         />
       );
     }

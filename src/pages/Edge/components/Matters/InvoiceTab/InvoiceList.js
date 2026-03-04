@@ -153,7 +153,7 @@ const InvoiceList = (props) => {
   const showAddButton = () => {
     if (checkHasPermission(CREATEINVOICE)) {
       return (
-        <Button color="success" onClick={handleAdd} className="d-flex mx-2">
+        <Button color="success" disabled={props.isArchived} onClick={handleAdd} className="d-flex mx-2">
           <span className="plusdiv">+</span>Add
         </Button>
       );
@@ -167,6 +167,7 @@ const InvoiceList = (props) => {
       return (
         <Button
           color="danger"
+          disabled={props.isArchived}
           onClick={() => setPaymentPopup(true)}
           className="d-flex mx-2"
         >

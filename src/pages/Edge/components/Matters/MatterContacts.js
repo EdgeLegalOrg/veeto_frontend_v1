@@ -66,7 +66,7 @@ const MatterContacts = (props) => {
         <div className="d-flex align-items-center">
           <Button
             color="success"
-            disabled={disabled}
+            disabled={disabled || props.isArchived}
             onClick={() => setLinkContact(true)}
             className="d-flex mx-2"
           >

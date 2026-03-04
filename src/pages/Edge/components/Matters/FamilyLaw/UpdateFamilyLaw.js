@@ -70,6 +70,7 @@ const EditFamilyForm = (props) => {
           <Button
             type="submit"
             color="success"
+            disabled={props.isArchived}
             onClick={handleSubmit}
             className="mx-2"
           >
@@ -78,7 +79,7 @@ const EditFamilyForm = (props) => {
         </div>,
       );
     }
-  }, [setExtraButtons, formData, submitted]);
+  }, [setExtraButtons, formData, submitted, props.isArchived]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;

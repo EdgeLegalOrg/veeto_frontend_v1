@@ -76,6 +76,7 @@ const EditLease = (props) => {
           <Button
             type="submit"
             color="success"
+            disabled={props.isArchived}
             onClick={handleSubmit}
             className="mx-2"
           >
@@ -84,7 +85,7 @@ const EditLease = (props) => {
         </div>,
       );
     }
-  }, [setExtraButtons, formData, submitted]);
+  }, [setExtraButtons, formData, submitted, props.isArchived]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;

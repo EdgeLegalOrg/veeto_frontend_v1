@@ -114,6 +114,7 @@ const AddConveyancing = (props) => {
           <Button
             type="submit"
             color="success"
+            disabled={props.isArchived}
             onClick={handleSubmit}
             className="mx-2"
           >
@@ -122,7 +123,7 @@ const AddConveyancing = (props) => {
         </div>,
       );
     }
-  }, [setExtraButtons, formData, submitted, formChange]);
+  }, [setExtraButtons, formData, submitted, formChange, props.isArchived]);
 
   const findDisplayname = (from, val = "") => {
     if (val) {

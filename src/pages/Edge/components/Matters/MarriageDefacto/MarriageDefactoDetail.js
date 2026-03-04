@@ -96,6 +96,7 @@ const MarriageDefactoDetail = (props) => {
           refresh={props.refresh}
           data={data}
           setExtraButtons={setExtraButtons}
+          isArchived={props.isArchived}
         />
       ) : (
         <AddMarriageDefacto
@@ -103,6 +104,7 @@ const MarriageDefactoDetail = (props) => {
           matterId={props?.data?.id}
           refresh={props.refresh}
           setExtraButtons={setExtraButtons}
+          isArchived={props.isArchived}
         />
       )}
 

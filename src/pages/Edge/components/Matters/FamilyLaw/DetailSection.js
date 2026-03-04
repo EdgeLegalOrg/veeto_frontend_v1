@@ -145,6 +145,7 @@ const DetailSection = (props) => {
           refresh={props.refresh}
           data={data}
           setExtraButtons={setExtraButtons}
+          isArchived={props.isArchived}
         />
       ) : (
         <AddFamilyLaw
@@ -152,6 +153,7 @@ const DetailSection = (props) => {
           matterId={props?.data?.id}
           refresh={props.refresh}
           setExtraButtons={setExtraButtons}
+          isArchived={props.isArchived}
         />
       )}
 

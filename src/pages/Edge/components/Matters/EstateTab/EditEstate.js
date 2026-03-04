@@ -83,6 +83,7 @@ const EditEState = (props) => {
           <Button
             type="submit"
             color="success"
+            disabled={props.isArchived}
             onClick={handleSubmit}
             className="mx-2"
           >
@@ -91,7 +92,7 @@ const EditEState = (props) => {
         </div>,
       );
     }
-  }, [setExtraButtons, formData, submitted]);
+  }, [setExtraButtons, formData, submitted, props.isArchived]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;

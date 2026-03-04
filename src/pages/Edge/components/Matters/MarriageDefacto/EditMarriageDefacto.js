@@ -44,6 +44,7 @@ const EditMarriageDefacto = (props) => {
           <Button
             type="submit"
             color="success"
+            disabled={props.isArchived}
             onClick={() => {}}
             className="mx-2"
           >
@@ -52,7 +53,7 @@ const EditMarriageDefacto = (props) => {
         </div>,
       );
     }
-  }, [setExtraButtons, formData, submitted]);
+  }, [setExtraButtons, formData, submitted, props.isArchived]);
 
   const isRequired = (field) => {
     return requiredFields.includes(field);

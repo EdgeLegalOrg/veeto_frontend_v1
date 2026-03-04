@@ -25,6 +25,7 @@ const ChecklistTab = (props) => {
             <button
               type="button"
               className="mx-2 btn btn-success"
+              disabled={props.isArchived}
               onClick={handleUpdateTask}
             >
               Save

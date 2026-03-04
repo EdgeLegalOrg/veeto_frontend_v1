@@ -62,6 +62,7 @@ const BusinessTab = (props) => {
           matterId={props?.data?.id}
           matter={props?.data}
           setExtraButtons={setExtraButtons}
+          isArchived={props.isArchived}
         />
       ) : (
         <AddBusiness
@@ -70,6 +71,7 @@ const BusinessTab = (props) => {
           matterId={props?.data?.id}
           matter={props?.data}
           setExtraButtons={setExtraButtons}
+          isArchived={props.isArchived}
         />
       )}
       {add && (

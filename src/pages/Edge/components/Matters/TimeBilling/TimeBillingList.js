@@ -55,11 +55,12 @@ const TimeBillingList = (props) => {
     if (setExtraButtons) {
       setExtraButtons(
         <div className="d-flex align-items-center">
-          <Button color="success" onClick={handleAdd} className="d-flex mx-2">
+          <Button color="success" disabled={props.isArchived} onClick={handleAdd} className="d-flex mx-2">
             <span className="plusdiv">+</span>Add
           </Button>
           <Button
             color="danger"
+            disabled={props.isArchived}
             onClick={handleDeleteAlert}
             className="d-flex mx-2"
           >

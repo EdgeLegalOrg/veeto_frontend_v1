@@ -52,6 +52,7 @@ const ConveyanceList = (props) => {
           matter={props?.data}
           data={data}
           setExtraButtons={setExtraButtons}
+          isArchived={props.isArchived}
         />
       ) : (
         <AddConveyancing
@@ -60,6 +61,7 @@ const ConveyanceList = (props) => {
           matterId={props?.data?.id}
           matter={props?.data}
           setExtraButtons={setExtraButtons}
+          isArchived={props.isArchived}
         />
       )}
 

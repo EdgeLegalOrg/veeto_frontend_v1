@@ -51,6 +51,7 @@ const EstateList = (props) => {
           matterId={props?.data?.id}
           data={data}
           setExtraButtons={setExtraButtons}
+          isArchived={props.isArchived}
         />
       ) : (
         <AddEstate
@@ -58,6 +59,7 @@ const EstateList = (props) => {
           close={() => setAdd(false)}
           matterId={props?.data?.id}
           setExtraButtons={setExtraButtons}
+          isArchived={props.isArchived}
         />
       )}
 

@@ -56,6 +56,7 @@ const LeaseList = (props) => {
           matterId={props?.data?.id}
           data={data}
           setExtraButtons={setExtraButtons}
+          isArchived={props.isArchived}
         />
       ) : (
         <AddLease
@@ -63,6 +64,7 @@ const LeaseList = (props) => {
           close={() => setAdd(false)}
           matterId={props?.data?.id}
           setExtraButtons={setExtraButtons}
+          isArchived={props.isArchived}
         />
       )}
 

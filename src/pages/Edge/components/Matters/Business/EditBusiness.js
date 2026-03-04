@@ -108,6 +108,7 @@ const EditBusiness = (props) => {
           <Button
             type="submit"
             color="success"
+            disabled={props.isArchived}
             onClick={handleSubmit}
             className="mx-2"
           >
@@ -116,7 +117,7 @@ const EditBusiness = (props) => {
         </div>,
       );
     }
-  }, [setExtraButtons, formData, submitted]);
+  }, [setExtraButtons, formData, submitted, props.isArchived]);
 
   const findDisplayname = (from, val = "") => {
     if (val) {

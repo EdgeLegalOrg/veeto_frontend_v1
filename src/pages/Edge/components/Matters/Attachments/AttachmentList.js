@@ -84,7 +84,7 @@ const AttachmentList = (props) => {
         </div>,
       );
     }
-  }, [setExtraButtons, attachList]);
+  }, [setExtraButtons, attachList, selectedList]);
 
   const handleSelectAll = (e) => {
     if (e.target.checked) {
@@ -119,7 +119,7 @@ const AttachmentList = (props) => {
   const isSelected = (id) => selectedList.indexOf(id) !== -1;
 
   const filterData = (obj, returnData = false) => {
-    let list = attachList.lengh > 0 ? attachList : props?.data?.attachmentList;
+    let list = attachList.length > 0 ? attachList : props?.data?.attachmentList;
     const newData = list?.filter(
       (data) =>
         (obj["name"] !== ""
@@ -267,14 +267,20 @@ const AttachmentList = (props) => {
   const handleDelete = async () => {
     try {
       setLoading(true);
-      let ids = selectedList.join(",");
+      const ids = selectedList.join(",");
       const { data } = await deleteMatterAttach(ids);
       if (data.success) {
-        props.refresh();
+        const deletedIds = [...selectedList];
+        const remaining = attachList.filter((a) => !deletedIds.includes(a.id));
+        setAttachList(remaining);
+        setFilteredList((prev) =>
+          prev.filter((a) => !deletedIds.includes(a.id)),
+        );
         setSelectedList([]);
         setTimeout(() => {
           setDeletePop(false);
         }, 10);
+        props.refresh();
       } else {
         toast.warning("Something went wrong, please try later.");
       }
@@ -312,6 +318,7 @@ const AttachmentList = (props) => {
           color="danger"
           onClick={handleDeleteAlert}
           className="d-flex mx-2"
+          disabled={props.isArchived}
         >
           <span className="plusdiv">-</span>Delete
         </Button>
