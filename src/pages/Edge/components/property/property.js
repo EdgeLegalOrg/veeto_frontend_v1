@@ -115,27 +115,6 @@ const ConfirmationPopup = (props) => {
   const deletePropertyOnMain = async () => {
     if (selected.length === 0) return;
     try {
-      const linkedResponses = await Promise.all(
-        selected.map((id) => checkPropertyLinkedToMatter(id))
-      );
-
-      const anyLinked = linkedResponses.some(
-        (r) => r && r.data === true
-      );
-
-      if (anyLinked) {
-        setAlertMsg(
-          "One or more selected properties are linked to matters and cannot be deleted."
-        );
-
-        setAlertOptions({ btn1: "", btn2: "OK", handleFunc: null });
-        setShowAlert(true);
-        closeForm();
-        setdisableButton(false);
-        setBoolVal(false);
-        return;
-      }
-      
       const res = await deletePropertyFromList(selected.join(","));
       setSelected([]);
       setBoolVal(false);
@@ -150,17 +129,6 @@ const ConfirmationPopup = (props) => {
   async function deleteProperty() {
     const id = propertyId;
     try {
-      const res = await checkPropertyLinkedToMatter(id);
-      if (res && res.data) {
-        setAlertMsg("You can't delete this property because it is linked to a matter.");
-        setAlertOptions({ btn1: "", btn2: "OK", handleFunc: null });
-        setShowAlert(true);
-        closeForm();
-        setdisableButton(false);
-        setBoolVal(false);
-        return;
-      }
-      
       await deletePropertyById(id);
       closeForm();
       setdisableButton(false);
@@ -1159,6 +1127,39 @@ function RenderProperty() {
     }
   };
 
+  const handleSingleDeleteClick = async () => {
+  if (
+    specificProperty?.registeredProperties?.length > 0 ||
+    specificProperty?.unregisteredProperties?.length > 0
+  ) {
+    toast.warning(
+      "Property having Registered or Unregistered lots can't be deleted"
+    );
+    return;
+  }
+
+  setIsLoading(true);
+
+  try {
+    const res = await checkPropertyLinkedToMatter(specificProperty.id);
+
+    if (res?.data?.data) {
+      toast.warning(
+        "You can't delete this property because it is linked to a matter."
+      );
+      return;
+    }
+
+    setdisableButton(true);
+    setDeleteType("specific");
+    setShowConfirm(true);
+  } catch (err) {
+    console.error(err);
+  } finally {
+    setIsLoading(false);
+  }
+};
+
   return (
     <Fragment>
       <div className="page-content">
@@ -1185,9 +1186,28 @@ function RenderProperty() {
                           <Button
                             color="danger"
                             type="button"
-                            onClick={() => {
-                              setDeleteType("main");
-                              setShowConfirm(true);
+                            onClick={async () => {
+                              setIsLoading(true);
+                              try {
+                                const linkedResponses = await Promise.all(
+                                  selected.map((id) => checkPropertyLinkedToMatter(id))
+                                );
+                                const anyLinked = linkedResponses.some(
+                                  (r) => r && r.data && r.data.data === true
+                                );
+                                if (anyLinked) {
+                                  toast.warning(
+                                    "One or more selected properties are linked to matters and cannot be deleted."
+                                  );
+                                } else {
+                                  setDeleteType("main");
+                                  setShowConfirm(true);
+                                }
+                              } catch (err) {
+                                console.error(err);
+                              } finally {
+                                setIsLoading(false);
+                              }
                             }}
                           >
                             <span className="plusdiv">-</span> Delete
@@ -1712,21 +1732,7 @@ function RenderProperty() {
                           disabled={disableButton}
                           color="danger"
                           type="button"
-                          onClick={() => {
-                            if (
-                              specificProperty.registeredProperties.length >
-                                0 ||
-                              specificProperty.unregisteredProperties.length > 0
-                            ) {
-                              toast.warning(
-                                "Property having Registered or Unregistered lots can't be deleted"
-                              );
-                            } else {
-                              setdisableButton(true);
-                              setDeleteType("specific");
-                              setShowConfirm(true);
-                            }
-                          }}
+                          onClick={handleSingleDeleteClick}
                           className="d-flex mx-1"
                         >
                           Delete
