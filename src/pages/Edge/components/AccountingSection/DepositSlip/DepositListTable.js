@@ -459,7 +459,7 @@ const DepositListTable = (props) => {
                   </p>
                 </td>
                 <td>
-                  <p className="mb-0">{slip.matterNumbers}</p>
+                  <p className="mb-0">{slip.matterNumbers ? slip.matterNumbers.split(",").map(s => s.trim()).join(", ") : ""}</p>
                 </td>
                 <td>
                   <p className="mb-0">{slip.description}</p>

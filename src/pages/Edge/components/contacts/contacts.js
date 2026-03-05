@@ -126,7 +126,6 @@ function Contacts(props) {
   const [personList, setPersonList] = useState([]);
   const [companyList, setCompanyList] = useState([]);
   const [selectedContact, setSelectedContact] = useState(contactDetails);
-  const [linkedWarningModal, setLinkedWarningModal] = useState(false);
 
   const filterPersons = (data) => {
     const persons = data.filter((contact) => contact.contactType === "PERSON");
@@ -439,7 +438,7 @@ function Contacts(props) {
           const isLinked = res.data.data;
 
           if (isLinked) {
-            setLinkedWarningModal(true);
+            toast.warning("The selected contact(s) are linked to matters and cannot be deleted.");
           } else {
             setConfirmScreen(true);
           }
@@ -1285,40 +1284,7 @@ function Contacts(props) {
                     </ModalBody>
                   </Modal>
                 )}
-                {linkedWarningModal && (
-                  <Modal
-                    isOpen={linkedWarningModal}
-                    toggle={() => setLinkedWarningModal(false)}
-                    backdrop="static"
-                    centered
-                    size="md"
-                  >
-                    <ModalHeader
-                      toggle={() => setLinkedWarningModal(false)}
-                      className="bg-light p-3"
-                    >
-                      Cannot Delete Contact
-                    </ModalHeader>
 
-                    <ModalBody className="text-center">
-                      <div className="p-4">
-                        <p>
-                        The selected contact(s) are linked to matters and cannot
-                        be deleted.
-                        </p>
-                      </div>
-
-                      <div className="d-flex align-items-center justify-content-end p-2 border-top">
-                        <Button
-                          color="success"
-                          onClick={() => setLinkedWarningModal(false)}
-                        >
-                          OK
-                        </Button>
-                      </div>
-                    </ModalBody>
-                  </Modal>
-                )}
                 {isLoading && <LoadingPage />}
               </>
             ) : (

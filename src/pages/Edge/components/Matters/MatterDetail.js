@@ -77,7 +77,7 @@ const MatterDetail = (props) => {
 
   //file directory modal function
   const handleModalOpen = (item) => {
-    if (formStatus.isFormChanged) {
+    if (formStatus.isFormChanged && !data?.flagArchived) {
       return dispatch(
         updateFormStatusAction({
           key: "isShowModal",
@@ -146,7 +146,7 @@ const MatterDetail = (props) => {
   };
 
   const selectTab = (val) => {
-    if (formStatus.isFormChanged) {
+    if (formStatus.isFormChanged && !data?.flagArchived) {
       return dispatch(
         updateFormStatusAction({
           key: "isShowModal",
@@ -168,7 +168,7 @@ const MatterDetail = (props) => {
   };
 
   const handleArchive = async () => {
-    if (formStatus.isFormChanged) {
+    if (formStatus.isFormChanged && !data?.flagArchived) {
       return dispatch(
         updateFormStatusAction({ key: "isShowModal", value: true })
       );
@@ -332,7 +332,7 @@ const MatterDetail = (props) => {
   };
 
   const handleSettlementTab = () => {
-    if (formStatus.isFormChanged) { 
+    if (formStatus.isFormChanged && !data?.flagArchived) { 
       return dispatch(
         updateFormStatusAction({
           key: "isShowModal",
@@ -424,7 +424,7 @@ const MatterDetail = (props) => {
             color="danger"
             className="mx-2"
             onClick={() => {
-              if (formStatus.isFormChanged) {
+              if (formStatus.isFormChanged && !data?.flagArchived) {
                 return dispatch(
                   updateFormStatusAction({
                     key: "isShowModal",
