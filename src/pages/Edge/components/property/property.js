@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { v1 as uuidv1 } from "uuid";
 import validator from "validator";
-import { MdSearch } from "react-icons/md";
+import { MdFilterAltOff, MdSearch } from "react-icons/md";
 import { AiOutlineClose } from "react-icons/ai";
 import upArrow from "../../images/upArrow.svg";
 import downArrow from "../../images/downArrow.svg";
@@ -142,7 +142,7 @@ const ConfirmationPopup = (props) => {
   return (
     <div>
       <div className="p-4">
-        <p>Are you sure you want to delete the record?</p>
+        <p>Are you sure you want to delete the record(s)?</p>
       </div>
       <div className="d-flex align-items-center justify-content-end p-2 border-top">
         <Button
@@ -663,7 +663,19 @@ function RenderProperty() {
     } else {
       return filteredData?.map((property, index) => {
         return (
-          <tr key={property.id}>
+          <tr
+            key={property.id}
+            onClick={() => fetchPropertyData(property.id)}
+            className="pe-cursor"
+          >
+            <td>
+              <Input
+                type="checkbox"
+                onClick={(e) => e.stopPropagation()}
+                onChange={() => handleSelectToDelete(property.id)}
+                checked={isSelected(property.id)}
+              />
+            </td>
             <td>
               <h6
                 className="mb-0 pe-cursor"
@@ -1127,38 +1139,49 @@ function RenderProperty() {
     }
   };
 
+  const checkAndConfirmDelete = async (id, deleteType, callback) => {
+    setIsLoading(true);
+    try {
+      const res = await checkPropertyLinkedToMatter(id);
+      const { unregisterOrRegisterLot, propertyLinked } = res?.data?.data || {};
+
+      if (propertyLinked) {
+        toast.warning("Property(s) are linked to a matter and can't be deleted");
+        return;
+      }
+
+      if (unregisterOrRegisterLot) {
+        toast.warning("Property having Registered or Unregistered lots can't be deleted");
+        return;
+      }
+
+      callback?.();
+      setDeleteType(deleteType);
+      setShowConfirm(true);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleSingleDeleteClick = async () => {
-  if (
-    specificProperty?.registeredProperties?.length > 0 ||
-    specificProperty?.unregisteredProperties?.length > 0
-  ) {
-    toast.warning(
-      "Property having Registered or Unregistered lots can't be deleted"
-    );
-    return;
-  }
-
-  setIsLoading(true);
-
-  try {
-    const res = await checkPropertyLinkedToMatter(specificProperty.id);
-
-    if (res?.data?.data) {
-      toast.warning(
-        "You can't delete this property because it is linked to a matter."
-      );
+    if (
+      specificProperty?.registeredProperties?.length > 0 ||
+      specificProperty?.unregisteredProperties?.length > 0
+    ) {
+      toast.warning("Property having Registered or Unregistered lots can't be deleted");
       return;
     }
 
-    setdisableButton(true);
-    setDeleteType("specific");
-    setShowConfirm(true);
-  } catch (err) {
-    console.error(err);
-  } finally {
-    setIsLoading(false);
-  }
-};
+    await checkAndConfirmDelete(specificProperty.id, "specific", () =>
+      setdisableButton(true)
+    );
+  };
+
+  const handleDeleteSelectedProperties = async () => {
+    await checkAndConfirmDelete(selected, "main");
+  };
 
   return (
     <Fragment>
@@ -1182,35 +1205,15 @@ function RenderProperty() {
                         >
                           <i className="ri-add-line align-bottom me-1"></i> Add
                         </Button>
+
                         {selected.length > 0 && (
                           <Button
                             color="danger"
                             type="button"
-                            onClick={async () => {
-                              setIsLoading(true);
-                              try {
-                                const linkedResponses = await Promise.all(
-                                  selected.map((id) => checkPropertyLinkedToMatter(id))
-                                );
-                                const anyLinked = linkedResponses.some(
-                                  (r) => r && r.data && r.data.data === true
-                                );
-                                if (anyLinked) {
-                                  toast.warning(
-                                    "One or more selected properties are linked to matters and cannot be deleted."
-                                  );
-                                } else {
-                                  setDeleteType("main");
-                                  setShowConfirm(true);
-                                }
-                              } catch (err) {
-                                console.error(err);
-                              } finally {
-                                setIsLoading(false);
-                              }
-                            }}
+                            onClick={handleDeleteSelectedProperties}
                           >
-                            <span className="plusdiv">-</span> Delete
+                            <i className="ri-delete-bin-5-line align-bottom me-1"></i>{" "}
+                              Delete
                           </Button>
                         )}
                       </div>
@@ -1268,11 +1271,11 @@ function RenderProperty() {
                         <div>
                           <Button
                             type="button"
-                            color="primary"
-                            className="btn w-100"
-                            onClick={() => handleClearFilter()}
+                            color="danger"
+                            className="mx-1"
+                            onClick={handleClearFilter}
                           >
-                            <AiOutlineClose size={18} />
+                            <MdFilterAltOff size={18} />
                           </Button>
                         </div>
                       </Col>
@@ -1283,6 +1286,16 @@ function RenderProperty() {
                 <Table responsive={true} striped={true} hover={true}>
                   <thead className="mb-2">
                     <tr>
+                      <th style={{ width: "3%", verticalAlign: "middle" }}>
+                        <Input
+                          type="checkbox"
+                          onChange={handleSelectAllClick}
+                          checked={
+                            filteredData?.length > 0 &&
+                            selected?.length === filteredData?.length
+                          }
+                        />
+                      </th>
                       <th style={{ width: "20%" }}>
                         <label className="d-flex">
                           Title Ref.
@@ -1385,9 +1398,9 @@ function RenderProperty() {
                             type="button"
                             color="danger"
                             className="mx-1"
-                            onClick={() => handleClearFilter()}
+                            onClick={handleClearFilter}
                           >
-                            <AiOutlineClose size={18} />
+                            <MdFilterAltOff size={18} />
                           </Button>
                         </div>
                       </th>
@@ -2733,7 +2746,7 @@ function RenderProperty() {
                     updateFormStatusAction({
                       key: "isShowModal",
                       value: true,
-                    })
+                    }),
                   );
                 }
                 setShowAddProperty(false);
