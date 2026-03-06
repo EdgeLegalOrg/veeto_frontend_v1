@@ -25,6 +25,7 @@ import EditSiteInfo from "./EditSiteInfo";
 import TooltipWrapper from "../../../../../Components/Common/TooltipWrapper";
 import { v1 as uuidv1 } from "uuid";
 import { AiOutlineClose } from "react-icons/ai";
+import { MdFilterAltOff } from "react-icons/md";
 
 const filterFields = {
   siteName: "",
@@ -384,7 +385,7 @@ const CompanySites = (props) => {
                   className="mx-1"
                   onClick={() => handleResetFilter()}
                 >
-                  <AiOutlineClose size={18} />
+                  <MdFilterAltOff size={18} />
                 </Button>
               </div>
             </th>

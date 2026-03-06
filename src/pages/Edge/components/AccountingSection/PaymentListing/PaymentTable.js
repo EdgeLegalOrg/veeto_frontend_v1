@@ -16,7 +16,7 @@ import {
   findDisplayname,
   formatCurrency,
 } from "../../../utils/utilFunc";
-import { MdSearch } from "react-icons/md";
+import { MdFilterAltOff, MdSearch } from "react-icons/md";
 import { AiOutlineClose, AiFillPrinter } from "react-icons/ai";
 import { MdDelete } from "react-icons/md";
 import { toast } from "react-toastify";
@@ -445,7 +445,7 @@ const PaymentTable = (props) => {
                   className="mx-1"
                   onClick={() => handleResetFilter()}
                 >
-                  <AiOutlineClose size={18} />
+                  <MdFilterAltOff size={18} />
                 </Button>
               </div>
             </th>

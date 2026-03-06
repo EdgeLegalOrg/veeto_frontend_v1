@@ -29,6 +29,7 @@ import { AlertPopup } from "../../customComponents/CustomComponents";
 import BreadCrumb from "../../../../../Components/Common/BreadCrumb";
 import { toast } from "react-toastify";
 import { TextInputField } from "pages/Edge/components/InputField";
+import { MdFilterAltOff } from "react-icons/md";
 
 const ServiceLineListPage = () => {
   document.title = "Service Lines | EdgeLegal";
@@ -199,7 +200,7 @@ const ServiceLineListPage = () => {
                     className="mx-1"
                     onClick={() => handleResetFilter()}
                   >
-                    <AiOutlineClose size={18} />
+                    <MdFilterAltOff size={18} />
                   </Button>
                 </div>
                 <Table responsive={true} striped={true} hover={true}>

@@ -24,6 +24,7 @@ import { AlertPopup } from "../../customComponents/CustomComponents";
 import "../../../stylesheets/ServiceLines.css";
 import { toast } from "react-toastify";
 import { TextInputField } from "pages/Edge/components/InputField";
+import { MdFilterAltOff } from "react-icons/md";
 
 const InvoiceTemplateList = () => {
   document.title = "Invoices | EdgeLegal";
@@ -207,7 +208,7 @@ const InvoiceTemplateList = () => {
                   className="mx-1"
                   onClick={() => handleResetFilter()}
                 >
-                  <AiOutlineClose size={18} />
+                  <MdFilterAltOff size={18} />
                 </Button>
               </div>
               <div className="serviceLine-listContainer m-2">

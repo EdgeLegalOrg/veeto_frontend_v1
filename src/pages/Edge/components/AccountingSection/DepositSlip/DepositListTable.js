@@ -8,7 +8,7 @@ import {
   ModalHeader,
 } from "reactstrap";
 import { AiFillPrinter } from "react-icons/ai";
-import { MdDelete } from "react-icons/md";
+import { MdDelete, MdFilterAltOff } from "react-icons/md";
 import upArrow from "../../../images/upArrow.svg";
 import downArrow from "../../../images/downArrow.svg";
 import downArrowColoured from "../../../images/downArrowColoured.svg";
@@ -422,13 +422,13 @@ const DepositListTable = (props) => {
                   >
                     <MdSearch size={18} />
                   </Button>
-                  <Button
+                   <Button
                     type="button"
                     color="danger"
                     className="mx-1"
-                    onClick={() => handleResetFilter()}
+                    onClick={handleResetFilter}
                   >
-                    <AiOutlineClose size={18} />
+                    <MdFilterAltOff size={18} />
                   </Button>
                 </div>
               </th>
@@ -459,7 +459,7 @@ const DepositListTable = (props) => {
                   </p>
                 </td>
                 <td>
-                  <p className="mb-0">{slip.matterNumbers ? slip.matterNumbers.split(",").map(s => s.trim()).join(", ") : ""}</p>
+                  <p className="mb-0">{slip.matterNumbers}</p>
                 </td>
                 <td>
                   <p className="mb-0">{slip.description}</p>

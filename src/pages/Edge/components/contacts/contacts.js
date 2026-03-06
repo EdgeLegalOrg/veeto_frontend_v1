@@ -19,7 +19,7 @@ import downArrowColoured from "../../images/downArrowColoured.svg";
 import upArrowColoured from "../../images/upArrowColoured.svg";
 import ContactStripe from "../topStripes/ContactStripe";
 import LoadingPage from "../../utils/LoadingPage";
-import { MdSearch } from "react-icons/md";
+import { MdFilterAltOff, MdSearch } from "react-icons/md";
 import { AiOutlineClose } from "react-icons/ai";
 import Pagination from "../Pagination";
 import SingleContact from "./SingleContact";
@@ -997,12 +997,13 @@ function Contacts(props) {
                               <MdSearch size={18} />
                             </Button>
                             <Button
+                            type="button"
+                            color="danger"
+                            className="mx-1"
                               onClick={handleClearFilter}
-                              color="danger"
-                              className="mx-1"
-                            >
-                              <AiOutlineClose size={18} />
-                            </Button>
+                          >
+                            <MdFilterAltOff size={18} />
+                          </Button>
                           </div>
                         </th>
                       </tr>

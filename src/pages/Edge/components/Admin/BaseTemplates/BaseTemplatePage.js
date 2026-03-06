@@ -30,7 +30,7 @@ import { AlertPopup } from "../../customComponents/CustomComponents";
 import "../../../stylesheets/ManageTemplate.css";
 import AddNewTemplate from "./AddNewTemplate";
 import EditTemplate from "./EditTemplate";
-import { MdSearch } from "react-icons/md";
+import { MdFilterAltOff, MdSearch } from "react-icons/md";
 import { AiOutlineClose } from "react-icons/ai";
 import { toast } from "react-toastify";
 import { formatDateFunc } from "../../../utils/utilFunc";
@@ -440,7 +440,7 @@ const BaseTemplatePage = () => {
                         className="mx-1"
                         onClick={() => handleClearFilter()}
                       >
-                        <AiOutlineClose size={18} />
+                        <MdFilterAltOff size={18} />
                       </Button>
                     </th>
                   </tr>
@@ -707,7 +707,7 @@ const BaseTemplatePage = () => {
                     className="searchButton"
                     onClick={() => handleClearFilter()}
                   >
-                    <AiOutlineClose size={25} />
+                    <MdFilterAltOff size={25} />
                   </button>
                 </div>
               </div>

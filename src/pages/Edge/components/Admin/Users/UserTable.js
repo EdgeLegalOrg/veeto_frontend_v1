@@ -5,7 +5,7 @@ import upArrow from '../../../images/upArrow.svg';
 import downArrow from '../../../images/downArrow.svg';
 import downArrowColoured from '../../../images/downArrowColoured.svg';
 import upArrowColoured from '../../../images/upArrowColoured.svg';
-import { MdSearch } from 'react-icons/md';
+import { MdFilterAltOff, MdSearch } from 'react-icons/md';
 import { AiOutlineClose } from 'react-icons/ai';
 import '../../../stylesheets/ManageUserPage.css';
 import { convertSubstring } from '../../../utils/utilFunc';
@@ -355,7 +355,7 @@ const UserTable = (props) => {
                   className='mx-1'
                   onClick={() => handleClearFilter()}
                 >
-                  <AiOutlineClose size={18} />
+                  <MdFilterAltOff size={18} />
                 </Button>
               </div>
             </th>

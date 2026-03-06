@@ -567,7 +567,7 @@ const BankAccountList = (props) => {
                   className="mx-1"
                   onClick={() => handleResetFilter()}
                 >
-                  <AiOutlineClose size={18} />
+                  <MdFilterAltOff size={18} />
                 </Button>
               </div>
             </th>

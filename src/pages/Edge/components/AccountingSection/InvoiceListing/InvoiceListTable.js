@@ -11,7 +11,7 @@ import upArrow from "../../../images/upArrow.svg";
 import downArrow from "../../../images/downArrow.svg";
 import downArrowColoured from "../../../images/downArrowColoured.svg";
 import upArrowColoured from "../../../images/upArrowColoured.svg";
-import { MdSearch } from "react-icons/md";
+import { MdFilterAltOff, MdSearch } from "react-icons/md";
 import { AiOutlineClose, AiFillPrinter } from "react-icons/ai";
 import { MdDelete } from "react-icons/md";
 import { formatCurrency, formatDateFunc } from "../../../utils/utilFunc";
@@ -421,14 +421,14 @@ const InvoiceListTable = (props) => {
                 >
                   <MdSearch size={18} />
                 </Button>
-                <Button
-                  type="button"
-                  color="danger"
-                  className="mx-1"
-                  onClick={() => handleResetFilter()}
-                >
-                  <AiOutlineClose size={18} />
-                </Button>
+                 <Button
+                    type="button"
+                    color="danger"
+                    className="mx-1"
+                    onClick={handleResetFilter}
+                  >
+                    <MdFilterAltOff size={18} />
+                  </Button>
               </div>
             </th>
           </tr>

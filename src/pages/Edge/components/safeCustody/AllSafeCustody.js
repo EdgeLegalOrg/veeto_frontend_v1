@@ -2,7 +2,7 @@ import React, { useState, useEffect, Fragment } from "react";
 import { useLocation } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import "../../stylesheets/safeCustody.css";
-import { MdSearch } from "react-icons/md";
+import { MdFilterAltOff, MdSearch } from "react-icons/md";
 import { AiOutlineClose } from "react-icons/ai";
 import { OverlayTrigger, Tooltip } from "react-bootstrap";
 import closeBtn from "../../images/close-white-btn.svg";
@@ -909,12 +909,12 @@ function AllSafeCustody(props) {
                     <MdSearch size={18} />
                   </Button>
                   <Button
-                    className="d-flex mx-1"
                     type="button"
-                    onClick={handleClearFilter}
                     color="danger"
+                    className="mx-1"
+                    onClick={handleClearFilter}
                   >
-                    <AiOutlineClose size={18} />
+                    <MdFilterAltOff size={18} />
                   </Button>
                 </div>
               </th>
