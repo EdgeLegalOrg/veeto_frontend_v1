@@ -40,8 +40,14 @@ const PaymentTable = (props) => {
   const [loading, setLoading] = useState(false);
   const paymentId = useRef(null);
 
-  const { handleRefresh, filterInput, setFilterInput, handleResetFilter } =
-    props;
+  const {
+    handleRefresh,
+    filterInput,
+    setFilterInput,
+    handleResetFilter,
+    groupTotalAmountMap,
+    groupSplitDetailsMap,
+  } = props;
 
   useEffect(() => {
     setList(props.list);
@@ -309,7 +315,7 @@ const PaymentTable = (props) => {
                 ))}
               </select>
             </th>
-            {/* <th>
+            {/* <th>          
               <div
                 className='d-flex'
                 onClick={() => handleSortByLabel('createdBy')}
@@ -430,6 +436,11 @@ const PaymentTable = (props) => {
               />
             </th>
             <th>
+              <div className="d-flex">
+                <label>Total Amount</label>
+              </div>
+            </th>
+            <th>
               <div className="d-flex justify-content-end">
                 <Button
                   type="button"
@@ -468,8 +479,8 @@ const PaymentTable = (props) => {
               <td></td>
               <td>
                 <p className="mb-0">
-				{/*{payment.paymentNumber ? `${payment.paymentNumber}` : ""}*/}
-				  {payment.paymentNumStr ? `${payment.paymentNumStr}` : ""}
+                  {/*{payment.paymentNumber ? `${payment.paymentNumber}` : ""}*/}
+                  {payment.paymentNumStr ? `${payment.paymentNumStr}` : ""}
                 </p>
               </td>
               <td>
@@ -492,6 +503,16 @@ const PaymentTable = (props) => {
               </td>
               <td>
                 <p className="mb-0">{formatCurrency(payment.amount)}</p>
+              </td>
+              <td>
+                <p className="mb-0">
+                  {formatCurrency(
+                    (groupTotalAmountMap &&
+                      payment.paymentGroupId &&
+                      groupTotalAmountMap[payment.paymentGroupId]) ||
+                      payment.amount,
+                  )}
+                </p>
               </td>
               {/* <td>
                 <p className='mb-0'>
@@ -579,7 +600,10 @@ const PaymentTable = (props) => {
           Payment Details
         </ModalHeader>
         <ModalBody>
-          <ViewPaymentDetails data={viewDetail} />
+          <ViewPaymentDetails
+            data={viewDetail}
+            groupSplitDetailsMap={groupSplitDetailsMap}
+          />
         </ModalBody>
       </Modal>
       {loading && <LoadingPage />}

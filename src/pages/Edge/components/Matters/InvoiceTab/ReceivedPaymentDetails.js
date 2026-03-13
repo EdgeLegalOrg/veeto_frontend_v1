@@ -47,7 +47,7 @@ const ReceivedPaymentDetails = (props) => {
               </td>
               <td>
 			    {/*<p className="mb-0">{`$${payment.amount}`}</p>*/}
-				<p className="mb-0">{`$${payment.totalPaymentAmount}`}</p>
+				<p className="mb-0">{`$${payment.amount}`}</p>
               </td>
               <td></td>
               <td>
