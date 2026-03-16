@@ -21,6 +21,8 @@ const initialFilters = {
 const PaymentListPage = (props) => {
   document.title = "Payments | EdgeLegal";
   const [list, setList] = useState([]);
+  const [groupTotalAmountMap, setGroupTotalAmountMap] = useState({});
+  const [groupSplitDetailsMap, setGroupSplitDetailsMap] = useState({});
   const [loading, setLoading] = useState(false);
   const [filterInput, setFilterInput] = useState(initialFilters);
 
@@ -33,7 +35,9 @@ const PaymentListPage = (props) => {
       setLoading(true);
       const { data } = await allPaymentList(filter);
       if (data.success) {
-        setList(data?.data?.paymentList);
+        setList(data?.data?.paymentList || []);
+        setGroupTotalAmountMap(data?.data?.groupTotalAmountMap || {});
+        setGroupSplitDetailsMap(data?.data?.groupSplitDetailsMap || {});
       } else {
         toast.error("Something went wrong, please try later.");
       }
@@ -59,6 +63,8 @@ const PaymentListPage = (props) => {
           </div>
           <PaymentTable
             list={list}
+            groupTotalAmountMap={groupTotalAmountMap}
+            groupSplitDetailsMap={groupSplitDetailsMap}
             filterInput={filterInput}
             setFilterInput={setFilterInput}
             handleRefresh={fetchList}

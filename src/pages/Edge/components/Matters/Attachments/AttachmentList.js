@@ -61,11 +61,9 @@ const AttachmentList = (props) => {
       props.data.attachmentList &&
       props.data.attachmentList.length > 0
     ) {
-      setAttachList(props.data.attachmentList);
-      // setFilteredList(props.data.attachmentList);
-      setTimeout(() => {
-        startTypeFilter(filterInput.type, true);
-      }, 10);
+      const latestList = props.data.attachmentList;
+      setAttachList(latestList);
+      startTypeFilter(filterInput.type, true, latestList);
     }
   }, [props.data]);
 
@@ -118,8 +116,8 @@ const AttachmentList = (props) => {
 
   const isSelected = (id) => selectedList.indexOf(id) !== -1;
 
-  const filterData = (obj, returnData = false) => {
-    let list = attachList.length > 0 ? attachList : props?.data?.attachmentList;
+  const filterData = (obj, returnData = false, sourceList = null) => {
+    let list = sourceList || (attachList.length > 0 ? attachList : props?.data?.attachmentList);
     const newData = list?.filter(
       (data) =>
         (obj["name"] !== ""
@@ -292,15 +290,13 @@ const AttachmentList = (props) => {
     }
   };
 
-  const startTypeFilter = (value, sortTo) => {
-    let arr = filterData(filterInput, true);
+  const startTypeFilter = (value, sortTo, sourceList = null) => {
+    let arr = filterData(filterInput, true, sourceList);
     arr = filterFileType(arr, value);
     setFilterInput({ ...filterInput, type: value });
 
     if (sortTo) {
-      setTimeout(() => {
-        handleSortListByDate(arr, "desc");
-      }, 10);
+      handleSortListByDate(arr, "desc");
     } else {
       setFilteredList(arr);
     }

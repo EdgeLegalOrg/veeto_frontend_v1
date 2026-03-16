@@ -671,6 +671,7 @@ const EditInvoice = (props) => {
     return (
       <div className="bt-container p-2">
         <TextInputField
+          label="Due Date"
           name="invoiceDueDate"
           placeholder="Due Date"
           type="date"

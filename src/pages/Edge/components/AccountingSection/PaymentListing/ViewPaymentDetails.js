@@ -28,6 +28,11 @@ const ViewPaymentDetails = (props) => {
     }
   };
 
+  const splitDetails =
+    props.groupSplitDetailsMap && data && data.paymentGroupId
+      ? props.groupSplitDetailsMap[data.paymentGroupId] || []
+      : [];
+
   return (
     <div>
       <div className='px-4 pt-3 pb-5'>
@@ -37,8 +42,7 @@ const ViewPaymentDetails = (props) => {
               Payment Number
             </label>
             <p className='deposit-info fs-15'>
-              {/*data.paymentNumber ? `# ${data.paymentNumber}` : ''*/}
-			  {data.paymentNumStr ? `# ${data.paymentNumStr}` : ''}
+              {data.paymentNumStr ? `# ${data.paymentNumStr}` : ''}
             </p>
           </div>
           <div className='deposit-label-info col-md-4'>
@@ -96,7 +100,31 @@ const ViewPaymentDetails = (props) => {
             <p className='deposit-info fs-15'>{data.status}</p>
           </div>
         </div>
-      </div>
+
+        {splitDetails.length > 0 && (
+          <div className='mt-4'>
+            <h6>Split Payment Details</h6>
+            <table className='table table-bordered'>
+              <thead>
+                <tr>
+                  <th>Matter No.</th>
+                  <th>Invoice No.</th>
+                  <th>Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                {splitDetails.map((split, idx) => (
+                  <tr key={idx}>
+                    <td>{split.matterNumber}</td>
+                    <td>{split.invoiceNumber}</td>
+                    <td>{split.amount}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>  
     </div>
   );
 };
