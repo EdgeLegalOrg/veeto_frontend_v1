@@ -21,3 +21,4 @@ export const DELETEBANKDEPOSITSLIP = "DeleteBankDepositSlip";
 export const EXPORTTOXERO = "ExportToXero";
 export const UNDOFINALINVOICE = "UndoFinalInvoice";
 export const OUTSTANDINGINVOICEREPORT = "OutstandingInvoiceReport";
+export const EDITARCHIVEDMATTER = "EditArchivedMatter";
