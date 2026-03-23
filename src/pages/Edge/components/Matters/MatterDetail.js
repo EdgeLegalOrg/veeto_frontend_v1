@@ -48,6 +48,7 @@ import ArchiveModal from "./ArchiveModal";
 import { checkHasPermission } from "pages/Edge/utils/utilFunc";
 import {
   ARCHIVEUNARCHIVEMATTER,
+  EDITARCHIVEDMATTER,
   UNARCHIVEMATTER,
 } from "pages/Edge/utils/RightConstants";
 import { useRouteHistory } from "../../../../contexts/RouteHistoryContext";
@@ -196,6 +197,8 @@ const MatterDetail = (props) => {
     }
   };
 
+  const isArchivedReadOnly = data?.flagArchived && !checkHasPermission(EDITARCHIVEDMATTER);
+
   const displaySection = () => {
     switch (selected) {
       case "CONTACTS":
@@ -204,7 +207,7 @@ const MatterDetail = (props) => {
             data={data}
             refresh={handleRefresh}
             setExtraButtons={setExtraButtons}
-            isArchived={data?.flagArchived}
+            isArchived={isArchivedReadOnly}
           />
         );
       case "INVOICES":
@@ -213,7 +216,7 @@ const MatterDetail = (props) => {
             data={data}
             refresh={handleRefresh}
             setExtraButtons={setExtraButtons}
-            isArchived={data?.flagArchived}
+            isArchived={isArchivedReadOnly}
           />
         );
       case "TIME_BILLING":
@@ -223,7 +226,7 @@ const MatterDetail = (props) => {
             data={data}
             refresh={handleRefresh}
             setExtraButtons={setExtraButtons}
-            isArchived={data?.flagArchived}
+            isArchived={isArchivedReadOnly}
           />
         );
       case "CONVEYANCE":
@@ -232,7 +235,7 @@ const MatterDetail = (props) => {
             data={data}
             refresh={handleRefresh}
             setExtraButtons={setExtraButtons}
-            isArchived={data?.flagArchived}
+            isArchived={isArchivedReadOnly}
           />
         );
       case "BUSINESS_SALE_PURCHASE":
@@ -241,7 +244,7 @@ const MatterDetail = (props) => {
             data={data}
             refresh={handleRefresh}
             setExtraButtons={setExtraButtons}
-            isArchived={data?.flagArchived}
+            isArchived={isArchivedReadOnly}
           />
         );
       case "PROPERTY":
@@ -250,7 +253,7 @@ const MatterDetail = (props) => {
             data={data}
             refresh={handleRefresh}
             setExtraButtons={setExtraButtons}
-            isArchived={data?.flagArchived}
+            isArchived={isArchivedReadOnly}
           />
         );
       case "FAMILY_LAW":
@@ -259,7 +262,7 @@ const MatterDetail = (props) => {
             data={data}
             refresh={handleRefresh}
             setExtraButtons={setExtraButtons}
-            isArchived={data?.flagArchived}
+            isArchived={isArchivedReadOnly}
           />
         );
       case "ESTATE":
@@ -268,7 +271,7 @@ const MatterDetail = (props) => {
             data={data}
             refresh={handleRefresh}
             setExtraButtons={setExtraButtons}
-            isArchived={data?.flagArchived}
+            isArchived={isArchivedReadOnly}
           />
         );
       case "LEASE":
@@ -277,7 +280,7 @@ const MatterDetail = (props) => {
             data={data}
             refresh={handleRefresh}
             setExtraButtons={setExtraButtons}
-            isArchived={data?.flagArchived}
+            isArchived={isArchivedReadOnly}
           />
         );
       case "ATTACHMENTS":
@@ -286,7 +289,7 @@ const MatterDetail = (props) => {
             data={data}
             refresh={handleRefresh}
             setExtraButtons={setExtraButtons}
-            isArchived={data?.flagArchived}
+            isArchived={isArchivedReadOnly}
           />
         );
       case "BASIC":
@@ -297,7 +300,7 @@ const MatterDetail = (props) => {
             staffList={staffList}
             refreshListing={refreshListing}
             setExtraButtons={setExtraButtons}
-            isArchived={data?.flagArchived}
+            isArchived={isArchivedReadOnly}
           />
         );
       case "MARRIAGE_DEFACTO":
@@ -306,7 +309,7 @@ const MatterDetail = (props) => {
             data={data}
             refresh={handleRefresh}
             setExtraButtons={setExtraButtons}
-            isArchived={data?.flagArchived}
+            isArchived={isArchivedReadOnly}
           />
         );
       case "CHECKLIST":
@@ -315,7 +318,7 @@ const MatterDetail = (props) => {
             data={data}
             refresh={handleRefresh}
             setExtraButtons={setExtraButtons}
-            isArchived={data?.flagArchived}
+            isArchived={isArchivedReadOnly}
           />
         );
       default:
