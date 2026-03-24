@@ -5,6 +5,7 @@ import { allPaymentList } from "../../../apis";
 import LoadingPage from "../../../utils/LoadingPage";
 import { toast } from "react-toastify";
 import PaymentTable from "./PaymentTable";
+import Pagination from "../../Pagination";
 
 const initialFilters = {
   paymentNumber: "",
@@ -16,6 +17,8 @@ const initialFilters = {
   createdBy: "",
   sortOn: "",
   sortType: "",
+  pageNo: 0,
+  pageSize: 25,
 };
 
 const PaymentListPage = (props) => {
@@ -25,6 +28,11 @@ const PaymentListPage = (props) => {
   const [groupSplitDetailsMap, setGroupSplitDetailsMap] = useState({});
   const [loading, setLoading] = useState(false);
   const [filterInput, setFilterInput] = useState(initialFilters);
+
+  const [pageNo, setPageNo] = useState(0);
+  const [pageSize, setPageSize] = useState(25);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalRecords, setTotalRecords] = useState(0);
 
   useEffect(() => {
     fetchList();
@@ -38,6 +46,8 @@ const PaymentListPage = (props) => {
         setList(data?.data?.paymentList || []);
         setGroupTotalAmountMap(data?.data?.groupTotalAmountMap || {});
         setGroupSplitDetailsMap(data?.data?.groupSplitDetailsMap || {});
+        setTotalPages(data?.metadata?.page?.totalPages || 1);
+        setTotalRecords(data?.metadata?.page?.totalRecords || 0);
       } else {
         toast.error("Something went wrong, please try later.");
       }
@@ -49,8 +59,43 @@ const PaymentListPage = (props) => {
   };
 
   const handleResetFilter = () => {
+    setPageNo(0);
+    setPageSize(25);
     fetchList(initialFilters);
     setFilterInput(initialFilters);
+  };
+
+  const handlePreviousPage = () => {
+    let pg = pageNo - 1;
+    setPageNo(pg);
+    fetchList({ ...filterInput, pageNo: pg });
+  };
+
+  const handleNextPage = () => {
+    let pg = pageNo + 1;
+    setPageNo(pg);
+    fetchList({ ...filterInput, pageNo: pg });
+  };
+
+  const handleJumpToPage = (num) => {
+    setPageNo(num - 1);
+    fetchList({ ...filterInput, pageNo: num - 1 });
+  };
+
+  const changeNumberOfRows = (e) => {
+    setPageSize(e.target.value);
+    let currSize = e.target.value;
+
+    let tempTotalPages = Math.ceil(totalRecords / currSize);
+    let tempPageNo = tempTotalPages - 1;
+
+    if (tempPageNo < pageNo) {
+      setPageNo(tempPageNo);
+    } else {
+      tempPageNo = pageNo;
+    }
+
+    fetchList({ ...filterInput, pageNo: tempPageNo, pageSize: currSize });
   };
 
   return (
@@ -70,6 +115,18 @@ const PaymentListPage = (props) => {
             handleRefresh={fetchList}
             handleResetFilter={handleResetFilter}
           />
+          <div className="m-2">
+            <Pagination
+              pageNo={pageNo}
+              pageSize={pageSize}
+              totalRecords={totalRecords}
+              totalPages={totalPages}
+              handlePreviousPage={handlePreviousPage}
+              handleNextPage={handleNextPage}
+              handleJumpToPage={handleJumpToPage}
+              changeNumberOfRows={changeNumberOfRows}
+            />
+          </div>
           {loading && <LoadingPage />}
         </Card>
       </Container>

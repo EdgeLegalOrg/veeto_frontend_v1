@@ -574,6 +574,8 @@ export const deleteDepositSlipById = (id) =>
 export const printDepositSlip = (id) =>
   API.get(`/api/bank-deposit-slip/${id}/print`);
 
+
+
 export const allPaymentList = (filters = {}) =>
   API.get(
     `/api/matter/payment?paymentNumber=${
@@ -584,15 +586,19 @@ export const allPaymentList = (filters = {}) =>
       filters?.createdBy || ""
     }&amount=${filters?.amount || ""}&status=${filters?.status || ""}&sortOn=${
       filters?.sortOn || ""
-    }&sortType=${filters?.sortType || ""}&requestId=${uuidv1()}`
+    }&sortType=${filters?.sortType || ""}&page=${filters?.pageNo || 0}&pageSize=${
+      filters?.pageSize || 25
+    }&requestId=${uuidv1()}`
   );
 
 export const allDSPaymentList = (filters = {}) =>
   API.get(`/api/matter/payment/deposit-slip?requestId=${uuidv1()}`);
 
 // Service Line
-export const getServiceLine = () =>
-  API.get(`/api/serviceline?requestId=${uuidv1()}`);
+export const getServiceLine = (filters = {}) =>
+  API.get(
+    `/api/serviceline?requestId=${uuidv1()}&page=${filters.pageNo || 0}&pageSize=${filters.pageSize || 25}&search=${filters.search || ""}`
+  );
 
 export const addServiceLine = (formData) =>
   API.post(`/api/serviceline`, {
