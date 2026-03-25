@@ -667,8 +667,8 @@ export const updateXeroSetting = (formData) =>
     data: formData,
   });
 
-export const getEligibleInvoice = () =>
-  API.get(`/api/xero/invoice?requestId=${uuidv1()}`);
+export const getEligibleInvoice = (page = 0, pageSize = 25) =>
+  API.get(`/api/xero/invoice?requestId=${uuidv1()}&page=${page}&pageSize=${pageSize}`);
 
 export const uploadInvoiceToXero = (formData) =>
   API.post(`/api/xero/invoice`, {
@@ -679,8 +679,8 @@ export const uploadInvoiceToXero = (formData) =>
 // export const uploadInvoiceToXero = (ids) =>
 //   API.get(`api/xero/invoice/upload?invoiceIds=${ids}`);
 
-export const getEligiblePayments = () =>
-  API.get(`/api/xero/payment?requestId=${uuidv1()}`);
+export const getEligiblePayments = (page = 0, pageSize = 25) =>
+  API.get(`/api/xero/payment?requestId=${uuidv1()}&page=${page}&pageSize=${pageSize}`);
 
 export const uploadPaymentToXero = (formData) =>
   API.post(`/api/xero/payment`, {
