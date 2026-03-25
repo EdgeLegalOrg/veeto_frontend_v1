@@ -17,6 +17,7 @@ import { getEligiblePayments, uploadPaymentToXero } from "../../../../apis";
 import LoadingPage from "../../../../utils/LoadingPage";
 import { toast } from "react-toastify";
 import ResponseAlert from "./ResponseAlert";
+import Pagination from "../../../Pagination";
 
 const PaymentList = (props) => {
   const [list, setList] = useState([]);
@@ -24,6 +25,10 @@ const PaymentList = (props) => {
   const [selected, setSelected] = useState([]);
   const [loading, setLoading] = useState(false);
   const [responseAlert, setResponseAlert] = useState(null);
+  const [pageNo, setPageNo] = useState(0);
+  const [pageSize, setPageSize] = useState(100);
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
 
   const siteId =
     JSON.parse(window.localStorage.getItem("userDetails"))?.siteId || null;
@@ -35,33 +40,45 @@ const PaymentList = (props) => {
 
   useEffect(() => {
     fetchEnums();
-    fetchPaymentList();
   }, []);
 
   useEffect(() => {
+    fetchPaymentList(pageNo, pageSize);
+  }, [pageNo, pageSize]);
+
+  useEffect(() => {
     if (props.refreshList) {
-      fetchPaymentList();
+      fetchPaymentList(pageNo, pageSize);
     }
   }, [props.refreshList]);
 
-  const fetchPaymentList = async () => {
+  const fetchPaymentList = async (page = pageNo, size = pageSize) => {
     setLoading(true);
     try {
-      const { data } = await getEligiblePayments();
-      if (data.success) {
-        setList(data?.data?.invoicePaymentList || []);
-        if (props.handleRefresh) {
-          props.handleRefresh(false);
-        }
-      } else {
+      const { data } = await getEligiblePayments(page, size);
+      if (!data.success) {
         toast.error("Something went wrong, please try later.");
+        return;
       }
+      setList(data?.data?.invoicePaymentList || []);
+      setTotalRecords(data?.metadata?.page?.totalRecords || 0);
+      setTotalPages(data?.metadata?.page?.totalPages || 1);
+      if (props.handleRefresh) props.handleRefresh(false);
     } catch (error) {
       console.error(error);
       toast.error("Something went wrong, please try later.");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handlePreviousPage = () => { setSelected([]); setPageNo((p) => p - 1); };
+  const handleNextPage = () => { setSelected([]); setPageNo((p) => p + 1); };
+  const handleJumpToPage = (num) => { setSelected([]); setPageNo(num - 1); };
+  const changeNumberOfRows = (e) => {
+    setSelected([]);
+    setPageSize(Number(e.target.value));
+    setPageNo(0);
   };
 
   const fetchEnums = () => {
@@ -100,7 +117,8 @@ const PaymentList = (props) => {
     } else {
       newSelected = newSelected.filter(
         (i) =>
-          i.paymentId !== payment.paymentId || i.invoiceId !== payment.invoiceId
+          i.paymentId !== payment.paymentId ||
+          i.invoiceId !== payment.invoiceId
       );
     }
 
@@ -272,6 +290,16 @@ const PaymentList = (props) => {
             </Table>
             {loading && <LoadingPage />}
           </div>
+            <Pagination
+              pageNo={pageNo}
+              pageSize={pageSize}
+              totalPages={totalPages}
+              totalRecords={totalRecords}
+              handlePreviousPage={handlePreviousPage}
+              handleNextPage={handleNextPage}
+              handleJumpToPage={handleJumpToPage}
+              changeNumberOfRows={changeNumberOfRows}
+            />
           <Button color="success" className="m-4" onClick={handlePostPayment}>
             Post Payment
           </Button>

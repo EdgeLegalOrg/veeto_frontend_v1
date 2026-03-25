@@ -574,6 +574,8 @@ export const deleteDepositSlipById = (id) =>
 export const printDepositSlip = (id) =>
   API.get(`/api/bank-deposit-slip/${id}/print`);
 
+
+
 export const allPaymentList = (filters = {}) =>
   API.get(
     `/api/matter/payment?paymentNumber=${
@@ -584,15 +586,19 @@ export const allPaymentList = (filters = {}) =>
       filters?.createdBy || ""
     }&amount=${filters?.amount || ""}&status=${filters?.status || ""}&sortOn=${
       filters?.sortOn || ""
-    }&sortType=${filters?.sortType || ""}&requestId=${uuidv1()}`
+    }&sortType=${filters?.sortType || ""}&page=${filters?.pageNo || 0}&pageSize=${
+      filters?.pageSize || 25
+    }&requestId=${uuidv1()}`
   );
 
 export const allDSPaymentList = (filters = {}) =>
   API.get(`/api/matter/payment/deposit-slip?requestId=${uuidv1()}`);
 
 // Service Line
-export const getServiceLine = () =>
-  API.get(`/api/serviceline?requestId=${uuidv1()}`);
+export const getServiceLine = (filters = {}) =>
+  API.get(
+    `/api/serviceline?requestId=${uuidv1()}&page=${filters.pageNo || 0}&pageSize=${filters.pageSize || 25}&search=${filters.search || ""}`
+  );
 
 export const addServiceLine = (formData) =>
   API.post(`/api/serviceline`, {
@@ -661,8 +667,8 @@ export const updateXeroSetting = (formData) =>
     data: formData,
   });
 
-export const getEligibleInvoice = () =>
-  API.get(`/api/xero/invoice?requestId=${uuidv1()}`);
+export const getEligibleInvoice = (page = 0, pageSize = 25) =>
+  API.get(`/api/xero/invoice?requestId=${uuidv1()}&page=${page}&pageSize=${pageSize}`);
 
 export const uploadInvoiceToXero = (formData) =>
   API.post(`/api/xero/invoice`, {
@@ -673,8 +679,8 @@ export const uploadInvoiceToXero = (formData) =>
 // export const uploadInvoiceToXero = (ids) =>
 //   API.get(`api/xero/invoice/upload?invoiceIds=${ids}`);
 
-export const getEligiblePayments = () =>
-  API.get(`/api/xero/payment?requestId=${uuidv1()}`);
+export const getEligiblePayments = (page = 0, pageSize = 25) =>
+  API.get(`/api/xero/payment?requestId=${uuidv1()}&page=${page}&pageSize=${pageSize}`);
 
 export const uploadPaymentToXero = (formData) =>
   API.post(`/api/xero/payment`, {

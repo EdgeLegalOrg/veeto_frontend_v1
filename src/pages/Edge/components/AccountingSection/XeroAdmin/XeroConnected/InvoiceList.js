@@ -17,6 +17,7 @@ import { getEligibleInvoice, uploadInvoiceToXero } from "../../../../apis";
 import LoadingPage from "../../../../utils/LoadingPage";
 import { toast } from "react-toastify";
 import ResponseAlert from "./ResponseAlert";
+import Pagination from "../../../Pagination";
 
 const InvoiceList = (props) => {
   const [list, setList] = useState([]);
@@ -24,6 +25,10 @@ const InvoiceList = (props) => {
   const [selected, setSelected] = useState([]);
   const [loading, setLoading] = useState(false);
   const [responseAlert, setResponseAlert] = useState(null);
+  const [pageNo, setPageNo] = useState(0);
+  const [pageSize, setPageSize] = useState(100);
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
 
   const siteId =
     JSON.parse(window.localStorage.getItem("userDetails"))?.siteId || null;
@@ -35,34 +40,45 @@ const InvoiceList = (props) => {
 
   useEffect(() => {
     fetchEnums();
-    fetchInvoiceList();
   }, []);
 
   useEffect(() => {
+    fetchInvoiceList(pageNo, pageSize);
+  }, [pageNo, pageSize]);
+
+  useEffect(() => {
     if (props.refreshList) {
-      fetchInvoiceList();
+      fetchInvoiceList(pageNo, pageSize);
     }
   }, [props.refreshList]);
 
-  const fetchInvoiceList = async () => {
+  const fetchInvoiceList = async (page = pageNo, size = pageSize) => {
     setLoading(true);
     try {
-      const { data } = await getEligibleInvoice();
-      if (data.success) {
-        setList(data?.data?.invoiceList || []);
-
-        if (props.handleRefresh) {
-          props.handleRefresh(false);
-        }
-      } else {
+      const { data } = await getEligibleInvoice(page, size);
+      if (!data.success) {
         toast.warning("Something went wrong, please try later.");
+        return;
       }
+      setList(data?.data?.invoiceList || []);
+      setTotalRecords(data?.metadata?.page?.totalRecords || 0);
+      setTotalPages(data?.metadata?.page?.totalPages || 1);
+      if (props.handleRefresh) props.handleRefresh(false);
     } catch (error) {
       console.error(error);
       toast.warning("Something went wrong, please try later.");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handlePreviousPage = () => { setSelected([]); setPageNo((p) => p - 1); };
+  const handleNextPage = () => { setSelected([]); setPageNo((p) => p + 1); };
+  const handleJumpToPage = (num) => { setSelected([]); setPageNo(num - 1); };
+  const changeNumberOfRows = (e) => {
+    setSelected([]);
+    setPageSize(Number(e.target.value));
+    setPageNo(0);
   };
 
   const fetchEnums = () => {
@@ -223,6 +239,16 @@ const InvoiceList = (props) => {
             </Table>
             {loading && <LoadingPage />}
           </div>
+            <Pagination
+              pageNo={pageNo}
+              pageSize={pageSize}
+              totalPages={totalPages}
+              totalRecords={totalRecords}
+              handlePreviousPage={handlePreviousPage}
+              handleNextPage={handleNextPage}
+              handleJumpToPage={handleJumpToPage}
+              changeNumberOfRows={changeNumberOfRows}
+            />
           <Button color="success" className="m-4" onClick={handlePostInvoice}>
             Post Invoice
           </Button>

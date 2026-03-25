@@ -65,7 +65,7 @@ const TimedList = (props) => {
   };
 
   const renderTimedList = (timed) => {
-    let shouldShow = !isSelected(timed);
+    let shouldShow = !isSelected(timed) && !timed.invoiceId;
     if (shouldShow) {
       return (
         <div

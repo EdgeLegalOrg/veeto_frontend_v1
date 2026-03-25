@@ -30,6 +30,7 @@ import BreadCrumb from "../../../../../Components/Common/BreadCrumb";
 import { toast } from "react-toastify";
 import { TextInputField } from "pages/Edge/components/InputField";
 import { MdFilterAltOff } from "react-icons/md";
+import Pagination from "../../Pagination";
 
 const ServiceLineListPage = () => {
   document.title = "Service Lines | EdgeLegal";
@@ -49,10 +50,10 @@ const ServiceLineListPage = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [totalRecords, setTotalRecords] = useState(0);
 
-  const fetchServiceLines = async () => {
+  const fetchServiceLines = async (pageNumber = pageNo, pageSizeLimit = pageSize) => {
     try {
       setLoading(true);
-      const { data } = await getServiceLine();
+      const { data } = await getServiceLine({ pageNo: pageNumber, pageSize: pageSizeLimit });
       if (data.success) {
         setServiceList(data.data.serviceLineList);
         setFilteredList(data.data.serviceLineList);
@@ -102,6 +103,33 @@ const ServiceLineListPage = () => {
   const handleResetFilter = () => {
     setFilterInput("");
     setFilteredList(serviceList);
+  };
+
+  const handlePreviousPage = () => {
+    const pg = pageNo - 1;
+    setPageNo(pg);
+    fetchServiceLines(pg, pageSize);
+  };
+
+  const handleNextPage = () => {
+    const pg = pageNo + 1;
+    setPageNo(pg);
+    fetchServiceLines(pg, pageSize);
+  };
+
+  const handleJumpToPage = (num) => {
+    const pg = num - 1;
+    setPageNo(pg);
+    fetchServiceLines(pg, pageSize);
+  };
+
+  const changeNumberOfRows = (e) => {
+    const size = e.target.value;
+    setPageSize(size);
+    const tempTotalPages = Math.ceil(totalRecords / size);
+    const tempPageNo = Math.min(pageNo, tempTotalPages - 1);
+    setPageNo(tempPageNo);
+    fetchServiceLines(tempPageNo, size);
   };
 
   const fetchServiceDetails = async (id, hardRefresh = false) => {
@@ -219,6 +247,20 @@ const ServiceLineListPage = () => {
                     ))}
                   </tbody>
                 </Table>
+                {serviceList.length > 0 && (
+                  <div className="px-3 pb-2">
+                    <Pagination
+                      pageNo={pageNo}
+                      pageSize={pageSize}
+                      totalRecords={totalRecords}
+                      totalPages={totalPages}
+                      handlePreviousPage={handlePreviousPage}
+                      handleNextPage={handleNextPage}
+                      handleJumpToPage={handleJumpToPage}
+                      changeNumberOfRows={changeNumberOfRows}
+                    />
+                  </div>
+                )}
               </div>
               <div id="serviceLine-right" className="serviceLine-hide">
                 <div className="bg-light d-flex align-items-center p-2 border-top">
