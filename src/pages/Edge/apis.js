@@ -585,8 +585,8 @@ export const allPaymentList = (filters = {}) =>
     }&matterNumber=${filters?.matterNumber || ""}&createdBy=${
       filters?.createdBy || ""
     }&amount=${filters?.amount || ""}&status=${filters?.status || ""}&sortOn=${
-      filters?.sortOn || ""
-    }&sortType=${filters?.sortType || ""}&page=${filters?.pageNo || 0}&pageSize=${
+      filters?.sortOn || "paymentDate"
+    }&sortType=${filters?.sortType || "DESC"}&page=${filters?.pageNo || 0}&pageSize=${
       filters?.pageSize || 25
     }&requestId=${uuidv1()}`
   );

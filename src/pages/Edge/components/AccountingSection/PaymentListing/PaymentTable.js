@@ -315,46 +315,46 @@ const PaymentTable = (props) => {
                 ))}
               </select>
             </th>
-            {/* <th>          
+            <th>
               <div
-                className='d-flex'
+                className="d-flex"
                 onClick={() => handleSortByLabel('createdBy')}
               >
                 <label>Created By</label>
-                <div className='associatedContacts-label-btn labelCursor'>
+                <div className="associatedContacts-label-btn labelCursor">
                   {sortOrder === 'asc' && sortField === 'createdBy' ? (
                     <img
                       src={upArrowColoured}
-                      alt='asc'
-                      className='label-btn-img-1'
+                      alt="asc"
+                      className="label-btn-img-1"
                     />
                   ) : (
-                    <img src={upArrow} alt='asc' className='label-btn-img-1' />
+                    <img src={upArrow} alt="asc" className="label-btn-img-1" />
                   )}
                   {sortOrder === 'desc' && sortField === 'createdBy' ? (
                     <img
                       src={downArrowColoured}
-                      alt='desc'
-                      className='label-btn-img-2'
+                      alt="desc"
+                      className="label-btn-img-2"
                     />
                   ) : (
                     <img
                       src={downArrow}
-                      alt='desc'
-                      className='label-btn-img-2'
+                      alt="desc"
+                      className="label-btn-img-2"
                     />
                   )}
                 </div>
               </div>
               <Input
-                type='text'
-                name='createdBy'
-                placeholder='Created By'
+                type="text"
+                name="createdBy"
+                placeholder="Created By"
                 value={filterInput.createdBy}
                 onChange={handleChangeFilter}
                 onKeyDown={(e) => e.key === 'Enter' && handleRefresh()}
               />
-            </th> */}
+            </th>
             <th>
               <div
                 className="d-flex"
@@ -493,9 +493,9 @@ const PaymentTable = (props) => {
                   {findDisplayname(type, payment.paymentType)}
                 </p>
               </td>
-              {/* <td>
-                <p className='mb-0'>{payment.createdBy}</p>
-              </td> */}
+              <td>
+                <p className="mb-0">{payment.createdBy}</p>
+              </td>
               <td>
                 <p className="mb-0">
                   {payment.createdOn ? formatDateFunc(payment.createdOn) : ""}

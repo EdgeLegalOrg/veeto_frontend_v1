@@ -738,7 +738,7 @@ function EditPersonDetails(props) {
             label="Mobile Number"
             name="mobilePhoneNumber"
             placeholder="Mobile Number"
-            state={personDetails.mobilePhoneNumber}
+            value={personDetails.mobilePhoneNumber}
             onChange={handleFormChange}
             required={requiredFields.indexOf("mobilePhoneNumber") >= 0}
             invalid={
