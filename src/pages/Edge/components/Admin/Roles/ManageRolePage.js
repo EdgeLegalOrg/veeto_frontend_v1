@@ -17,6 +17,7 @@ import {
   particularRole,
   updateRole,
   deleteRole,
+  userProfile,
 } from "../../../apis";
 import upArrow from "../../../images/upArrow.svg";
 import downArrow from "../../../images/downArrow.svg";
@@ -217,28 +218,26 @@ const ManageRolePage = () => {
     };
 
     try {
+      let data;
       if (purpose === "add") {
-        const { data } = await createRole(roleData);
-        if (data.success) {
-          handleCloseRight();
-          fetchRoles();
-        } else {
-          toast.error(
-            "There is some problem from server side, please try later."
-          );
-        }
+        ({ data } = await createRole(roleData));
+      } else {
+        ({ data } = await updateRole(roleData));
       }
-      // when purpose===update
-      else {
-        const { data } = await updateRole(roleData);
-        if (data.success) {
-          // fetchParticularRole(roleData.id);
-          fetchRoles();
-        } else {
-          toast.error(
-            "There is some problem from server side, please try later."
-          );
+
+      if (data.success) {
+        try {
+          const userResp = await userProfile();
+          window.localStorage.setItem("userDetails", JSON.stringify(userResp.data));
+        } catch (err) {
+          console.error("Failed to refresh user details", err);
         }
+        handleCloseRight();
+        fetchRoles();
+      } else {
+        toast.error(
+          "There is some problem from server side, please try later."
+        );
       }
       setLoading(false);
     } catch (error) {

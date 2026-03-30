@@ -585,8 +585,8 @@ export const allPaymentList = (filters = {}) =>
     }&matterNumber=${filters?.matterNumber || ""}&createdBy=${
       filters?.createdBy || ""
     }&amount=${filters?.amount || ""}&status=${filters?.status || ""}&sortOn=${
-      filters?.sortOn || ""
-    }&sortType=${filters?.sortType || ""}&page=${filters?.pageNo || 0}&pageSize=${
+      filters?.sortOn || "paymentDate"
+    }&sortType=${filters?.sortType || "DESC"}&page=${filters?.pageNo || 0}&pageSize=${
       filters?.pageSize || 25
     }&requestId=${uuidv1()}`
   );
@@ -594,11 +594,20 @@ export const allPaymentList = (filters = {}) =>
 export const allDSPaymentList = (filters = {}) =>
   API.get(`/api/matter/payment/deposit-slip?requestId=${uuidv1()}`);
 
-// Service Line
-export const getServiceLine = (filters = {}) =>
-  API.get(
-    `/api/serviceline?requestId=${uuidv1()}&page=${filters.pageNo || 0}&pageSize=${filters.pageSize || 25}&search=${filters.search || ""}`
-  );
+//Service Line 
+export const getServiceLine = (filters = {}) => {
+  const params = new URLSearchParams({
+    requestId: uuidv1(),
+    page: filters.pageNo ?? 0,
+  });
+  if (filters.pageSize != null) {
+    params.append("pageSize", filters.pageSize);
+  }
+  if (filters.search) {
+    params.append("search", filters.search);
+  }
+  return API.get(`/api/serviceline?${params.toString()}`);
+};
 
 export const addServiceLine = (formData) =>
   API.post(`/api/serviceline`, {
