@@ -100,16 +100,24 @@ export const SelectInputField = (props) => {
 
   useEffect(() => {
     if (openDropDown) {
-      let ele = document.querySelector(".selected-option");
-      if (ele) {
-        let a = document.getElementById("option-container");
-        if (a) {
-          a.scrollTop = ele.offsetTop;
+      if (props.multi) {
+        setSearchVal("");
+      } else {
+        let ele = document.querySelector(".selected-option");
+        if (ele) {
+          let a = document.getElementById("option-container");
+          if (a) {
+            a.scrollTop = ele.offsetTop;
+          }
         }
       }
     } else {
-      if (searchVal !== props.selected && props.selected) {
-        setSearchVal(props.fieldVal);
+      if (props.multi) {
+        setSearchVal(props.fieldVal || "");
+      } else {
+        if (searchVal !== props.selected && props.selected) {
+          setSearchVal(props.fieldVal);
+        }
       }
       setTimeout(() => {
         resetList();
@@ -120,12 +128,32 @@ export const SelectInputField = (props) => {
   const handleChange = (e) => {
     setSearchVal(e.target.value);
     const filteredData = props.optionArray?.filter((option) =>
-      option?.display?.toLowerCase()?.includes(e.target.value?.toLowerCase())
+      option?.display?.toLowerCase()?.includes(e.target.value?.toLowerCase()),
     );
     setFilteredOptions(filteredData);
   };
 
   const handleClickOption = (val) => {
+    if (props.multi) {
+      if (val.value === "__all__") {
+        const allValues = (props.optionArray ?? []).map((o) => o.value);
+        const currentSelected = Array.isArray(props.selected)
+          ? props.selected
+          : [];
+        const allChecked = allValues.every((v) => currentSelected.includes(v));
+        if (props.onSelectFunc) props.onSelectFunc(allChecked ? [] : allValues);
+        return;
+      }
+      const currentSelected = Array.isArray(props.selected)
+        ? props.selected
+        : [];
+      const alreadySelected = currentSelected.includes(val.value);
+      const newSelected = alreadySelected
+        ? currentSelected.filter((v) => v !== val.value)
+        : [...currentSelected, val.value];
+      if (props.onSelectFunc) props.onSelectFunc(newSelected);
+      return;
+    }
     setSearchVal(val.display);
     if (props.onSelectFunc) {
       props.onSelectFunc(val);
@@ -213,22 +241,59 @@ export const SelectInputField = (props) => {
             <p className="bg-light text-center mb-0">No match found.</p>
           ) : (
             <>
-              {filteredOptions?.map((option, i) => (
-                <p
-                  key={option.display + i}
-                  className={`searchField-option mb-1 pe-cursor ${
-                    props.selected === option?.[props.valueKey ?? "value"]
-                      ? "selected-option"
-                      : ""
-                  }`}
-                  onClick={() => {
-                    close();
-                    handleClickOption(option);
-                  }}
-                >
-                  {option.display}
-                </p>
-              ))}
+              {props.multi &&
+                props.allOption &&
+                (() => {
+                  const allValues = (props.optionArray ?? []).map(
+                    (item) => item.value,
+                  );
+                  const allChecked =
+                    Array.isArray(props.selected) &&
+                    allValues.every((selectedItem) => props.selected.includes(selectedItem));
+                  return (
+                    <p
+                      className={`searchField-option mb-1 pe-cursor ${allChecked ? "selected-option" : ""} ${props.optionClassName ?? ""}`}
+                      onClick={() =>
+                        handleClickOption({ value: "__all__", display: "All" })
+                      }
+                    >
+                      <input
+                        type="checkbox"
+                        readOnly
+                        checked={allChecked}
+                        style={{ marginRight: "6px", pointerEvents: "none" }}
+                      />
+                      All
+                    </p>
+                  );
+                })()}
+              {filteredOptions?.map((option, i) => {
+                const optionValue = option?.[props.valueKey ?? "value"];
+                const isChecked = props.multi
+                  ? Array.isArray(props.selected) &&
+                    props.selected.includes(optionValue)
+                  : props.selected === optionValue;
+                return (
+                  <p
+                    key={option.display + i}
+                    className={`searchField-option mb-1 pe-cursor ${isChecked ? "selected-option" : ""} ${props.optionClassName ?? ""}`}
+                    onClick={() => {
+                      if (!props.multi) close();
+                      handleClickOption(option);
+                    }}
+                  >
+                    {props.multi && (
+                      <input
+                        type="checkbox"
+                        readOnly
+                        checked={isChecked}
+                        style={{ marginRight: "6px", pointerEvents: "none" }}
+                      />
+                    )}
+                    {option.display}
+                  </p>
+                );
+              })}
             </>
           )}
         </Card>
