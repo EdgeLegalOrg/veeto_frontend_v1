@@ -39,7 +39,9 @@ const ReceivedPaymentDetails = (props) => {
                     : ""}
                 </p>
               </td>
-              <td></td>
+              <td>
+                <p className="mb-0">{payment.createdBy}</p>
+              </td>
               <td>
                 <p className="mb-0">
                   {findDisplayname(paymentType, payment.paymentType)}

@@ -7,23 +7,35 @@ import "../../../stylesheets/DocumentPage.css";
 import { ConfirmationCustodyPopup } from "../../customComponents/CustomComponents";
 import LoadingPage from "../../../utils/LoadingPage";
 import { Button, Modal, ModalHeader, ModalBody } from "reactstrap";
-import { TextInputField } from "pages/Edge/components/InputField";
+import { TextInputField, SelectInputField } from "pages/Edge/components/InputField";
 
 const initialData = {
   name: "",
   documentType: "",
 };
 
+const normalizeType = (type) => {
+  if (Array.isArray(type)) return type;
+  if (typeof type === "string" && type.trim().startsWith("[")) {
+    try {
+      const parsed = JSON.parse(type);
+      if (Array.isArray(parsed)) return parsed;
+    } catch {  }
+  }
+  if (type) return [type];
+  return [];
+};
+
 const EditTemplate = (props) => {
-  const { closeForm, refreshList, file } = props;
-  const [formData, setFormData] = useState(file);
+  const { closeForm, refreshList, file, matterList = [] } = props;
+  const [formData, setFormData] = useState({ ...file, subTypes: normalizeType(file?.subTypes) });
   const [uploadedFile, setUploadedFile] = useState(undefined);
   const [isEnableButton, setIsEnableButton] = useState(true);
   const [confirmScreen, setConfirmScreen] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    setFormData(props.file);
+    setFormData({ ...props.file, subTypes: normalizeType(props.file?.subTypes) });
   }, [props.file]);
 
   const handleFormChange = (e) => {
@@ -31,8 +43,16 @@ const EditTemplate = (props) => {
     setFormData({ ...formData, [name]: e.target.value });
   };
 
-  const handleSelectOption = (val) => {
-    setFormData({ ...formData, ...val });
+  const handleSelectOption = (name, val) => {
+    setFormData({ ...formData, [name]: Array.isArray(val) ? val : val.value });
+  };
+
+  const findDisplayname = (from, val = "") => {
+    if (val) {
+      let data = from.find((d) => d.value === val);
+      return data ? data.display : "";
+    }
+    return "";
   };
 
   const handleUploadFile = (acceptedFile) => {
@@ -108,34 +128,37 @@ const EditTemplate = (props) => {
             )}
           </Dropzone>
         </div>
-        <div className="form-group mx-4">
-          <div className="mb-4">
-            <TextInputField
-              name="name"
-              placeholder="Name"
-              value={formData.name}
-              onChange={handleFormChange}
-            />
-            {/* <SearchableDropDown
-              width='100%'
-              name='documentType'
-              label='Document'
-              optionArray={['NORMAL', 'LETTER', 'FORM']}
-              setDetails={handleSelectOption}
-              details={file}
-              value={file.documentType}
-              fieldVal={file.documentType}
-            /> */}
-            {/* <SearchableDropDown
-              width='100%'
-              name='type'
-              label='Type'
-              fieldVal={file.type}
-              optionArray={['ACT_FOR_LESSEE']}
-              setDetails={handleSelectOption}
-              details={file}
-              value={file.type}
-            /> */}
+        <div className="form-group my-3">
+          <div className="row px-3">
+            <div className="col-md-4">
+              <TextInputField
+                label="Name"
+                name="name"
+                placeholder="Name"
+                value={formData.name}
+                onChange={handleFormChange}
+              />
+            </div>
+            <div className="col-md-4 position-relative">
+              <SelectInputField
+                label="Matter Sub-type"
+                name="subTypes"
+                multi
+                allOption
+                optionStyles={{ maxHeight: "365px" }}
+                value={formData.subTypes}
+                optionArray={matterList}
+                onSelectFunc={(val) => handleSelectOption("subTypes", val)}
+                selected={formData.subTypes}
+                fieldVal={
+                  Array.isArray(formData.subTypes) && formData.subTypes.length > 0
+                    ? formData.subTypes.map((v) => findDisplayname(matterList, v)).join(", ")
+                    : ""
+                }
+                maxLength={null}
+                optionClassName="bg-white hover:bg-gray-100 text-black"
+              />
+            </div>
           </div>
         </div>
       </div>

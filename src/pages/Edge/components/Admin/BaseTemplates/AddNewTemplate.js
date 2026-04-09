@@ -9,11 +9,15 @@ import { ConfirmationCustodyPopup } from "../../customComponents/CustomComponent
 import LoadingPage from "../../../utils/LoadingPage";
 import { toast } from "react-toastify";
 import { Button, Modal, ModalHeader, ModalBody } from "reactstrap";
-import { TextInputField } from "pages/Edge/components/InputField";
+import {
+  TextInputField,
+  SelectInputField,
+} from "pages/Edge/components/InputField";
 
 const initialData = {
   name: "",
   documentType: "",
+  subTypes: [],
 };
 
 const AddNewTemplate = (props) => {
@@ -24,7 +28,7 @@ const AddNewTemplate = (props) => {
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
-  const { closeFormToast, refreshList } = props;
+  const { closeFormToast, refreshList, matterList } = props;
 
   const handleUploadFile = (acceptedFile) => {
     setLoading(true);
@@ -53,13 +57,21 @@ const AddNewTemplate = (props) => {
     }
   };
 
-  const handleSelectOption = (val, i) => {
+  const handleSelectOption = (name, val, i) => {
     let data = [...formData];
     data[i] = {
       ...formData[i],
-      ...val,
+      [name]: Array.isArray(val) ? val : val.value,
     };
     setFormData(data);
+  };
+
+  const findDisplayname = (from, val = "") => {
+    if (val) {
+      let data = from.find((d) => d.value === val);
+      return data ? data.display : "";
+    }
+    return "";
   };
 
   const handleFormChange = (e, ind) => {
@@ -151,26 +163,30 @@ const AddNewTemplate = (props) => {
                 value={file.name}
                 onChange={(e) => handleFormChange(e, i)}
               />
-              {/* <SearchableDropDown
-                width='100%'
-                name='documentType'
-                label='Document'
-                optionArray={['NORMAL', 'LETTER', 'FORM']}
-                setDetails={(val) => handleSelectOption(val, i)}
-                details={file}
-                value={file.documentType}
-                fieldVal={file.documentType}
-              /> */}
-              {/* <SearchableDropDown
-                width='100%'
-                name='type'
-                label='Type'
-                optionArray={['ACT_FOR_LESSEE']}
-                setDetails={(val) => handleSelectOption(val, i)}
-                details={file}
-                value={file.type}
-                fieldVal={file.type}
-              /> */}
+
+              <div className="mb-3 position-relative">
+                <SelectInputField
+                  label="Matter Sub-type"
+                  name="subTypes"
+                  multi
+                  allOption
+                  // optionStyles={{ maxHeight: "365px", width: "400px", backgroundColor:"white" }}
+                  value={file.subTypes}
+                  optionArray={matterList}
+                  onSelectFunc={(val) => handleSelectOption("subTypes", val, i)}
+                  selected={file.subTypes}
+                  fieldVal={
+                    Array.isArray(file.subTypes) && file.subTypes.length > 0
+                      ? file.subTypes
+                          .map((v) => findDisplayname(matterList, v))
+                          .join(", ")
+                      : ""
+                  }
+                  maxLength={null}
+                  optionClassName="bg-white hover:bg-gray-100 text-black"
+
+                />
+              </div>
               <button
                 className="tempForm-btnClose"
                 onClick={() => handleDelete(i)}

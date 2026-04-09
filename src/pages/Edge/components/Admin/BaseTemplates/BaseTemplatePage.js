@@ -58,6 +58,8 @@ const BaseTemplatePage = () => {
   const [totalRecords, setTotalRecords] = useState(0);
   const [selectedTemp, setSelectedTemp] = useState([]);
 
+  const [matterSubtype, setMatterSubtype] = useState([]);
+  // const [docType, setDocType] = useState([]);
   const [boolVal, setBoolVal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [openAlert, setOpenAlert] = useState(false);
@@ -84,9 +86,20 @@ const BaseTemplatePage = () => {
     }
   };
 
+  const fetchEnums = () => {
+    let obj = JSON.parse(window.localStorage.getItem("enumList"));
+    if (obj && obj.MatterSubType && obj.MatterSubType?.length > 0) {
+      setMatterSubtype(obj.MatterSubType);
+    }
+    // if (obj && obj.DocumentType && obj.DocumentType?.length > 0) {
+    //   setDocType(obj.DocumentType);
+    // }
+  };
+
   useEffect(() => {
     if (!boolVal) {
       fetchTemplates();
+      fetchEnums();
       setBoolVal(true);
     }
   }, [boolVal]);
@@ -801,6 +814,8 @@ const BaseTemplatePage = () => {
                   <AddNewTemplate
                     closeFormToast={() => setAddToast(false)}
                     refreshList={fetchTemplates}
+                    matterList={matterSubtype}
+                    // docList={docType}
                   />
                 </ModalBody>
               </Modal>
@@ -826,6 +841,8 @@ const BaseTemplatePage = () => {
                     refreshList={fetchTemplates}
                     closeForm={() => setEditTemp(null)}
                     file={editTemp}
+                    matterList={matterSubtype}
+                    // docList={docType}
                   />
                 </ModalBody>
               </Modal>
