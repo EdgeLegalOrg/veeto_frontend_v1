@@ -216,7 +216,25 @@ const FileDirectoryModal = ({
     try {
       const { data } = await getAllBaseTemplates();
       if (data.success) {
-        parseList(data.data.templateList);
+        const matterSubType = matterData?.subType;
+        const allTemplates = data.data.templateList;
+
+        let filtered = matterSubType
+          ? allTemplates.filter((d) => {
+              const subTypes = Array.isArray(d.subTypes) ? d.subTypes : [];
+              return subTypes.includes(matterSubType);
+            })
+          : [];
+
+        // If no subType or no matched templates, fallback to defaults (no subTypes assigned)
+        if (filtered.length === 0) {
+          filtered = allTemplates.filter((d) => {
+            const subTypes = Array.isArray(d.subTypes) ? d.subTypes : [];
+            return subTypes.length === 0;
+          });
+        }
+
+        parseList(filtered);
       } else {
         toast.error("Something went wrong in fetching templates.");
       }
