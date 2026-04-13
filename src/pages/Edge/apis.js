@@ -65,6 +65,18 @@ export const changePassword = (formData) =>
     },
   });
 
+export const resetPassword = (formData) =>
+  API.post(`/api/auth/reset-password`, {
+    requestId: uuidv1(),
+    data: formData,
+  });
+
+export const updateTempPassword = (formData) =>
+  API.post(`/api/auth/update-temp-password`, {
+    requestId: uuidv1(),
+    data: formData,
+  });
+
 export const fetchMetaData = () =>
   API.get(`/api/metadata/?requestId=${uuidv1()}`);
 
@@ -899,6 +911,12 @@ export const updateUserInfo = (formData) =>
   API.put(`/api/admin/user`, {
     requestId: uuidv1(),
     data: formData,
+  });
+
+export const sendLogonInfo = (userIds) =>
+  API.post(`/api/admin/user/send-logon-info`, {
+    requestId: uuidv1(),
+    data: { userIds },
   });
 
 export const linkRoleToUser = (formData) =>

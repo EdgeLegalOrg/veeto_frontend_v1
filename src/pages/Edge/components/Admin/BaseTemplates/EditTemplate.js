@@ -129,7 +129,7 @@ const EditTemplate = (props) => {
           </Dropzone>
         </div>
         <div className="form-group my-3">
-          <div className="row px-3">
+          <div className="row px-3 pb-5">
             <div className="col-md-4">
               <TextInputField
                 label="Name"
