@@ -25,6 +25,9 @@ const AuthProtected = (props) => {
   };
 
   if (token && jwtDecode(token).exp > currentTime) {
+    if (sessionStorage.getItem("forcePasswordReset") === "true") {
+      return <Navigate to={{ pathname: "/reset-password", search: `?userId=${Cookies.get("userId")}` }} />;
+    }
     return <>{props.children}</>;
   } else {
     checkupFunc();

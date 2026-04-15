@@ -21,7 +21,7 @@ import withRouter from "../../Components/Common/withRouter";
 import * as Yup from "yup";
 import { useFormik } from "formik";
 
-import { loginUser } from "../Edge/apis";
+import { loginUser, userProfile } from "../Edge/apis";
 import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -54,15 +54,19 @@ const Login = (props) => {
         password: values.password,
       })
         .then((response) => {
-          Cookies.set("userJWT", response.data.accessToken, {
-            expires: 8,
-          });
+          Cookies.set("userJWT", response.data.accessToken, { expires: 8 });
           Cookies.set("userId", response.data.userId);
-          window.sessionStorage.removeItem("alreadyLoggedOut");
-          // setCookie('token', response.data.accessToken);
+          sessionStorage.removeItem("alreadyLoggedOut");
           setLoading(false);
           toast.success("Login successfully!");
-          navigate("/Matters");
+          return userProfile();
+        })
+        .then((profileRes) => {
+          if (profileRes.data.forceUpdatePassword) {
+            navigate(`/reset-password?userId=${profileRes.data.id}`);
+          } else {
+            navigate("/Matters");
+          }
         })
         .catch((error) => {
           setLoading(false);
