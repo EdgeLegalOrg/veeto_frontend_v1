@@ -150,18 +150,18 @@ const Navdata = () => {
         setIscurrentState("Matters");
       },
     },
-    {
-      id: "Documents",
-      label: "Documents",
-      icon: " ri-file-copy-2-line",
-      link: "/Documents",
-      show: true,
-      click: function (e) {
-        e.preventDefault();
-        // closeNavWithSubItems();
-        setIscurrentState("Documents");
-      },
-    },
+    // {
+    //   id: "Documents",
+    //   label: "Documents",
+    //   icon: " ri-file-copy-2-line",
+    //   link: "/Documents",
+    //   show: true,
+    //   click: function (e) {
+    //     e.preventDefault();
+    //     // closeNavWithSubItems();
+    //     setIscurrentState("Documents");
+    //   },
+    // },
     {
       id: "Contacts",
       label: "Contacts",

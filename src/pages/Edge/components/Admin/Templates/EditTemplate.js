@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Dropzone from "react-dropzone";
 import closeBtn from "../../../images/close-white-btn.svg";
 import { v1 as uuidv1 } from "uuid";
@@ -12,6 +12,8 @@ import {
   CustomDropDown,
   SelectInputField,
 } from "pages/Edge/components/InputField";
+
+import { OneDriveIcon, DeviceUploadIcon, GoogleDriveColorIcon } from "../../UploadIcons";
 
 const initialData = {
   name: "",
@@ -27,6 +29,8 @@ const EditTemplate = (props) => {
   const [confirmScreen, setConfirmScreen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [uploadSource, setUploadSource] = useState("device");
+  const googleDriveInputRef = useRef(null);
 
   useEffect(() => {
     setFormData(props.file);
@@ -42,12 +46,15 @@ const EditTemplate = (props) => {
   };
 
   const handleUploadFile = (acceptedFile) => {
-    // let filename = acceptedFile[0].name;
     setUploadedFile(acceptedFile[0]);
-    // setFormData({
-    //   ...formData,
-    //   name: filename.split('.').slice(0, -1).join('.'),
-    // });
+  };
+
+  const handleGoogleDriveFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploadedFile(file);
+    setFormData({ ...formData, storageType: "GOOGLE_DRIVE" });
+    e.target.value = "";
   };
 
   const handleSubmit = async (e) => {
@@ -107,21 +114,71 @@ const EditTemplate = (props) => {
             />
           </button>
         </div> */}
-        <div className="tempForm-dropzone-div">
-          <Dropzone accept=".doc, .docx" onDrop={handleUploadFile}>
-            {({ getRootProps, getInputProps }) => (
-              <div {...getRootProps({ className: "tempForm-dropzone" })}>
-                <input {...getInputProps()} />
-                <p style={{ paddingTop: "10px" }}>
-                  Drag and drop to upload or browse for files
-                </p>
-                <span style={{ color: "#555", paddingTop: "10px" }}>
-                  {uploadedFile?.name}
-                </span>
-              </div>
-            )}
-          </Dropzone>
+        <input
+          ref={googleDriveInputRef}
+          type="file"
+          accept=".doc,.docx"
+          style={{ display: "none" }}
+          onChange={handleGoogleDriveFileSelect}
+        />
+        <div style={{ display: "flex", border: "1px solid #dee2e6", borderRadius: "8px", overflow: "hidden", marginBottom: "12px" }}>
+          <button
+            type="button"
+            onClick={() => setUploadSource("device")}
+            style={{ flex: 1, padding: "12px 8px", border: "none", borderRight: "1px solid #dee2e6", background: uploadSource === "device" ? "#eef2ff" : "white", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: "4px", fontSize: "12px", color: uploadSource === "device" ? "#4f46e5" : "#374151", fontWeight: uploadSource === "device" ? "600" : "400" }}
+          >
+            <DeviceUploadIcon />
+            Device
+          </button>
+          <button
+            type="button"
+            onClick={() => setUploadSource("google")}
+            style={{ flex: 1, padding: "12px 8px", border: "none", borderRight: "1px solid #dee2e6", background: uploadSource === "google" ? "#f0fdf4" : "white", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: "4px", fontSize: "12px", color: "#374151", fontWeight: uploadSource === "google" ? "600" : "400" }}
+          >
+            <GoogleDriveColorIcon size={20} />
+            Google Drive
+          </button>
+          <button
+            type="button"
+            disabled
+            title="OneDrive integration coming soon"
+            style={{ flex: 1, padding: "12px 8px", border: "none", background: "#f8f9fa", cursor: "not-allowed", display: "flex", flexDirection: "column", alignItems: "center", gap: "4px", fontSize: "12px", opacity: 0.5 }}
+          >
+            <OneDriveIcon />
+            OneDrive
+          </button>
         </div>
+        {uploadSource === "device" && (
+          <div className="tempForm-dropzone-div">
+            <Dropzone accept=".doc, .docx" onDrop={handleUploadFile}>
+              {({ getRootProps, getInputProps }) => (
+                <div {...getRootProps({ className: "tempForm-dropzone" })}>
+                  <input {...getInputProps()} />
+                  <p style={{ paddingTop: "10px" }}>
+                    Drag and drop to upload or browse for files
+                  </p>
+                  <span style={{ color: "#555", paddingTop: "10px" }}>
+                    {uploadedFile?.name}
+                  </span>
+                </div>
+              )}
+            </Dropzone>
+          </div>
+        )}
+        {uploadSource === "google" && (
+          <div
+            onClick={() => googleDriveInputRef.current.click()}
+            style={{ border: "2px dashed #dee2e6", borderRadius: "8px", padding: "24px", textAlign: "center", cursor: "pointer", background: "#f9fafb", marginBottom: "8px", minHeight: "100px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "8px" }}
+          >
+            <GoogleDriveColorIcon size={32} />
+            <p style={{ margin: 0, color: "#374151", fontSize: "14px", fontWeight: "500" }}>
+              Click here to upload to Google Drive
+            </p>
+            {uploadedFile?.name && (
+              <span style={{ color: "#555", fontSize: "12px" }}>{uploadedFile.name}</span>
+            )}
+          </div>
+        )}
         <div className="form-group tempForm-gridContent my-3">
           <div className="row px-3">
             <div className="col-md-4">

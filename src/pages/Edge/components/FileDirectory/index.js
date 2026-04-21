@@ -38,6 +38,7 @@ const FileDirectoryModal = ({
     useState([]);
   const [filesBySelection, setFilesBySelection] = useState([]);
   const [templateList, setTemplateList] = useState([]);
+  const [defaultTemplateList, setDefaultTemplateList] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
   const [selectedBaseTemplate, setSelectedBaseTemplate] = useState(null);
   const [reset, setReset] = useState(false);
@@ -60,6 +61,7 @@ const FileDirectoryModal = ({
   const onClosehandler = () => {
     setSelected("");
     setSelectedBaseTemplate(null);
+    setDefaultTemplateList([]);
     setInitLoad(false);
     setFiles([]);
     onClose();
@@ -188,35 +190,46 @@ const FileDirectoryModal = ({
     try {
       const userResp = await userProfile();
       window.localStorage.setItem("userDetails", JSON.stringify(userResp.data));
-
-      fetchTemplate();
-      getDefaultTemplateId();
+      const userDefaultTemplateId = userResp.data?.defaultTemplateId || null;
+      fetchTemplate(userDefaultTemplateId);
     } catch (error) {
       console.error(error);
     }
-  };
-
-  const getDefaultTemplateId = () => {
-    const userDetails = JSON.parse(window.localStorage.getItem("userDetails"));
-
-    setSelectedBaseTemplate(userDetails?.defaultTemplateId || null);
   };
 
   const parseList = (data) => {
     let arr = [];
 
     data.forEach((d) => {
-      arr.push({ display: d.name, value: d.id });
+      arr.push({ display: d.name, value: String(d.id) });
     });
 
     setTemplateList(arr);
   };
 
-  const fetchTemplate = async () => {
+  const fetchTemplate = async (userDefaultTemplateId = null) => {
     try {
       const { data } = await getAllBaseTemplates();
       if (data.success) {
-        parseList(data.data.templateList);
+        const matterSubType = matterData?.subType;
+        const allTemplates = data.data.templateList;
+
+        let filtered = matterSubType
+          ? allTemplates.filter((d) => {
+              const subTypes = Array.isArray(d.subTypes) ? d.subTypes : [];
+              return subTypes.includes(matterSubType);
+            })
+          : [];
+
+        // If no subType or no matched templates, fallback to defaults (no subTypes assigned)
+        if (filtered.length === 0) {
+          filtered = allTemplates.filter((d) => {
+            const subTypes = Array.isArray(d.subTypes) ? d.subTypes : [];
+            return subTypes.length === 0;
+          });
+        }
+
+        parseList(filtered);
       } else {
         toast.error("Something went wrong in fetching templates.");
       }
@@ -433,6 +446,19 @@ const FileDirectoryModal = ({
                       label: d.display,
                       value: d.value,
                     })),
+                    ...(defaultTemplateList.length > 0
+                      ? [
+                          {
+                            label: "── Defaults ──",
+                            value: "__separator__",
+                            disabled: true,
+                          },
+                          ...defaultTemplateList.map((d) => ({
+                            label: d.display,
+                            value: d.value,
+                          })),
+                        ]
+                      : []),
                   ]}
                   onChange={({ target }) => {
                     setSubmitted(false);

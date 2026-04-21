@@ -540,6 +540,27 @@ export const getDocDetail = (id) =>
 
 export const updateDocDetail = (formData) => API.put(`/api/document`, formData);
 
+// Google Drive Section
+export const getGoogleDriveFiles = (folderId = null) =>
+  API.get(`/api/googledrive/files${folderId ? `?folderId=${encodeURIComponent(folderId)}` : ""}`);
+
+export const uploadGoogleDriveFile = (formData) =>
+  API.post(`/api/googledrive/upload`, formData);
+
+export const downloadGoogleDriveFile = (fileId) =>
+  API.get(`/api/googledrive/download/${fileId}`, { responseType: "blob" });
+
+export const deleteGoogleDriveFile = (fileId) =>
+  API.delete(`/api/googledrive/file/${fileId}`);
+
+export const searchGoogleDriveFiles = (query) =>
+  API.get(`/api/googledrive/search?query=${encodeURIComponent(query)}`);
+
+export const createGoogleDriveFolder = (folderName, parentFolderId = null) =>
+  API.post(
+    `/api/googledrive/folder?folderName=${encodeURIComponent(folderName)}${parentFolderId ? `&parentFolderId=${encodeURIComponent(parentFolderId)}` : ""}`
+  );
+
 // Accounting
 
 // Deposit Slips
