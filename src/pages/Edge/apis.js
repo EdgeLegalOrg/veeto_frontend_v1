@@ -133,10 +133,8 @@ export const getMattersList = (filters) =>
   API.get(
     `/api/matter?requestId=${uuidv1()}&page=${filters.pageNo || ""}&pageSize=${
       filters.pageSize || ""
-    }&number=${
-      filters.archived
-        ? filters.archiveNumber || ""
-        : filters.matterNumber || ""
+    }&number=${filters.matterNumber || ""}&archiveNumber=${
+      filters.archived ? filters.archiveNumber || "" : ""
     }&status=${filters.status ? filters.status : ""}&type=${
       filters.type ? filters.type : ""
     }&instructionDate=${
@@ -688,8 +686,14 @@ export const updateXeroSetting = (formData) =>
     data: formData,
   });
 
-export const getEligibleInvoice = (page = 0, pageSize = 25) =>
-  API.get(`/api/xero/invoice?requestId=${uuidv1()}&page=${page}&pageSize=${pageSize}`);
+export const getEligibleInvoice = (filters = {}) =>
+  API.get(
+    `/api/xero/invoice?invoiceNumber=${filters?.invoiceNumber || ""}&matterNumber=${
+      filters?.matterNumber || ""
+    }&status=${filters?.status || ""}&invoiceDate=${
+      filters?.invoiceDate || ""
+    }&page=${filters?.page || 0}&pageSize=${filters?.pageSize || 100}&requestId=${uuidv1()}`
+  );
 
 export const uploadInvoiceToXero = (formData) =>
   API.post(`/api/xero/invoice`, {
@@ -700,8 +704,14 @@ export const uploadInvoiceToXero = (formData) =>
 // export const uploadInvoiceToXero = (ids) =>
 //   API.get(`api/xero/invoice/upload?invoiceIds=${ids}`);
 
-export const getEligiblePayments = (page = 0, pageSize = 25) =>
-  API.get(`/api/xero/payment?requestId=${uuidv1()}&page=${page}&pageSize=${pageSize}`);
+export const getEligiblePayments = (filters = {}) =>
+  API.get(
+    `/api/xero/payment?paymentNumber=${filters?.paymentNumber || ""}&matterNumber=${
+      filters?.matterNumber || ""
+    }&paymentDate=${filters?.paymentDate || ""}&page=${filters?.page || 0}&pageSize=${
+      filters?.pageSize || 100
+    }&requestId=${uuidv1()}`
+  );
 
 export const uploadPaymentToXero = (formData) =>
   API.post(`/api/xero/payment`, {

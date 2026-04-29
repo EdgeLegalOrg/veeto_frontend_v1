@@ -13,6 +13,7 @@ import {
   ModalHeader,
   ModalBody,
 } from "reactstrap";
+import { MdSearch, MdFilterAltOff } from "react-icons/md";
 import { getEligibleInvoice, uploadInvoiceToXero } from "../../../../apis";
 import LoadingPage from "../../../../utils/LoadingPage";
 import { toast } from "react-toastify";
@@ -29,6 +30,11 @@ const InvoiceList = (props) => {
   const [pageSize, setPageSize] = useState(100);
   const [totalRecords, setTotalRecords] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
+  const [filterInput, setFilterInput] = useState({
+    invoiceNumber: "",
+    matterNumber: "",
+    invoiceDate: "",
+  });
 
   const siteId =
     JSON.parse(window.localStorage.getItem("userDetails"))?.siteId || null;
@@ -43,19 +49,38 @@ const InvoiceList = (props) => {
   }, []);
 
   useEffect(() => {
-    fetchInvoiceList(pageNo, pageSize);
+    fetchInvoiceList(pageNo, pageSize, filterInput);
   }, [pageNo, pageSize]);
 
   useEffect(() => {
     if (props.refreshList) {
-      fetchInvoiceList(pageNo, pageSize);
+      fetchInvoiceList(pageNo, pageSize, filterInput);
     }
   }, [props.refreshList]);
 
-  const fetchInvoiceList = async (page = pageNo, size = pageSize) => {
+  const handleChangeFilter = (e) => {
+    const { name, value } = e.target;
+    setFilterInput((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSearch = (filters = filterInput) => {
+    setSelected([]);
+    setPageNo(0);
+    fetchInvoiceList(0, pageSize, filters);
+  };
+
+  const handleResetFilter = () => {
+    const reset = { invoiceNumber: "", matterNumber: "", invoiceDate: "" };
+    setFilterInput(reset);
+    setSelected([]);
+    setPageNo(0);
+    fetchInvoiceList(0, pageSize, reset);
+  };
+
+  const fetchInvoiceList = async (page = pageNo, size = pageSize, filters = filterInput) => {
     setLoading(true);
     try {
-      const { data } = await getEligibleInvoice(page, size);
+      const { data } = await getEligibleInvoice({ page, pageSize: size, ...filters });
       if (!data.success) {
         toast.warning("Something went wrong, please try later.");
         return;
@@ -171,16 +196,42 @@ const InvoiceList = (props) => {
                     <div className="d-flex">
                       <label>Invoice No.</label>
                     </div>
+                    <Input
+                      type="text"
+                      name="invoiceNumber"
+                      placeholder="Invoice No."
+                      value={filterInput.invoiceNumber}
+                      onChange={handleChangeFilter}
+                      onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                    />
                   </th>
                   <th>
                     <div className="d-flex">
                       <label>Matter No.</label>
                     </div>
+                    <Input
+                      type="text"
+                      name="matterNumber"
+                      placeholder="Matter No."
+                      value={filterInput.matterNumber}
+                      onChange={handleChangeFilter}
+                      onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                    />
                   </th>
                   <th>
                     <div className="d-flex">
                       <label>Date</label>
                     </div>
+                    <Input
+                      type="date"
+                      name="invoiceDate"
+                      value={filterInput.invoiceDate}
+                      onChange={(e) => {
+                        const updated = { ...filterInput, invoiceDate: e.target.value };
+                        setFilterInput(updated);
+                        handleSearch(updated);
+                      }}
+                    />
                   </th>
                   <th>
                     <div className="d-flex">
@@ -190,6 +241,16 @@ const InvoiceList = (props) => {
                   <th>
                     <div className="d-flex">
                       <label>Invoice Status</label>
+                    </div>
+                  </th>
+                  <th>
+                    <div className="d-flex justify-content-end mt-3">
+                      <Button color="success" className="mx-1" onClick={() => handleSearch()}>
+                        <MdSearch size={18} />
+                      </Button>
+                      <Button color="danger" className="mx-1" onClick={handleResetFilter}>
+                        <MdFilterAltOff size={18} />
+                      </Button>
                     </div>
                   </th>
                 </tr>
@@ -233,6 +294,7 @@ const InvoiceList = (props) => {
                         {findDisplayname(invoiceStatus, invoice.status)}
                       </p>
                     </td>
+                    <td></td>
                   </tr>
                 ))}
               </tbody>
