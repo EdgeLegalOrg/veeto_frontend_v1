@@ -263,12 +263,13 @@ const MatterList = () => {
   };
 
   const handleResetFilter = () => {
-    setFilterInput(initialFilter);
+    const resetFilter = { ...initialFilter, archived: showArchived, myMatters: showMyMatter };
+    setFilterInput(resetFilter);
     setLabelSort("");
     setSortOrder("");
     setSortField("");
     setFilterST([]);
-    handleRefreshList(initialFilter);
+    handleRefreshList(resetFilter);
   };
 
   const handleSortByLabel = (field) => {

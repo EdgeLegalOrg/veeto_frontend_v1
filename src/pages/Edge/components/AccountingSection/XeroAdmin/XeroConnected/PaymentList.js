@@ -34,6 +34,8 @@ const PaymentList = (props) => {
     paymentNumber: "",
     matterNumber: "",
     paymentDate: "",
+    amount: "",
+    paymentType: "",
   });
 
   const siteId =
@@ -70,12 +72,21 @@ const PaymentList = (props) => {
   };
 
   const handleResetFilter = () => {
-    const reset = { paymentNumber: "", matterNumber: "", paymentDate: "" };
+    const reset = { paymentNumber: "", matterNumber: "", paymentDate: "", amount: "", paymentType: "" };
     setFilterInput(reset);
     setSelected([]);
     setPageNo(0);
     fetchPaymentList(0, pageSize, reset);
   };
+
+  const  handlePaymentTypeChange = (e)=>{
+     const updated = {
+    ...filterInput,
+    paymentType: e.target.value,
+  };
+  setFilterInput(updated);
+  handleSearch(updated);
+  }
 
   const fetchPaymentList = async (
     page = pageNo,
@@ -301,11 +312,31 @@ const PaymentList = (props) => {
                     <div className="d-flex">
                       <label>Payment Type</label>
                     </div>
+                    <Input
+                      type="select"
+                      name="paymentType"
+                      value={filterInput.paymentType}
+                      onChange={handlePaymentTypeChange}
+                    >
+                      <option value="">All</option>
+                      <option value="EFT">EFT</option>
+                      <option value="Cheque">Cheque</option>
+                      <option value="Cash">Cash</option>
+                      <option value= "Card">Card</option>
+                    </Input>
                   </th>
                   <th>
                     <div className="d-flex">
                       <label>Amount</label>
                     </div>
+                    <Input
+                      type="text"
+                      name="amount"
+                      placeholder="Amount"
+                      value={filterInput.amount}
+                      onChange={handleChangeFilter}
+                      onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                    />
                   </th>
                   <th>
                     <div className="d-flex justify-content-end mt-3">

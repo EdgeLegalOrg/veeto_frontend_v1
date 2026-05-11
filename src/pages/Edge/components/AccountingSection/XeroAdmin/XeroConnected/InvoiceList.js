@@ -34,6 +34,8 @@ const InvoiceList = (props) => {
     invoiceNumber: "",
     matterNumber: "",
     invoiceDate: "",
+    totalAmount: "",
+    status: "",
   });
 
   const siteId =
@@ -68,9 +70,17 @@ const InvoiceList = (props) => {
     setPageNo(0);
     fetchInvoiceList(0, pageSize, filters);
   };
-
+  const handleInvoiceStatusChange = (e) => {
+    const updated = {
+      ...filterInput,
+      status: e.target.value,
+    };
+    setFilterInput(updated);
+    handleSearch(updated);
+                      
+  }
   const handleResetFilter = () => {
-    const reset = { invoiceNumber: "", matterNumber: "", invoiceDate: "" };
+    const reset = { invoiceNumber: "", matterNumber: "", invoiceDate: "", totalAmount: "", status: "" };
     setFilterInput(reset);
     setSelected([]);
     setPageNo(0);
@@ -237,11 +247,30 @@ const InvoiceList = (props) => {
                     <div className="d-flex">
                       <label>Total Amount</label>
                     </div>
+                    <Input
+                      type="text"
+                      name="totalAmount"
+                      placeholder="Amount"
+                      value={filterInput.totalAmount}
+                      onChange={handleChangeFilter}
+                      onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                    />
                   </th>
                   <th>
                     <div className="d-flex">
                       <label>Invoice Status</label>
                     </div>
+                    <Input
+                      type="select"
+                      name="status"
+                      value={filterInput.status}
+                      onChange={handleInvoiceStatusChange}
+                    >
+                      <option value="">All</option>
+                      <option value="PAID">Paid</option>
+                      <option value="UNPAID">Unpaid</option>
+                      <option value="PARTIAL_PAID">Partially Paid</option>
+                    </Input>
                   </th>
                   <th>
                     <div className="d-flex justify-content-end mt-3">
