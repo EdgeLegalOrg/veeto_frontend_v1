@@ -692,7 +692,7 @@ export const getEligibleInvoice = (filters = {}) =>
       filters?.matterNumber || ""
     }&status=${filters?.status || ""}&invoiceDate=${
       filters?.invoiceDate || ""
-    }&page=${filters?.page || 0}&pageSize=${filters?.pageSize || 100}&requestId=${uuidv1()}`
+    }&totalAmount=${filters?.totalAmount || ""}&page=${filters?.page || 0}&pageSize=${filters?.pageSize || 100}&requestId=${uuidv1()}`
   );
 
 export const uploadInvoiceToXero = (formData) =>
@@ -702,15 +702,15 @@ export const uploadInvoiceToXero = (formData) =>
   });
 
 // export const uploadInvoiceToXero = (ids) =>
-//   API.get(`api/xero/invoice/upload?invoiceIds=${ids}`);
+//API.get(`api/xero/invoice/upload?invoiceIds=${ids}`);
 
 export const getEligiblePayments = (filters = {}) =>
   API.get(
     `/api/xero/payment?paymentNumber=${filters?.paymentNumber || ""}&matterNumber=${
       filters?.matterNumber || ""
-    }&paymentDate=${filters?.paymentDate || ""}&page=${filters?.page || 0}&pageSize=${
-      filters?.pageSize || 100
-    }&requestId=${uuidv1()}`
+    }&paymentDate=${filters?.paymentDate || ""}&amount=${filters?.amount || ""}&paymentType=${
+      filters?.paymentType || ""
+    }&page=${filters?.page || 0}&pageSize=${filters?.pageSize || 100}&requestId=${uuidv1()}`
   );
 
 export const uploadPaymentToXero = (formData) =>

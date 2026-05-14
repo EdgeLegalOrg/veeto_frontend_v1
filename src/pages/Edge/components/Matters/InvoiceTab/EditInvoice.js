@@ -22,7 +22,7 @@ import { checkHasPermission, roundToDigit } from "../../../utils/utilFunc";
 import { AiOutlineClose } from "react-icons/ai";
 import { toast } from "react-toastify";
 import { TextInputField } from "pages/Edge/components/InputField";
-import { UNDOFINALINVOICE } from "pages/Edge/utils/RightConstants";
+import { UNDOFINALINVOICE, EXPORTTOXERO } from "pages/Edge/utils/RightConstants";
 
 const initialData = {
   invoiceNumber: "",
@@ -519,7 +519,7 @@ const EditInvoice = (props) => {
                   <AiFillPrinter size={18} />
                 </Button>
               </div>
-              {formData.flagFinal && (
+              {formData.flagFinal && checkHasPermission(EXPORTTOXERO) && (
                 <div
                   className="d-flex align-items-center export-btn"
                   onClick={handleExportXero}
