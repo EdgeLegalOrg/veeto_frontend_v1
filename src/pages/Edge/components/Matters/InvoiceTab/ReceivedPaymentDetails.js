@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { findDisplayname, formatDateFunc } from "../../../utils/utilFunc";
-
+import { formatDateFunc, formatCurrency } from "../../../utils/utilFunc";
 const ReceivedPaymentDetails = (props) => {
   const [list, setList] = useState([]);
   const [paymentType, setPaymentType] = useState([]);
@@ -29,8 +28,8 @@ const ReceivedPaymentDetails = (props) => {
           {list.map((payment) => (
             <tr key={payment.paymentId} className="pe-cursor">
               <td>
-			  {/*<p className="mb-0">{payment.paymentNumber}</p>*/}
-			  <p className="mb-0">{payment.paymentNumStr}</p>
+                {/*<p className="mb-0">{payment.paymentNumber}</p>*/}
+                <p className="mb-0">{payment.paymentNumStr}</p>
               </td>
               <td>
                 <p className="mb-0">
@@ -44,12 +43,11 @@ const ReceivedPaymentDetails = (props) => {
               </td>
               <td>
                 <p className="mb-0">
-                  {findDisplayname(paymentType, payment.paymentType)}
+                  {formatCurrency(payment.totalPaymentAmount)}
                 </p>
               </td>
               <td>
-			    {/*<p className="mb-0">{`$${payment.amount}`}</p>*/}
-				<p className="mb-0">{`$${payment.amount}`}</p>
+                <p className="mb-0">{formatCurrency(payment.amount)}</p>
               </td>
               <td></td>
               <td>
