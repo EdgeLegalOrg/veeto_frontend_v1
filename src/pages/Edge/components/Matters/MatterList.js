@@ -199,8 +199,7 @@ const MatterList = () => {
 
   const parseStaffList = (list) => {
     let newList = [];
-
-    list.filter((d) => d.staffActive).forEach((d) => {
+    list.forEach((d) => {
       newList.push({
         display: `${d.firstName ? d.firstName : ""} ${
           d.lastName ? d.lastName : ""
