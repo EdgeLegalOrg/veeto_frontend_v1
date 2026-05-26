@@ -46,6 +46,9 @@ const SelectedTimedList = (props) => {
                   <p className='m-0'>Units</p>
                 </td>
                 <td>
+                  <p className='m-0'>Rate</p>
+                </td>
+                <td>
                   <p className='m-0'>Amount</p>
                 </td>
                 <td></td>
@@ -62,6 +65,9 @@ const SelectedTimedList = (props) => {
                   </td>
                   <td>
                     <p className='m-0'>{l.units}</p>
+                  </td>
+                  <td>
+                    <p className='m-0'>{l.rate ? `$ ${l.rate}` : ""}</p>
                   </td>
                   <td>
                     <p className='m-0'>{l.total}</p>

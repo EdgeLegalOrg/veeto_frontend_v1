@@ -409,7 +409,7 @@ const GeneralDetails = (props) => {
             name="feeEarnerId"
             label="Fee Earner"
             value={findDisplayName(staffList, formData.feeEarnerId)}
-            optionArray={staffList}
+            optionArray={staffList.filter((s) => s.active)}
             setDetails={setFormData}
             details={formData}
             onSelectFunc={(val) => handleSelect("feeEarnerId", val)}
@@ -427,7 +427,7 @@ const GeneralDetails = (props) => {
             name="responsiblePersonId"
             label="Responsible Person"
             value={findDisplayName(staffList, formData.responsiblePersonId)}
-            optionArray={staffList}
+            optionArray={staffList.filter((s) => s.active)}
             setDetails={setFormData}
             details={formData}
             onSelectFunc={(val) => handleSelect("responsiblePersonId", val)}
@@ -448,7 +448,7 @@ const GeneralDetails = (props) => {
             name="actingPersonId"
             label="Acting Person"
             value={findDisplayName(staffList, formData.actingPersonId)}
-            optionArray={staffList}
+            optionArray={staffList.filter((s) => s.active)}
             setDetails={setFormData}
             details={formData}
             onSelectFunc={(val) => handleSelect("actingPersonId", val)}
@@ -466,7 +466,7 @@ const GeneralDetails = (props) => {
             name="assistingPersonId"
             label="Assisting Person"
             value={findDisplayName(staffList, formData.assistingPersonId)}
-            optionArray={staffList}
+            optionArray={staffList.filter((s)=>s.active)}
             setDetails={setFormData}
             details={formData}
             onSelectFunc={(val) => handleSelect("assistingPersonId", val)}
@@ -484,7 +484,7 @@ const GeneralDetails = (props) => {
             name="referrerId"
             label="Referrer"
             value={findDisplayName(staffList, formData.referrerId)}
-            optionArray={staffList}
+            optionArray={staffList.filter((s) => s.active)}
             setDetails={setFormData}
             details={formData}
             onSelectFunc={(val) => handleSelect("referrerId", val)}
