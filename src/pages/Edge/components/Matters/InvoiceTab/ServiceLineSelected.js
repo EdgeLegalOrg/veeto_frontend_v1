@@ -286,6 +286,7 @@ const ServiceLineSelected = (props) => {
                         onChange={(e) => handleChange(e, i)}
                         type="number"
                         disabled={props.disabled}
+                        readOnly={true}
                       />
                     ) : (
                       <p className="sls-label">NA</p>
