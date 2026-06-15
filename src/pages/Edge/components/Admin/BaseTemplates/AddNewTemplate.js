@@ -124,7 +124,7 @@ const AddNewTemplate = (props) => {
       arr.push({
         ...initialData,
         name: file.name.split(".").slice(0, -1).join("."),
-        storageType: "GOOGLE_DRIVE",
+        storageType: "ONEDRIVE",
       });
     });
     setFormData(arr);
@@ -162,6 +162,7 @@ const AddNewTemplate = (props) => {
             setUploadedFiles(arr1);
             setFormData(arr2);
           } else {
+            toast.success(`${temp.name} uploaded`);
             let arr1 = uploadedFiles.slice(i + 1, uploadedFiles?.length);
             let arr2 = formData.slice(i + 1, formData?.length);
             setUploadedFiles(arr1);
@@ -434,6 +435,45 @@ const AddNewTemplate = (props) => {
                 }}
               >
                 Click here to upload to Google Drive
+              </p>
+              {uploadedFiles.length > 0 && (
+                <span style={{ color: "#555", fontSize: "12px" }}>
+                  {uploadedFiles.length === 1
+                    ? uploadedFiles[0].name
+                    : `${uploadedFiles[0].name} +${uploadedFiles.length - 1} more`}
+                </span>
+              )}
+            </div>
+          )}
+          {uploadSource === "onedrive" && (
+            <div
+              onClick={() => oneDriveInputRef.current.click()}
+              style={{
+                border: "2px dashed #dee2e6",
+                borderRadius: "8px",
+                padding: "24px",
+                textAlign: "center",
+                cursor: "pointer",
+                background: "#f9fafb",
+                marginBottom: "8px",
+                minHeight: "100px",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "8px",
+              }}
+            >
+              <OneDriveIcon />
+              <p
+                style={{
+                  margin: 0,
+                  color: "#374151",
+                  fontSize: "14px",
+                  fontWeight: "500",
+                }}
+              >
+                Click here to upload to OneDrive
               </p>
               {uploadedFiles.length > 0 && (
                 <span style={{ color: "#555", fontSize: "12px" }}>
