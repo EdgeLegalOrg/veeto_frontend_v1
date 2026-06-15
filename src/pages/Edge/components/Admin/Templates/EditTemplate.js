@@ -13,7 +13,12 @@ import {
   SelectInputField,
 } from "pages/Edge/components/InputField";
 
-import { OneDriveIcon, DeviceUploadIcon, GoogleDriveColorIcon } from "../../UploadIcons";
+import {
+  OneDriveIcon,
+  DeviceUploadIcon,
+  GoogleDriveColorIcon,
+} from "../../UploadIcons";
+import { driveUpload } from "pages/Edge/utils/Constant";
 
 const initialData = {
   name: "",
@@ -31,6 +36,7 @@ const EditTemplate = (props) => {
   const [submitted, setSubmitted] = useState(false);
   const [uploadSource, setUploadSource] = useState("device");
   const googleDriveInputRef = useRef(null);
+  const oneDriveInputRef = useRef(null);
 
   useEffect(() => {
     setFormData(props.file);
@@ -53,7 +59,15 @@ const EditTemplate = (props) => {
     const file = e.target.files[0];
     if (!file) return;
     setUploadedFile(file);
-    setFormData({ ...formData, storageType: "GOOGLE_DRIVE" });
+    setFormData({ ...formData, storageType: driveUpload.GDRIVE });
+    e.target.value = "";
+  };
+
+  const handleOneDriveFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploadedFile(file);
+    setFormData({ ...formData, storageType: driveUpload.ONEDRIVE });
     e.target.value = "";
   };
 
@@ -121,11 +135,40 @@ const EditTemplate = (props) => {
           style={{ display: "none" }}
           onChange={handleGoogleDriveFileSelect}
         />
-        <div style={{ display: "flex", border: "1px solid #dee2e6", borderRadius: "8px", overflow: "hidden", marginBottom: "12px" }}>
+        <input
+          ref={oneDriveInputRef}
+          type="file"
+          accept=".doc,.docx"
+          style={{ display: "none" }}
+          onChange={handleOneDriveFileSelect}
+        />
+        <div
+          style={{
+            display: "flex",
+            border: "1px solid #dee2e6",
+            borderRadius: "8px",
+            overflow: "hidden",
+            marginBottom: "12px",
+          }}
+        >
           <button
             type="button"
             onClick={() => setUploadSource("device")}
-            style={{ flex: 1, padding: "12px 8px", border: "none", borderRight: "1px solid #dee2e6", background: uploadSource === "device" ? "#eef2ff" : "white", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: "4px", fontSize: "12px", color: uploadSource === "device" ? "#4f46e5" : "#374151", fontWeight: uploadSource === "device" ? "600" : "400" }}
+            style={{
+              flex: 1,
+              padding: "12px 8px",
+              border: "none",
+              borderRight: "1px solid #dee2e6",
+              background: uploadSource === "device" ? "#eef2ff" : "white",
+              cursor: "pointer",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: "4px",
+              fontSize: "12px",
+              color: uploadSource === "device" ? "#4f46e5" : "#374151",
+              fontWeight: uploadSource === "device" ? "600" : "400",
+            }}
           >
             <DeviceUploadIcon />
             Device
@@ -133,16 +176,42 @@ const EditTemplate = (props) => {
           <button
             type="button"
             onClick={() => setUploadSource("google")}
-            style={{ flex: 1, padding: "12px 8px", border: "none", borderRight: "1px solid #dee2e6", background: uploadSource === "google" ? "#f0fdf4" : "white", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: "4px", fontSize: "12px", color: "#374151", fontWeight: uploadSource === "google" ? "600" : "400" }}
+            style={{
+              flex: 1,
+              padding: "12px 8px",
+              border: "none",
+              borderRight: "1px solid #dee2e6",
+              background: uploadSource === "google" ? "#f0fdf4" : "white",
+              cursor: "pointer",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: "4px",
+              fontSize: "12px",
+              color: "#374151",
+              fontWeight: uploadSource === "google" ? "600" : "400",
+            }}
           >
             <GoogleDriveColorIcon size={20} />
             Google Drive
           </button>
           <button
             type="button"
-            disabled
-            title="OneDrive integration coming soon"
-            style={{ flex: 1, padding: "12px 8px", border: "none", background: "#f8f9fa", cursor: "not-allowed", display: "flex", flexDirection: "column", alignItems: "center", gap: "4px", fontSize: "12px", opacity: 0.5 }}
+            onClick={() => setUploadSource("onedrive")}
+            style={{
+              flex: 1,
+              padding: "12px 8px",
+              border: "none",
+              background: uploadSource === "onedrive" ? "#eff6ff" : "white",
+              cursor: "pointer",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: "4px",
+              fontSize: "12px",
+              color: uploadSource === "onedrive" ? "#0369a1" : "#374151",
+              fontWeight: uploadSource === "onedrive" ? "600" : "400",
+            }}
           >
             <OneDriveIcon />
             OneDrive
@@ -168,14 +237,74 @@ const EditTemplate = (props) => {
         {uploadSource === "google" && (
           <div
             onClick={() => googleDriveInputRef.current.click()}
-            style={{ border: "2px dashed #dee2e6", borderRadius: "8px", padding: "24px", textAlign: "center", cursor: "pointer", background: "#f9fafb", marginBottom: "8px", minHeight: "100px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "8px" }}
+            style={{
+              border: "2px dashed #dee2e6",
+              borderRadius: "8px",
+              padding: "24px",
+              textAlign: "center",
+              cursor: "pointer",
+              background: "#f9fafb",
+              marginBottom: "8px",
+              minHeight: "100px",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "8px",
+            }}
           >
             <GoogleDriveColorIcon size={32} />
-            <p style={{ margin: 0, color: "#374151", fontSize: "14px", fontWeight: "500" }}>
+            <p
+              style={{
+                margin: 0,
+                color: "#374151",
+                fontSize: "14px",
+                fontWeight: "500",
+              }}
+            >
               Click here to upload to Google Drive
             </p>
             {uploadedFile?.name && (
-              <span style={{ color: "#555", fontSize: "12px" }}>{uploadedFile.name}</span>
+              <span style={{ color: "#555", fontSize: "12px" }}>
+                {uploadedFile.name}
+              </span>
+            )}
+          </div>
+        )}
+        {uploadSource === "onedrive" && (
+          <div
+            onClick={() => oneDriveInputRef.current.click()}
+            style={{
+              border: "2px dashed #dee2e6",
+              borderRadius: "8px",
+              padding: "24px",
+              textAlign: "center",
+              cursor: "pointer",
+              background: "#f9fafb",
+              marginBottom: "8px",
+              minHeight: "100px",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "8px",
+            }}
+          >
+            <OneDriveIcon />
+            <p
+              style={{
+                margin: 0,
+                color: "#374151",
+                fontSize: "14px",
+                fontWeight: "500",
+              }}
+            >
+              Click here to upload to OneDrive
+            </p>
+            {uploadedFile?.name && (
+              <span style={{ color: "#555", fontSize: "12px" }}>
+                {uploadedFile.name}
+              </span>
             )}
           </div>
         )}

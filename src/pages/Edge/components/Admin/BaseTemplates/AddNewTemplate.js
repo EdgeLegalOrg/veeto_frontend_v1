@@ -14,7 +14,11 @@ import {
   SelectInputField,
 } from "pages/Edge/components/InputField";
 
-import { OneDriveIcon, DeviceUploadIcon, GoogleDriveColorIcon } from "../../UploadIcons";
+import {
+  OneDriveIcon,
+  DeviceUploadIcon,
+  GoogleDriveColorIcon,
+} from "../../UploadIcons";
 
 const initialData = {
   name: "",
@@ -32,6 +36,7 @@ const AddNewTemplate = (props) => {
   const [submitted, setSubmitted] = useState(false);
   const [uploadSource, setUploadSource] = useState("device");
   const googleDriveInputRef = useRef(null);
+  const oneDriveInputRef = useRef(null);
 
   const { closeFormToast, refreshList, matterList } = props;
 
@@ -110,6 +115,22 @@ const AddNewTemplate = (props) => {
     e.target.value = "";
   };
 
+  const handleOneDriveFileSelect = (e) => {
+    const acceptedFiles = Array.from(e.target.files);
+    if (!acceptedFiles.length) return;
+    setUploadedFiles([...uploadedFiles, ...acceptedFiles]);
+    let arr = [...formData];
+    acceptedFiles.forEach((file) => {
+      arr.push({
+        ...initialData,
+        name: file.name.split(".").slice(0, -1).join("."),
+        storageType: "GOOGLE_DRIVE",
+      });
+    });
+    setFormData(arr);
+    e.target.value = "";
+  };
+
   const handleSubmit = async () => {
     if (uploadedFiles && uploadedFiles?.length > 0) {
       setLoading(true);
@@ -136,7 +157,7 @@ const AddNewTemplate = (props) => {
             let arr1 = uploadedFiles.slice(i + 1, uploadedFiles?.length);
             let arr2 = formData.slice(i + 1, formData?.length);
             toast.warning(
-              `${temp.name} could be uploaded, please try again later.`
+              `${temp.name} could be uploaded, please try again later.`,
             );
             setUploadedFiles(arr1);
             setFormData(arr2);
@@ -205,7 +226,6 @@ const AddNewTemplate = (props) => {
                   }
                   maxLength={null}
                   optionClassName="bg-white hover:bg-gray-100 text-black"
-
                 />
               </div>
               <button
@@ -248,11 +268,41 @@ const AddNewTemplate = (props) => {
             style={{ display: "none" }}
             onChange={handleGoogleDriveFileSelect}
           />
-          <div style={{ display: "flex", border: "1px solid #dee2e6", borderRadius: "8px", overflow: "hidden", marginBottom: "12px" }}>
+          <input
+            ref={oneDriveInputRef}
+            type="file"
+            accept=".doc,.docx"
+            multiple
+            style={{ display: "none" }}
+            onChange={handleOneDriveFileSelect}
+          />
+          <div
+            style={{
+              display: "flex",
+              border: "1px solid #dee2e6",
+              borderRadius: "8px",
+              overflow: "hidden",
+              marginBottom: "12px",
+            }}
+          >
             <button
               type="button"
               onClick={() => setUploadSource("device")}
-              style={{ flex: 1, padding: "12px 8px", border: "none", borderRight: "1px solid #dee2e6", background: uploadSource === "device" ? "#eef2ff" : "white", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: "4px", fontSize: "12px", color: uploadSource === "device" ? "#4f46e5" : "#374151", fontWeight: uploadSource === "device" ? "600" : "400" }}
+              style={{
+                flex: 1,
+                padding: "12px 8px",
+                border: "none",
+                borderRight: "1px solid #dee2e6",
+                background: uploadSource === "device" ? "#eef2ff" : "white",
+                cursor: "pointer",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: "4px",
+                fontSize: "12px",
+                color: uploadSource === "device" ? "#4f46e5" : "#374151",
+                fontWeight: uploadSource === "device" ? "600" : "400",
+              }}
             >
               <DeviceUploadIcon />
               Device
@@ -260,16 +310,42 @@ const AddNewTemplate = (props) => {
             <button
               type="button"
               onClick={() => setUploadSource("google")}
-              style={{ flex: 1, padding: "12px 8px", border: "none", borderRight: "1px solid #dee2e6", background: uploadSource === "google" ? "#f0fdf4" : "white", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: "4px", fontSize: "12px", color: "#374151", fontWeight: uploadSource === "google" ? "600" : "400" }}
+              style={{
+                flex: 1,
+                padding: "12px 8px",
+                border: "none",
+                borderRight: "1px solid #dee2e6",
+                background: uploadSource === "google" ? "#f0fdf4" : "white",
+                cursor: "pointer",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: "4px",
+                fontSize: "12px",
+                color: "#374151",
+                fontWeight: uploadSource === "google" ? "600" : "400",
+              }}
             >
               <GoogleDriveColorIcon size={20} />
               Google Drive
             </button>
             <button
               type="button"
-              disabled
-              title="OneDrive integration coming soon"
-              style={{ flex: 1, padding: "12px 8px", border: "none", background: "#f8f9fa", cursor: "not-allowed", display: "flex", flexDirection: "column", alignItems: "center", gap: "4px", fontSize: "12px", opacity: 0.5 }}
+              onClick={() => setUploadSource("onedrive")}
+              style={{
+                flex: 1,
+                padding: "12px 8px",
+                border: "none",
+                background: uploadSource === "onedrive" ? "#eff6ff" : "white",
+                cursor: "pointer",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: "4px",
+                fontSize: "12px",
+                color: uploadSource === "onedrive" ? "#0369a1" : "#374151",
+                fontWeight: uploadSource === "onedrive" ? "600" : "400",
+              }}
             >
               <OneDriveIcon />
               OneDrive
@@ -288,17 +364,37 @@ const AddNewTemplate = (props) => {
                       {uploadedFiles.length > 1 ? (
                         <>
                           {uploadedFiles.slice(0, 1).map((file, i) => (
-                            <span style={{ color: "#555", padding: "2px", margin: "0" }} key={i}>
+                            <span
+                              style={{
+                                color: "#555",
+                                padding: "2px",
+                                margin: "0",
+                              }}
+                              key={i}
+                            >
                               {file.name}
                             </span>
                           ))}
-                          <span style={{ color: "#555", padding: "2px", margin: "0" }}>
+                          <span
+                            style={{
+                              color: "#555",
+                              padding: "2px",
+                              margin: "0",
+                            }}
+                          >
                             +{uploadedFiles.length - 1} more
                           </span>
                         </>
                       ) : (
                         uploadedFiles.map((file, i) => (
-                          <span style={{ color: "#555", padding: "2px", margin: "0" }} key={i}>
+                          <span
+                            style={{
+                              color: "#555",
+                              padding: "2px",
+                              margin: "0",
+                            }}
+                            key={i}
+                          >
                             {file.name}
                           </span>
                         ))
@@ -312,15 +408,38 @@ const AddNewTemplate = (props) => {
           {uploadSource === "google" && (
             <div
               onClick={() => googleDriveInputRef.current.click()}
-              style={{ border: "2px dashed #dee2e6", borderRadius: "8px", padding: "24px", textAlign: "center", cursor: "pointer", background: "#f9fafb", marginBottom: "8px", minHeight: "100px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "8px" }}
+              style={{
+                border: "2px dashed #dee2e6",
+                borderRadius: "8px",
+                padding: "24px",
+                textAlign: "center",
+                cursor: "pointer",
+                background: "#f9fafb",
+                marginBottom: "8px",
+                minHeight: "100px",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "8px",
+              }}
             >
               <GoogleDriveColorIcon size={32} />
-              <p style={{ margin: 0, color: "#374151", fontSize: "14px", fontWeight: "500" }}>
+              <p
+                style={{
+                  margin: 0,
+                  color: "#374151",
+                  fontSize: "14px",
+                  fontWeight: "500",
+                }}
+              >
                 Click here to upload to Google Drive
               </p>
               {uploadedFiles.length > 0 && (
                 <span style={{ color: "#555", fontSize: "12px" }}>
-                  {uploadedFiles.length === 1 ? uploadedFiles[0].name : `${uploadedFiles[0].name} +${uploadedFiles.length - 1} more`}
+                  {uploadedFiles.length === 1
+                    ? uploadedFiles[0].name
+                    : `${uploadedFiles[0].name} +${uploadedFiles.length - 1} more`}
                 </span>
               )}
             </div>
