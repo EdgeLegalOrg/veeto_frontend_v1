@@ -362,6 +362,13 @@ const Navdata = () => {
           show: true,
           parentId: "admin",
         },
+        {
+          id: "storageType",
+          label: "Storage Type",
+          link: "/admin-storage-type",
+          show: true,
+          parentId: "admin",
+        },
       ],
     },
   ];

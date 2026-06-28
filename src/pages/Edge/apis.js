@@ -1063,3 +1063,15 @@ export const checkContactsLinked = (contactIds, contactTypes) =>
   API.get(
     `/api/contacts/isLinked/${contactIds}?type=${contactTypes}&requestId=${uuidv1()}`
   );
+
+// Storage Type - matches /api/user/storage controller
+export const getStorageTypeApi = () =>
+  API.get(`/api/user/storage?requestId=${uuidv1()}`);
+
+export const saveStorageTypeApi = (data) =>
+  API.post(`/api/user/storage`, {
+    requestId: uuidv1(),
+    data: {
+      storageType: data.storageType, // "SERVER" | "GDRIVE" | "ONEDRIVE"
+    },
+  });

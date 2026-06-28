@@ -11,13 +11,19 @@ import {
   DeviceUploadIcon,
   GoogleDriveColorIcon,
 } from "../../UploadIcons";
+import { useSelector } from "react-redux";
+import { selectStorageType } from "slices/storage/reducer";
+import { getUploadModeFromStorage } from "pages/Edge/utils/storageConfig";
 
 const AddAttachment = (props) => {
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [formData, setFormData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [uploadSource, setUploadSource] = useState("device");
+  const globalStorageType = useSelector(selectStorageType);
+  const [uploadSource, setUploadSource] = useState(
+    getUploadModeFromStorage(globalStorageType),
+  );
   const googleDriveInputRef = useRef(null);
   const oneDriveInputRef = useRef(null); // ← add this
 
@@ -29,6 +35,10 @@ const AddAttachment = (props) => {
       setUploadedFiles([{ name: props.editState.name }]);
     }
   }, [props.editState]);
+
+  useEffect(() => {
+    setUploadSource(getUploadModeFromStorage(globalStorageType));
+  }, [globalStorageType]);
 
   const handleClose = () => {
     if (props.closeForm) props.closeForm();
@@ -67,7 +77,7 @@ const AddAttachment = (props) => {
     const uploadPromises = uploadedFiles.map((file, i) => {
       const inputData = new FormData();
       const dataInput = {
-        requestId: uuidv1(),  
+        requestId: uuidv1(),
         data: {
           ...(isEditing
             ? { id: formData[i].id, name: formData[i].name }
@@ -197,6 +207,9 @@ const AddAttachment = (props) => {
             <button
               type="button"
               onClick={() => setUploadSource("device")}
+              disabled={
+                getUploadModeFromStorage(globalStorageType) !== "device"
+              }
               style={{
                 flex: 1,
                 padding: "12px 8px",
@@ -219,6 +232,9 @@ const AddAttachment = (props) => {
             <button
               type="button"
               onClick={() => setUploadSource("google")}
+              disabled={
+                getUploadModeFromStorage(globalStorageType) !== "google"
+              }
               style={{
                 flex: 1,
                 padding: "12px 8px",
@@ -242,6 +258,9 @@ const AddAttachment = (props) => {
             <button
               type="button"
               onClick={() => setUploadSource("onedrive")}
+              disabled={
+                getUploadModeFromStorage(globalStorageType) !== "onedrive"
+              }
               style={{
                 flex: 1,
                 padding: "12px 8px",

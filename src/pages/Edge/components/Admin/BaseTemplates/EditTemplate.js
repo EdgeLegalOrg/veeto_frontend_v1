@@ -17,6 +17,9 @@ import {
   DeviceUploadIcon,
   GoogleDriveColorIcon,
 } from "../../UploadIcons";
+import { useSelector } from "react-redux";
+import { selectStorageType } from "slices/storage/reducer";
+import { getUploadModeFromStorage } from "pages/Edge/utils/storageConfig";
 
 const initialData = {
   name: "",
@@ -45,7 +48,10 @@ const EditTemplate = (props) => {
   const [isEnableButton, setIsEnableButton] = useState(true);
   const [confirmScreen, setConfirmScreen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [uploadSource, setUploadSource] = useState("device");
+  const globalStorageType = useSelector(selectStorageType);
+  const [uploadSource, setUploadSource] = useState(
+    getUploadModeFromStorage(globalStorageType),
+  );
   const googleDriveInputRef = useRef(null);
   const oneDriveInputRef = useRef(null);
 
@@ -55,6 +61,10 @@ const EditTemplate = (props) => {
       subTypes: normalizeType(props.file?.subTypes),
     });
   }, [props.file]);
+
+  useEffect(() => {
+    setUploadSource(getUploadModeFromStorage(globalStorageType));
+  }, [globalStorageType]);
 
   const handleFormChange = (e) => {
     const { name } = e.target;
@@ -168,6 +178,7 @@ const EditTemplate = (props) => {
           <button
             type="button"
             onClick={() => setUploadSource("device")}
+            disabled={getUploadModeFromStorage(globalStorageType) !== "device"}
             style={{
               flex: 1,
               padding: "12px 8px",
@@ -190,6 +201,7 @@ const EditTemplate = (props) => {
           <button
             type="button"
             onClick={() => setUploadSource("google")}
+            disabled={getUploadModeFromStorage(globalStorageType) !== "google"}
             style={{
               flex: 1,
               padding: "12px 8px",
@@ -212,6 +224,9 @@ const EditTemplate = (props) => {
           <button
             type="button"
             onClick={() => setUploadSource("onedrive")}
+            disabled={
+              getUploadModeFromStorage(globalStorageType) !== "onedrive"
+            }
             style={{
               flex: 1,
               padding: "12px 8px",

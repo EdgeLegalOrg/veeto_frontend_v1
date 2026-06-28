@@ -39,7 +39,8 @@ const InvoiceToBePaid = (props) => {
   const findDueAmount = (ttl, rec, value = false) => {
     ttl = ttl ? ttl : 0.0;
     rec = rec ? rec : 0.0;
-    let a = parseFloat(ttl) - parseFloat(rec);
+    // let a = parseFloat(ttl) - parseFloat(rec);
+    let a = Math.round((parseFloat(ttl) - parseFloat(rec)) * 100) / 100;
 
     if (value) {
       return a;
@@ -56,12 +57,12 @@ const InvoiceToBePaid = (props) => {
     let remaining = findDueAmount(
       newList[index].totalAmount,
       newList[index].amountApplied,
-      true
+      true,
     );
 
     let enteredAmt = value && parseFloat(value) >= 0 ? parseFloat(value) : 0;
 
-    if (enteredAmt > remaining) {
+    if (Math.round(enteredAmt * 100) > Math.round(remaining * 100)) {
       newList[index].error.valid = false;
     } else {
       newList[index].error.valid = true;
@@ -139,12 +140,12 @@ const InvoiceToBePaid = (props) => {
               </td>
               <td>
                 <p className="m-0">{`$ ${roundToDigit(
-                  invoice.totalAmount
+                  invoice.totalAmount,
                 )}`}</p>
               </td>
               <td>
                 <p className="m-0">{`$ ${roundToDigit(
-                  invoice.amountApplied
+                  invoice.amountApplied,
                 )}`}</p>
               </td>
               <td>

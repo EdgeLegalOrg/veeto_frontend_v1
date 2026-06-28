@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Dropzone from "react-dropzone";
 import closeBtn from "../../../images/close-white-btn.svg";
 import { IoMdClose } from "react-icons/io";
@@ -13,6 +13,9 @@ import {
   TextInputField,
   SelectInputField,
 } from "pages/Edge/components/InputField";
+import { useSelector } from "react-redux";
+import { selectStorageType } from "slices/storage/reducer";
+import { getUploadModeFromStorage } from "pages/Edge/utils/storageConfig";
 
 import {
   OneDriveIcon,
@@ -34,11 +37,18 @@ const AddNewTemplate = (props) => {
   const [confirmScreen, setConfirmScreen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [uploadSource, setUploadSource] = useState("device");
+  const globalStorageType = useSelector(selectStorageType);
+  const [uploadSource, setUploadSource] = useState(
+    getUploadModeFromStorage(globalStorageType),
+  );
   const googleDriveInputRef = useRef(null);
   const oneDriveInputRef = useRef(null);
 
   const { closeFormToast, refreshList, matterList } = props;
+
+  useEffect(() => {
+    setUploadSource(getUploadModeFromStorage(globalStorageType));
+  }, [globalStorageType]);
 
   const handleUploadFile = (acceptedFile) => {
     setLoading(true);
@@ -289,6 +299,9 @@ const AddNewTemplate = (props) => {
             <button
               type="button"
               onClick={() => setUploadSource("device")}
+              disabled={
+                getUploadModeFromStorage(globalStorageType) !== "device"
+              }
               style={{
                 flex: 1,
                 padding: "12px 8px",
@@ -311,6 +324,9 @@ const AddNewTemplate = (props) => {
             <button
               type="button"
               onClick={() => setUploadSource("google")}
+              disabled={
+                getUploadModeFromStorage(globalStorageType) !== "google"
+              }
               style={{
                 flex: 1,
                 padding: "12px 8px",
@@ -333,6 +349,9 @@ const AddNewTemplate = (props) => {
             <button
               type="button"
               onClick={() => setUploadSource("onedrive")}
+              disabled={
+                getUploadModeFromStorage(globalStorageType) !== "onedrive"
+              }
               style={{
                 flex: 1,
                 padding: "12px 8px",

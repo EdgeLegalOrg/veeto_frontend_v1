@@ -38,6 +38,7 @@ import ListPage from '../pages/Edge/components/Admin/CheckList/ListPage';
 import LinkedList from '../pages/Edge/components/Admin/LinkToMatter/LinkedList';
 import PreviewInvoiceTemplate from '../pages/Edge/components/Matters/InvoiceTab/PreviewInvoiceTemplate';
 import PaymentListPage from '../pages/Edge/components/AccountingSection/PaymentListing/PaymentListingPage';
+import StorageTypePage from 'pages/Edge/components/Admin/Settings/StorageTypePage';
 
 const authProtectedRoutes = [
   //Edge Routes
@@ -67,6 +68,7 @@ const authProtectedRoutes = [
   { path: '/account-xero-admin-connected', component: <XeroListing /> },
 
   { path: '/admin-system-numerals', component: <SettingPage /> },
+  { path: '/admin-storage-type', component: <StorageTypePage /> },
   { path: '/admin-manage-staff', component: <ManageStaffPage /> },
   { path: '/admin-manage-roles', component: <ManageRolePage /> },
   { path: '/admin-manage-users', component: <ManageUserPage /> },
