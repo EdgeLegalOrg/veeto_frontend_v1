@@ -46,6 +46,7 @@ import {
   updateFormStatusAction,
   resetFormStatusAction,
 } from "slices/layouts/reducer";
+import { fetchStorageType } from "slices/storage/reducer";
 
 const initialFilter = {
   matterNumber: "",
@@ -71,7 +72,7 @@ const MatterList = () => {
   const location = useLocation();
   const dispatch = useDispatch();
   const { currentRouterState, formStatus, navigationEditForm } = useSelector(
-    (state) => state.Layout
+    (state) => state.Layout,
   );
   const [matterList, setMatterList] = useState([]);
   const [subTypes, setSubTypes] = useState([]);
@@ -140,6 +141,7 @@ const MatterList = () => {
     setLoading(true);
     fetchEnums();
     fetchMatterList();
+    dispatch(fetchStorageType());
   };
 
   useEffect(() => {
@@ -200,15 +202,17 @@ const MatterList = () => {
   const parseStaffList = (list) => {
     let newList = [];
 
-    list.filter((d) => d.staffActive).forEach((d) => {
-      newList.push({
-        display: `${d.firstName ? d.firstName : ""} ${
-          d.lastName ? d.lastName : ""
-        }`,
-        value: d.id,
-        active: d.staffActive,
+    list
+      .filter((d) => d.staffActive)
+      .forEach((d) => {
+        newList.push({
+          display: `${d.firstName ? d.firstName : ""} ${
+            d.lastName ? d.lastName : ""
+          }`,
+          value: d.id,
+          active: d.staffActive,
+        });
       });
-    });
     return newList;
   };
 
@@ -252,7 +256,7 @@ const MatterList = () => {
         setTotalRecords(data?.metadata?.page?.totalRecords);
       } else {
         toast.warning(
-          "There is some problem from server side, please try later."
+          "There is some problem from server side, please try later.",
         );
       }
       setLoading(false);
@@ -359,8 +363,16 @@ const MatterList = () => {
       handleRefreshList({ ...filterInput, archived: false, sortOn: "" });
     } else {
       setShowArchived(true);
-      setFilterInput({ ...filterInput, archived: true, sortOn: "archiveNumber"});
-      handleRefreshList({ ...filterInput, archived: true, sortOn: "archiveNumber" });
+      setFilterInput({
+        ...filterInput,
+        archived: true,
+        sortOn: "archiveNumber",
+      });
+      handleRefreshList({
+        ...filterInput,
+        archived: true,
+        sortOn: "archiveNumber",
+      });
     }
   };
 
@@ -843,7 +855,7 @@ const MatterList = () => {
                             text={matter.letterSubject}
                             content={convertSubstring(
                               matter.letterSubject,
-                              100
+                              100,
                             )}
                           ></TooltipWrapper>
                         </td>
@@ -854,7 +866,7 @@ const MatterList = () => {
                             text={findDisplayname(types, matter.type)}
                             content={convertSubstring(
                               findDisplayname(types, matter.type),
-                              100
+                              100,
                             )}
                           ></TooltipWrapper>
                         </td>
@@ -865,7 +877,7 @@ const MatterList = () => {
                             text={findDisplayname(subTypes, matter.subType)}
                             content={convertSubstring(
                               findDisplayname(subTypes, matter.subType),
-                              100
+                              100,
                             )}
                           ></TooltipWrapper>
                         </td>
@@ -1353,7 +1365,7 @@ const MatterList = () => {
                         updateFormStatusAction({
                           key: "isShowModal",
                           value: true,
-                        })
+                        }),
                       );
                     }
                     setShowAdd(false);
@@ -1370,7 +1382,7 @@ const MatterList = () => {
                           updateFormStatusAction({
                             key: "isShowModal",
                             value: true,
-                          })
+                          }),
                         );
                       }
                       setShowAdd(false);
@@ -1389,7 +1401,7 @@ const MatterList = () => {
                             updateFormStatusAction({
                               key: "isShowModal",
                               value: true,
-                            })
+                            }),
                           );
                         }
                         setShowAdd(false);
@@ -1428,7 +1440,7 @@ const MatterList = () => {
                           updateFormStatusAction({
                             key: "isShowModal",
                             value: false,
-                          })
+                          }),
                         );
                       }}
                       btn1={"No"}
