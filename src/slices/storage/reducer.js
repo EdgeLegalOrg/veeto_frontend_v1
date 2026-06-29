@@ -6,10 +6,8 @@ export const fetchStorageType = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const { data } = await getStorageTypeApi();
-      console.log("storage api response:", data); // ← add this temporarily
       return data.data;
     } catch (err) {
-      console.error("storage api error:", err);
       return rejectWithValue(err);
     }
   },
