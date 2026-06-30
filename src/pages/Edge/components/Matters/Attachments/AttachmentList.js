@@ -347,7 +347,7 @@ const AttachmentList = (props) => {
             Google Drive
           </span>
         );
-      case "ONE_DRIVE":
+      case "ONEDRIVE":
         return (
           <span
             className="d-inline-flex align-items-center gap-1 px-2 py-1 rounded"

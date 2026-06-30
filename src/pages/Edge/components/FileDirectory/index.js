@@ -269,17 +269,27 @@ const FileDirectoryModal = ({
   const findFilesByName = (data, name) => {
     const results = [];
     const search = (node) => {
-      if (node[name]) {
+      // Stop if node is null or not an object
+      if (!node || typeof node !== "object") {
+        return;
+      }
+
+      // Process the requested folder type (NORMAL, FORM, LETTER)
+      if (node?.[name] && typeof node[name] === "object") {
         Object.values(node[name]).forEach((item) => {
-          if (item.isFile && item.isFile === true) {
+          if (!item) return;
+
+          if (item.isFile === true) {
             results.push(item);
           } else {
             search(item);
           }
         });
       }
+
+      // Traverse all child objects
       Object.values(node).forEach((child) => {
-        if (typeof child === "object" && !Array.isArray(child)) {
+        if (child && typeof child === "object" && !Array.isArray(child)) {
           search(child);
         }
       });
@@ -356,7 +366,7 @@ const FileDirectoryModal = ({
     if (selected && searchTermForMainContent && filesBySelection?.length > 0) {
       const _files = filterFilesBySearchTerm(
         filesBySelection,
-        searchTermForMainContent
+        searchTermForMainContent,
       );
       setFilteredFilesForMainContent(_files);
     } else if (!selected && files?.length > 0) {
