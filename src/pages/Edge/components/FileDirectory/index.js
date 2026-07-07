@@ -229,6 +229,10 @@ const FileDirectoryModal = ({
         }
 
         setTemplateList(arr);
+
+        if (specific.length > 0) {
+          setSelectedBaseTemplate(specific[0].id);
+        }
       } else {
         toast.error("Something went wrong in fetching templates.");
       }
