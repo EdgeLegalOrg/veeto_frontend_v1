@@ -31,6 +31,8 @@ const initialData = {
   storageType: null,
 };
 
+const ALLOWED_EXTENSIONS = [".doc", ".docx"];
+
 const AddNewTemplate = (props) => {
   const [formData, setFormData] = useState([]);
   const [uploadedFiles, setUploadedFiles] = useState([]);
@@ -52,23 +54,9 @@ const AddNewTemplate = (props) => {
 
   const handleUploadFile = (acceptedFile) => {
     setLoading(true);
-    if (acceptedFile?.length) {
-      let filesUploaded = [...uploadedFiles, ...acceptedFile];
-
-      filesUploaded.sort((a, b) => a.name.localeCompare(b.name));
-
-      setUploadedFiles(filesUploaded);
-
-      let arr = [...formData];
-      acceptedFile.forEach((file) => {
-        let filename = file.name;
-        arr.push({
-          ...initialData,
-          name: filename.split(".").slice(0, -1).join("."),
-        });
-      });
-      arr.sort((a, b) => a.name.localeCompare(b.name));
-      setFormData(arr);
+    const validFiles = filterValidFiles(acceptedFile || []);
+    if (validFiles?.length) {
+      addUploadedFiles(validFiles);
       setLoading(false);
     } else {
       setLoading(false);
@@ -102,41 +90,75 @@ const AddNewTemplate = (props) => {
     setFormData(data);
   };
 
-  const handleGoogleDriveFileSelect = (e) => {
-    const acceptedFiles = Array.from(e.target.files);
-    if (!acceptedFiles.length) return;
-    let filesUploaded = [...uploadedFiles, ...acceptedFiles];
-    filesUploaded.sort((a, b) => a.name.localeCompare(b.name));
-    setUploadedFiles(filesUploaded);
-    let arr = [...formData];
-    acceptedFiles.forEach((file) => {
-      arr.push({
-        ...initialData,
-        name: file.name.split(".").slice(0, -1).join("."),
-        storageType: "GOOGLE_DRIVE",
-      });
+  const filterValidFiles = (files = []) => {
+    const validFiles = files.filter((file) =>
+      ALLOWED_EXTENSIONS.some((ext) => file.name.toLowerCase().endsWith(ext)),
+    );
+
+    if (validFiles.length < files.length) {
+      toast.warning("Only .doc and .docx files are supported.");
+    }
+
+    return validFiles;
+  };
+
+  const addUploadedFiles = (files = [], storageType = null) => {
+    if (!files?.length) return;
+
+    setUploadedFiles((prevFiles) => {
+      const mergedFiles = [...prevFiles, ...files].sort((a, b) =>
+        a.name.localeCompare(b.name),
+      );
+      return mergedFiles;
     });
-    arr.sort((a, b) => a.name.localeCompare(b.name));
-    setFormData(arr);
+
+    setFormData((prevData) => {
+      const updatedData = [...prevData];
+      files.forEach((file) => {
+        updatedData.push({
+          ...initialData,
+          name: file.name.split(".").slice(0, -1).join("."),
+          ...(storageType ? { storageType } : {}),
+        });
+      });
+
+      return updatedData.sort((a, b) => a.name.localeCompare(b.name));
+    });
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleGoogleDriveDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    addUploadedFiles(
+      filterValidFiles(Array.from(e.dataTransfer.files)),
+      "GOOGLE_DRIVE",
+    );
+  };
+
+  const handleOneDriveDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    addUploadedFiles(
+      filterValidFiles(Array.from(e.dataTransfer.files)),
+      "ONEDRIVE",
+    );
+  };
+
+  const handleGoogleDriveFileSelect = (e) => {
+    addUploadedFiles(
+      filterValidFiles(Array.from(e.target.files)),
+      "GOOGLE_DRIVE",
+    );
     e.target.value = "";
   };
 
   const handleOneDriveFileSelect = (e) => {
-    const acceptedFiles = Array.from(e.target.files);
-    if (!acceptedFiles.length) return;
-    let filesUploaded = [...uploadedFiles, ...acceptedFiles];
-    filesUploaded.sort((a, b) => a.name.localeCompare(b.name));
-    setUploadedFiles(filesUploaded);
-    let arr = [...formData];
-    acceptedFiles.forEach((file) => {
-      arr.push({
-        ...initialData,
-        name: file.name.split(".").slice(0, -1).join("."),
-        storageType: "ONEDRIVE",
-      });
-    });
-    arr.sort((a, b) => a.name.localeCompare(b.name));
-    setFormData(arr);
+    addUploadedFiles(filterValidFiles(Array.from(e.target.files)), "ONEDRIVE");
     e.target.value = "";
   };
 
@@ -449,6 +471,8 @@ const AddNewTemplate = (props) => {
           {uploadSource === "google" && (
             <div
               onClick={() => googleDriveInputRef.current.click()}
+              onDragOver={handleDragOver}
+              onDrop={handleGoogleDriveDrop}
               style={{
                 border: "2px dashed #dee2e6",
                 borderRadius: "8px",
@@ -488,6 +512,8 @@ const AddNewTemplate = (props) => {
           {uploadSource === "onedrive" && (
             <div
               onClick={() => oneDriveInputRef.current.click()}
+              onDragOver={handleDragOver}
+              onDrop={handleOneDriveDrop}
               style={{
                 border: "2px dashed #dee2e6",
                 borderRadius: "8px",
@@ -573,3 +599,4 @@ const AddNewTemplate = (props) => {
 };
 
 export default AddNewTemplate;
+

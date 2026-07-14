@@ -30,6 +30,8 @@ const initialData = {
   storageType: null,
 };
 
+const ALLOWED_EXTENSIONS = [".doc", ".docx"];
+
 const AddNewTemplate = (props) => {
   const [formData, setFormData] = useState([]);
   const [uploadedFiles, setUploadedFiles] = useState([]);
@@ -109,35 +111,62 @@ const AddNewTemplate = (props) => {
     setFormData(data);
   };
 
-  const handleGoogleDriveFileSelect = (e) => {
-    const acceptedFiles = Array.from(e.target.files);
-    if (!acceptedFiles.length) return;
-    setUploadedFiles([...uploadedFiles, ...acceptedFiles]);
-    let arr = [...formData];
-    acceptedFiles.forEach((file) => {
-      arr.push({
+  const filterValidFiles = (files) => {
+    const valid = files.filter((file) =>
+      ALLOWED_EXTENSIONS.some((ext) => file.name.toLowerCase().endsWith(ext)),
+    );
+    if (valid.length < files.length) {
+      toast.warning("Only .doc and .docx files are supported.");
+    }
+    return valid;
+  };
+
+  const addUploadedFiles = (files, storageType = null) => {
+    if (!files?.length) return;
+    setUploadedFiles((prev) => [...prev, ...files]);
+    setFormData((prev) => [
+      ...prev,
+      ...files.map((file) => ({
         ...initialData,
         name: file.name.split(".").slice(0, -1).join("."),
-        storageType: "GOOGLE_DRIVE",
-      });
-    });
-    setFormData(arr);
+        ...(storageType ? { storageType } : {}),
+      })),
+    ]);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleGoogleDriveDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    addUploadedFiles(
+      filterValidFiles(Array.from(e.dataTransfer.files)),
+      "GOOGLE_DRIVE",
+    );
+  };
+
+  const handleOneDriveDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    addUploadedFiles(
+      filterValidFiles(Array.from(e.dataTransfer.files)),
+      "ONEDRIVE",
+    );
+  };
+
+  const handleGoogleDriveFileSelect = (e) => {
+    addUploadedFiles(
+      filterValidFiles(Array.from(e.target.files)),
+      "GOOGLE_DRIVE",
+    );
     e.target.value = "";
   };
 
   const handleOneDriveFileSelect = (e) => {
-    const acceptedFiles = Array.from(e.target.files);
-    if (!acceptedFiles.length) return;
-    setUploadedFiles([...uploadedFiles, ...acceptedFiles]);
-    let arr = [...formData];
-    acceptedFiles.forEach((file) => {
-      arr.push({
-        ...initialData,
-        name: file.name.split(".").slice(0, -1).join("."),
-        storageType: "ONEDRIVE",
-      });
-    });
-    setFormData(arr);
+    addUploadedFiles(filterValidFiles(Array.from(e.target.files)), "ONEDRIVE");
     e.target.value = "";
   };
 
@@ -223,7 +252,6 @@ const AddNewTemplate = (props) => {
                   name="subTypes"
                   multi
                   allOption
-                  // optionStyles={{ maxHeight: "365px", width: "400px", backgroundColor:"white" }}
                   value={file.subTypes}
                   optionArray={matterList}
                   onSelectFunc={(val) => handleSelectOption("subTypes", val, i)}
@@ -257,19 +285,6 @@ const AddNewTemplate = (props) => {
   return (
     <div className="">
       <div className="mb-4">
-        {/* <div className="tempForm-header">
-          <h2 className="tempForm-heading">Add New Letterhead</h2>
-          <button
-            onClick={handleClose}
-            className="close-form-btn"
-          >
-            <img
-              src={closeBtn}
-              alt="close-btn"
-            />
-          </button>
-        </div> */}
-
         <div className="tempForm-gridContent">
           <input
             ref={googleDriveInputRef}
@@ -428,6 +443,8 @@ const AddNewTemplate = (props) => {
           {uploadSource === "google" && (
             <div
               onClick={() => googleDriveInputRef.current.click()}
+              onDrop={handleGoogleDriveDrop}
+              onDragOver={handleDragOver}
               style={{
                 border: "2px dashed #dee2e6",
                 borderRadius: "8px",
@@ -467,6 +484,8 @@ const AddNewTemplate = (props) => {
           {uploadSource === "onedrive" && (
             <div
               onClick={() => oneDriveInputRef.current.click()}
+              onDrop={handleOneDriveDrop}
+              onDragOver={handleDragOver}
               style={{
                 border: "2px dashed #dee2e6",
                 borderRadius: "8px",
@@ -550,3 +569,4 @@ const AddNewTemplate = (props) => {
 };
 
 export default AddNewTemplate;
+

@@ -123,8 +123,8 @@ export const getMattersList = (filters) =>
       filters.pageSize || ""
     }&number=${
       filters.archived
-        ? filters.archiveNumber || ""
-        : filters.matterNumber || ""
+      ? filters.archiveNumber || ""
+      : filters.matterNumber || ""
     }&status=${filters.status ? filters.status : ""}&type=${
       filters.type ? filters.type : ""
     }&instructionDate=${
@@ -404,8 +404,8 @@ export const allSafecustody = (filterData) =>
   API.get(
     `/api/safecustody?requestId=${uuidv1()}&status=${
       filterData.status === ""
-        ? filterData.safeCustodyStatus
-        : filterData.status
+      ? filterData.safeCustodyStatus
+      : filterData.status
     }&page=${filterData.pageNo}&pageSize=${filterData.pageSize}&siteName=${
       filterData.siteName
     }&companyName=${filterData.companyName}&packetNumber=${
@@ -751,11 +751,11 @@ export const allStaffMember = (filters) =>
     }&sortOn=${filters.sortOn ?? ""}&sortType=${filters.sortType ?? ""}`
   );
 
-  export const allStaffMemberAndAccountInfoStaff = () =>
+export const allStaffMemberAndAccountInfoStaff = () =>
   API.get(
     `/api/staff/by-account-site?requestId=${uuidv1()}`
   );
-  
+
 export const editStaffDetails = (formData) =>
   API.put(`/api/staff`, {
     requestId: uuidv1(),
@@ -1066,12 +1066,15 @@ export const checkContactsLinked = (contactIds, contactTypes) =>
 
 // Storage Type - matches /api/user/storage controller
 export const getStorageTypeApi = () =>
-  API.get(`/api/user/storage?requestId=${uuidv1()}`);
+  API.get(`/api/storage?requestId=${uuidv1()}`);
 
-export const saveStorageTypeApi = (data) =>
-  API.post(`/api/user/storage`, {
+// Fetch existing storage provider configuration
+export const fetchStorageConfigApi = () =>
+  API.get(`/api/storage/config?requestId=${uuidv1()}`);
+
+// Save storage provider configuration (tenant/client ids, folder, category, etc.)
+export const saveStorageConfigApi = (config) =>
+  API.post(`/api/storage/config`, {
     requestId: uuidv1(),
-    data: {
-      storageType: data.storageType, // "SERVER" | "GDRIVE" | "ONEDRIVE"
-    },
+    data: config,
   });

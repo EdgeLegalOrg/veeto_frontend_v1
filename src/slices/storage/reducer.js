@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { getStorageTypeApi, saveStorageTypeApi } from "pages/Edge/apis";
+import { getStorageTypeApi } from "pages/Edge/apis";
 
 export const fetchStorageType = createAsyncThunk(
   "Storage/fetch",
@@ -7,18 +7,6 @@ export const fetchStorageType = createAsyncThunk(
     try {
       const { data } = await getStorageTypeApi();
       return data.data;
-    } catch (err) {
-      return rejectWithValue(err);
-    }
-  },
-);
-
-export const saveStorageType = createAsyncThunk(
-  "Storage/save",
-  async (storageType, { rejectWithValue }) => {
-    try {
-      await saveStorageTypeApi({ storageType });
-      return storageType;
     } catch (err) {
       return rejectWithValue(err);
     }
@@ -35,7 +23,6 @@ const getInitialStorageType = () => {
 const initialState = {
   storageType: getInitialStorageType(),
   loading: false,
-  saving: false,
 };
 
 const storageSlice = createSlice({
@@ -64,19 +51,6 @@ const storageSlice = createSlice({
           state.storageType = action.payload;
           localStorage.setItem("edge-storage-type", action.payload);
         }
-      })
-
-      // save
-      .addCase(saveStorageType.pending, (state) => {
-        state.saving = true;
-      })
-      .addCase(saveStorageType.rejected, (state) => {
-        state.saving = false;
-      })
-      .addCase(saveStorageType.fulfilled, (state, action) => {
-        state.saving = false;
-        state.storageType = action.payload;
-        localStorage.setItem("edge-storage-type", action.payload);
       });
   },
 });
@@ -84,5 +58,5 @@ const storageSlice = createSlice({
 export const { setStorageType } = storageSlice.actions;
 export const selectStorageType = (state) =>
   state.Storage?.storageType || "ONEDRIVE";
-export const selectStorageSaving = (state) => state.Storage?.saving;
 export default storageSlice.reducer;
+
