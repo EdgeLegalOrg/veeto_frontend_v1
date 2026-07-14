@@ -32,33 +32,41 @@ const initialData = {
 const EditTemplate = (props) => {
   const { closeForm, refreshList, file, matterList, docList } = props;
   const [formData, setFormData] = useState(file);
+  const globalStorageType = useSelector(selectStorageType);
   const [uploadedFile, setUploadedFile] = useState(undefined);
   const [isEnableButton, setIsEnableButton] = useState(true);
   const [confirmScreen, setConfirmScreen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [uploadSource, setUploadSource] = useState("device");
+  const [uploadSource, setUploadSource] = useState(
+    getUploadModeFromStorage(globalStorageType)
+  );
   const googleDriveInputRef = useRef(null);
   const oneDriveInputRef = useRef(null);
+  
 
   useEffect(() => {
     setFormData(props.file);
   }, [props.file]);
 
   const handleFormChange = (e) => {
+    if (!isEnableButton) return;
     const { name } = e.target;
     setFormData({ ...formData, [name]: e.target.value });
   };
 
   const handleSelectOption = (name, val) => {
+    if (!isEnableButton) return;
     setFormData({ ...formData, [name]: val.value });
   };
 
   const handleUploadFile = (acceptedFile) => {
+    if (!isEnableButton) return;
     setUploadedFile(acceptedFile[0]);
   };
 
   const handleGoogleDriveFileSelect = (e) => {
+    if (!isEnableButton) return;
     const file = e.target.files[0];
     if (!file) return;
     setUploadedFile(file);
@@ -67,6 +75,7 @@ const EditTemplate = (props) => {
   };
 
   const handleOneDriveFileSelect = (e) => {
+    if (!isEnableButton) return;
     const file = e.target.files[0];
     if (!file) return;
     setUploadedFile(file);
@@ -156,8 +165,8 @@ const EditTemplate = (props) => {
         >
           <button
             type="button"
-            onClick={() => setUploadSource("device")}
-            disabled={getUploadModeFromStorage(globalStorageType) !== "device"}
+            onClick={() => isEnableButton && setUploadSource("device")}
+            disabled={getUploadModeFromStorage(globalStorageType) !== "device" || !isEnableButton}
             style={{
               flex: 1,
               padding: "12px 8px",
@@ -179,8 +188,8 @@ const EditTemplate = (props) => {
           </button>
           <button
             type="button"
-            onClick={() => setUploadSource("google")}
-            disabled={getUploadModeFromStorage(globalStorageType) !== "google"}
+            onClick={() => isEnableButton && setUploadSource("google")}
+            disabled={getUploadModeFromStorage(globalStorageType) !== "google" || !isEnableButton}
             style={{
               flex: 1,
               padding: "12px 8px",
@@ -202,9 +211,9 @@ const EditTemplate = (props) => {
           </button>
           <button
             type="button"
-            onClick={() => setUploadSource("onedrive")}
+            onClick={() => isEnableButton && setUploadSource("onedrive")}
             disabled={
-              getUploadModeFromStorage(globalStorageType) !== "onedrive"
+              getUploadModeFromStorage(globalStorageType) !== "onedrive" || !isEnableButton
             }
             style={{
               flex: 1,
@@ -325,6 +334,7 @@ const EditTemplate = (props) => {
                 placeholder="Name"
                 value={formData.name}
                 onChange={handleFormChange}
+                disabled={!isEnableButton}
               />
             </div>
             <div className="col-md-4 position-relative">
@@ -338,6 +348,7 @@ const EditTemplate = (props) => {
                 selected={formData.documentType}
                 fieldVal={findDisplayname(docList, formData.documentType)}
                 maxLength={null}
+                disabled={!isEnableButton}
               />
             </div>
             <div className="col-md-4 position-relative">
@@ -351,16 +362,17 @@ const EditTemplate = (props) => {
                 selected={formData.type}
                 fieldVal={findDisplayname(matterList, formData.type)}
                 maxLength={null}
+                disabled={!isEnableButton}
               />
             </div>
           </div>
         </div>
       </div>
       <div className="d-flex align-items-center justify-content-end p-2 border-top">
-        <Button className="mx-1" color="danger" onClick={handleClose}>
+        <Button className="mx-1" color="danger" onClick={handleClose} disabled={!isEnableButton}>
           Cancel
         </Button>
-        <Button className="mx-1" color="success" onClick={handleSubmit}>
+        <Button className="mx-1" color="success" onClick={handleSubmit} disabled={!isEnableButton}>
           Save
         </Button>
       </div>

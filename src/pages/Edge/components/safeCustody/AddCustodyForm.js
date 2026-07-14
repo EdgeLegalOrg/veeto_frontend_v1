@@ -1,15 +1,23 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Dropzone from "react-dropzone";
 import closeBtn from "../../images/close-white-btn.svg";
 import { v1 as uuidv1 } from "uuid";
 import "../../stylesheets/AddCustodyForm.css";
 import { uploadCustodyAttachment } from "../../apis";
+import { useSelector } from "react-redux";
+import { selectStorageType } from "slices/storage/reducer";
+import { getUploadModeFromStorage } from "pages/Edge/utils/storageConfig";
 import { ConfirmationCustodyPopup } from "../customComponents/CustomComponents";
 import LoadingPage from "../../utils/LoadingPage";
 import { toast } from "react-toastify";
 import { Button, Modal, ModalBody, ModalHeader } from "reactstrap";
 import { formatDateFunc } from "../../utils/utilFunc";
 import { TextInputField } from "pages/Edge/components/InputField";
+import {
+  DeviceUploadIcon,
+  GoogleDriveColorIcon,
+  OneDriveIcon,
+} from "../UploadIcons";
 
 const initialData = {
   name: "",
@@ -29,6 +37,16 @@ const AddCustodyForm = (props) => {
   const [confirmScreen, setConfirmScreen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const globalStorageType = useSelector(selectStorageType);
+  const [uploadSource, setUploadSource] = useState(
+    getUploadModeFromStorage(globalStorageType)
+  );
+  const googleDriveInputRef = useRef(null);
+  const oneDriveInputRef = useRef(null);
+
+  useEffect(() => {
+    setUploadSource(getUploadModeFromStorage(globalStorageType));
+  }, [globalStorageType]);
 
   useEffect(() => {
     const isChanged = JSON.stringify(initialData) !== JSON.stringify(formData);
@@ -40,19 +58,32 @@ const AddCustodyForm = (props) => {
     setFormData({ ...formData, [name]: e.target.value });
   };
 
+  const handleCloudFileSelect = (e, storageTypeValue) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+
+    const file = files[0];
+    setUploadedFile(file);
+    const flname = file.name.split(".").slice(0, -1).join(".");
+    setFileName(flname);
+    setFormData({
+      ...formData,
+      name: flname,
+      dateReceived: formatDateFunc(new Date()),
+    });
+    e.target.value = "";
+  };
+
   const handleUploadFile = (acceptedFile) => {
-    setLoading(true);
     if (acceptedFile?.length) {
       setUploadedFile(acceptedFile[0]);
-      setFileName(acceptedFile[0].name);
+      const flname = acceptedFile[0].name.split(".").slice(0, -1).join(".");
+      setFileName(flname);
       setFormData({
         ...formData,
-        name: acceptedFile[0].name,
+        name: flname,
         dateReceived: formatDateFunc(new Date()),
       });
-      setLoading(false);
-    } else {
-      setLoading(false);
     }
   };
 
@@ -60,11 +91,19 @@ const AddCustodyForm = (props) => {
     e.preventDefault();
     let inputData = new FormData();
     if (uploadedFile) {
+      const storageTypeValue =
+        uploadSource === "google"
+          ? "GOOGLE_DRIVE"
+          : uploadSource === "onedrive"
+            ? "ONEDRIVE"
+            : null;
+
       const data = {
         requestId: uuidv1(),
         data: {
           ...formData,
           safeCustodyPacketId,
+          ...(storageTypeValue ? { storageType: storageTypeValue } : {}),
         },
       };
       inputData.append("custodyAttachment", JSON.stringify(data));
@@ -105,23 +144,156 @@ const AddCustodyForm = (props) => {
     <div className="">
       <div className="">
         <div
-          className="addCustody-dropzone-div"
-          style={{ margin: "0 10px", marginBottom: "5px" }}
+          style={{
+            display: "flex",
+            border: "1px solid #dee2e6",
+            borderRadius: "8px",
+            overflow: "hidden",
+            marginBottom: "12px",
+          }}
         >
-          <Dropzone onDrop={handleUploadFile}>
-            {({ getRootProps, getInputProps }) => (
-              <div {...getRootProps({ className: "addCustody-dropzone" })}>
-                <input {...getInputProps()} />
-                <p style={{ paddingTop: "10px" }}>
-                  Drag and drop to upload or browse for files.
-                </p>
-                <span style={{ color: "#555", paddingTop: "10px" }}>
-                  {fileName}
-                </span>
-              </div>
-            )}
-          </Dropzone>
+          <button
+            type="button"
+            onClick={() => setUploadSource("device")}
+            disabled={getUploadModeFromStorage(globalStorageType) !== "device"}
+            style={{
+              flex: 1,
+              padding: "12px 8px",
+              border: "none",
+              borderRight: "1px solid #dee2e6",
+              background: uploadSource === "device" ? "#eef2ff" : "white",
+              cursor: "pointer",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: "4px",
+              fontSize: "12px",
+              color: uploadSource === "device" ? "#4f46e5" : "#374151",
+              fontWeight: uploadSource === "device" ? "600" : "400",
+            }}
+          >
+            <DeviceUploadIcon />
+            Device
+          </button>
+          <button
+            type="button"
+            onClick={() => setUploadSource("google")}
+            disabled={getUploadModeFromStorage(globalStorageType) !== "google"}
+            style={{
+              flex: 1,
+              padding: "12px 8px",
+              border: "none",
+              borderRight: "1px solid #dee2e6",
+              background: uploadSource === "google" ? "#f0fdf4" : "white",
+              cursor: "pointer",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: "4px",
+              fontSize: "12px",
+              color: uploadSource === "google" ? "#16a34a" : "#374151",
+              fontWeight: uploadSource === "google" ? "600" : "400",
+            }}
+          >
+            <GoogleDriveColorIcon size={20} />
+            Google Drive
+          </button>
+          <button
+            type="button"
+            onClick={() => setUploadSource("onedrive")}
+            disabled={getUploadModeFromStorage(globalStorageType) !== "onedrive"}
+            style={{
+              flex: 1,
+              padding: "12px 8px",
+              border: "none",
+              background: uploadSource === "onedrive" ? "#eff6ff" : "white",
+              cursor: "pointer",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: "4px",
+              fontSize: "12px",
+              color: uploadSource === "onedrive" ? "#0369a1" : "#374151",
+              fontWeight: uploadSource === "onedrive" ? "600" : "400",
+            }}
+          >
+            <OneDriveIcon />
+            OneDrive
+          </button>
         </div>
+
+        <input
+          ref={googleDriveInputRef}
+          type="file"
+          style={{ display: "none" }}
+          onChange={(e) => handleCloudFileSelect(e, "GOOGLE_DRIVE")}
+        />
+        <input
+          ref={oneDriveInputRef}
+          type="file"
+          style={{ display: "none" }}
+          onChange={(e) => handleCloudFileSelect(e, "ONEDRIVE")}
+        />
+
+        {uploadSource === "device" ? (
+          <div
+            className="addCustody-dropzone-div"
+            style={{ margin: "0 10px", marginBottom: "5px" }}
+          >
+            <Dropzone onDrop={handleUploadFile}>
+              {({ getRootProps, getInputProps }) => (
+                <div {...getRootProps({ className: "addCustody-dropzone" })}>
+                  <input {...getInputProps()} />
+                  <p style={{ paddingTop: "10px" }}>
+                    Drag and drop to upload or browse for files.
+                  </p>
+                  <span style={{ color: "#555", paddingTop: "10px" }}>
+                    {fileName}
+                  </span>
+                </div>
+              )}
+            </Dropzone>
+          </div>
+        ) : (
+          <div
+            onClick={() =>
+              uploadSource === "google"
+                ? googleDriveInputRef.current?.click()
+                : oneDriveInputRef.current?.click()
+            }
+            style={{
+              border: "2px dashed #dee2e6",
+              borderRadius: "8px",
+              padding: "24px",
+              textAlign: "center",
+              cursor: "pointer",
+              background: "#f9fafb",
+              margin: "0 10px 5px",
+              minHeight: "100px",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "8px",
+            }}
+          >
+            {uploadSource === "google" ? (
+              <GoogleDriveColorIcon size={32} />
+            ) : (
+              <OneDriveIcon />
+            )}
+            <p style={{ margin: 0, color: "#374151", fontSize: "14px", fontWeight: "500" }}>
+              {uploadSource === "google"
+                ? "Click here to upload to Google Drive"
+                : "Click here to upload to OneDrive"}
+            </p>
+            {fileName && (
+              <span style={{ color: "#555", fontSize: "12px" }}>
+                {fileName}
+              </span>
+            )}
+          </div>
+        )}
         {!uploadedFile && submitted && (
           <span className="input-error" style={{ margin: "10px" }}>
             Please select a file
