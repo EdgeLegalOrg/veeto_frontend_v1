@@ -71,6 +71,14 @@ const ServiceLineSelected = (props) => {
         let newVal = parseFloat(value);
         obj = { ...obj, [name]: prev === 0 ? prev + newVal : newVal };
       }
+    } else if (name === "rate") {
+      if (parseFloat(value) < 0) {
+        return;
+      } else {
+        let prev = parseFloat(obj[name]);
+        let newVal = parseFloat(value);
+        obj = { ...obj, [name]: prev === 0 ? prev + newVal : newVal };
+      }
     } else if (name === "amount") {
       if (obj.billingFrequency === "HOURLY" && parseFloat(value) < 0) {
         return;
@@ -223,6 +231,9 @@ const ServiceLineSelected = (props) => {
                   <p className="m-0">Units</p>
                 </td>
                 <td>
+                  <p className="m-0">Rate</p>
+                </td>
+                <td>
                   <p className="m-0">Amount</p>
                 </td>
                 <td></td>
@@ -262,6 +273,20 @@ const ServiceLineSelected = (props) => {
                         onChange={(e) => handleChange(e, i)}
                         type="number"
                         disabled={props.disabled}
+                      />
+                    ) : (
+                      <p className="sls-label">NA</p>
+                    )}
+                  </td>
+                  <td>
+                    {service.billingFrequency === "HOURLY" ? (
+                      <TextInputField
+                        name="rate"
+                        value={service.rate ? service.rate : 0}
+                        onChange={(e) => handleChange(e, i)}
+                        type="number"
+                        disabled={props.disabled}
+                        readOnly={true}
                       />
                     ) : (
                       <p className="sls-label">NA</p>

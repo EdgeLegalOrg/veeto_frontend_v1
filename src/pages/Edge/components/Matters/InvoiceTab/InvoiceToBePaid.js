@@ -39,7 +39,6 @@ const InvoiceToBePaid = (props) => {
   const findDueAmount = (ttl, rec, value = false) => {
     ttl = ttl ? ttl : 0.0;
     rec = rec ? rec : 0.0;
-    // let a = parseFloat(ttl) - parseFloat(rec);
     let a = Math.round((parseFloat(ttl) - parseFloat(rec)) * 100) / 100;
 
     if (value) {

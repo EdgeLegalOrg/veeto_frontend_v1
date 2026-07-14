@@ -13,6 +13,7 @@ import {
   ModalHeader,
   ModalBody,
 } from "reactstrap";
+import { MdSearch, MdFilterAltOff } from "react-icons/md";
 import { getEligiblePayments, uploadPaymentToXero } from "../../../../apis";
 import LoadingPage from "../../../../utils/LoadingPage";
 import { toast } from "react-toastify";
@@ -29,6 +30,13 @@ const PaymentList = (props) => {
   const [pageSize, setPageSize] = useState(100);
   const [totalRecords, setTotalRecords] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
+  const [filterInput, setFilterInput] = useState({
+    paymentNumber: "",
+    matterNumber: "",
+    paymentDate: "",
+    amount: "",
+    paymentType: "",
+  });
 
   const siteId =
     JSON.parse(window.localStorage.getItem("userDetails"))?.siteId || null;
@@ -43,19 +51,55 @@ const PaymentList = (props) => {
   }, []);
 
   useEffect(() => {
-    fetchPaymentList(pageNo, pageSize);
+    fetchPaymentList(pageNo, pageSize, filterInput);
   }, [pageNo, pageSize]);
 
   useEffect(() => {
     if (props.refreshList) {
-      fetchPaymentList(pageNo, pageSize);
+      fetchPaymentList(pageNo, pageSize, filterInput);
     }
   }, [props.refreshList]);
 
-  const fetchPaymentList = async (page = pageNo, size = pageSize) => {
+  const handleChangeFilter = (e) => {
+    const { name, value } = e.target;
+    setFilterInput((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSearch = (filters = filterInput) => {
+    setSelected([]);
+    setPageNo(0);
+    fetchPaymentList(0, pageSize, filters);
+  };
+
+  const handleResetFilter = () => {
+    const reset = { paymentNumber: "", matterNumber: "", paymentDate: "", amount: "", paymentType: "" };
+    setFilterInput(reset);
+    setSelected([]);
+    setPageNo(0);
+    fetchPaymentList(0, pageSize, reset);
+  };
+
+  const  handlePaymentTypeChange = (e)=>{
+     const updated = {
+    ...filterInput,
+    paymentType: e.target.value,
+  };
+  setFilterInput(updated);
+  handleSearch(updated);
+  }
+
+  const fetchPaymentList = async (
+    page = pageNo,
+    size = pageSize,
+    filters = filterInput,
+  ) => {
     setLoading(true);
     try {
-      const { data } = await getEligiblePayments(page, size);
+      const { data } = await getEligiblePayments({
+        page,
+        pageSize: size,
+        ...filters,
+      });
       if (!data.success) {
         toast.error("Something went wrong, please try later.");
         return;
@@ -118,7 +162,7 @@ const PaymentList = (props) => {
       newSelected = newSelected.filter(
         (i) =>
           i.paymentId !== payment.paymentId ||
-          i.invoiceId !== payment.invoiceId
+          i.invoiceId !== payment.invoiceId,
       );
     }
 
@@ -219,16 +263,45 @@ const PaymentList = (props) => {
                     <div className="d-flex">
                       <label>Payment No.</label>
                     </div>
+                    <Input
+                      type="text"
+                      name="paymentNumber"
+                      placeholder="Payment No."
+                      value={filterInput.paymentNumber}
+                      onChange={handleChangeFilter}
+                      onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                    />
                   </th>
                   <th>
                     <div className="d-flex">
                       <label>Matter No.</label>
                     </div>
+                    <Input
+                      type="text"
+                      name="matterNumber"
+                      placeholder="Matter No."
+                      value={filterInput.matterNumber}
+                      onChange={handleChangeFilter}
+                      onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                    />
                   </th>
                   <th>
                     <div className="d-flex">
                       <label>Payment Date</label>
                     </div>
+                    <Input
+                      type="date"
+                      name="paymentDate"
+                      value={filterInput.paymentDate}
+                      onChange={(e) => {
+                        const updated = {
+                          ...filterInput,
+                          paymentDate: e.target.value,
+                        };
+                        setFilterInput(updated);
+                        handleSearch(updated);
+                      }}
+                    />
                   </th>
                   {/* <th>
                   <div className='d-flex'>
@@ -239,10 +312,48 @@ const PaymentList = (props) => {
                     <div className="d-flex">
                       <label>Payment Type</label>
                     </div>
+                    <Input
+                      type="select"
+                      name="paymentType"
+                      value={filterInput.paymentType}
+                      onChange={handlePaymentTypeChange}
+                    >
+                      <option value="">All</option>
+                      <option value="EFT">EFT</option>
+                      <option value="Cheque">Cheque</option>
+                      <option value="Cash">Cash</option>
+                      <option value= "Card">Card</option>
+                    </Input>
                   </th>
                   <th>
                     <div className="d-flex">
                       <label>Amount</label>
+                    </div>
+                    <Input
+                      type="text"
+                      name="amount"
+                      placeholder="Amount"
+                      value={filterInput.amount}
+                      onChange={handleChangeFilter}
+                      onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                    />
+                  </th>
+                  <th>
+                    <div className="d-flex justify-content-end mt-3">
+                      <Button
+                        color="success"
+                        className="mx-1"
+                        onClick={() => handleSearch()}
+                      >
+                        <MdSearch size={18} />
+                      </Button>
+                      <Button
+                        color="danger"
+                        className="mx-1"
+                        onClick={handleResetFilter}
+                      >
+                        <MdFilterAltOff size={18} />
+                      </Button>
                     </div>
                   </th>
                 </tr>
@@ -284,6 +395,7 @@ const PaymentList = (props) => {
                     <td>
                       <p className="mb-0">{formatCurrency(payment.amount)}</p>
                     </td>
+                    <td></td>
                   </tr>
                 ))}
               </tbody>

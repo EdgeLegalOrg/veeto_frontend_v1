@@ -197,14 +197,10 @@ const FileDirectoryModal = ({
     }
   };
 
-  const parseList = (data) => {
-    let arr = [];
+  const getDefaultTemplateId = () => {
+    const userDetails = JSON.parse(window.localStorage.getItem("userDetails"));
 
-    data.forEach((d) => {
-      arr.push({ display: d.name, value: String(d.id) });
-    });
-
-    setTemplateList(arr);
+    setSelectedBaseTemplate(userDetails?.defaultTemplateId || null);
   };
 
   const fetchTemplate = async (userDefaultTemplateId = null) => {
@@ -214,22 +210,30 @@ const FileDirectoryModal = ({
         const matterSubType = matterData?.subType;
         const allTemplates = data.data.templateList;
 
-        let filtered = matterSubType
+        const specific = matterSubType
           ? allTemplates.filter((d) => {
               const subTypes = Array.isArray(d.subTypes) ? d.subTypes : [];
               return subTypes.includes(matterSubType);
             })
           : [];
 
-        // If no subType or no matched templates, fallback to defaults (no subTypes assigned)
-        if (filtered.length === 0) {
-          filtered = allTemplates.filter((d) => {
-            const subTypes = Array.isArray(d.subTypes) ? d.subTypes : [];
-            return subTypes.length === 0;
-          });
+        const defaults = allTemplates.filter((d) => {
+          const subTypes = Array.isArray(d.subTypes) ? d.subTypes : [];
+          return subTypes.length === 0;
+        });
+
+        const arr = [];
+        specific.forEach((d) => arr.push({ display: d.name, value: d.id }));
+        if (defaults.length > 0) {
+          arr.push({ display: "Defaults", value: "__separator__", disabled: true });
+          defaults.forEach((d) => arr.push({ display: d.name, value: d.id }));
         }
 
-        parseList(filtered);
+        setTemplateList(arr);
+
+        if (specific.length > 0) {
+          setSelectedBaseTemplate(specific[0].id);
+        }
       } else {
         toast.error("Something went wrong in fetching templates.");
       }

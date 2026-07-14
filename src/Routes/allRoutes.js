@@ -6,6 +6,7 @@ import Settings from '../pages/Profile/Settings/Settings';
 //login
 import Login from '../pages/Authentication/Login';
 import ForgetPasswordPage from '../pages/Authentication/ForgetPassword';
+import ResetPasswordPage from '../pages/Authentication/ResetPassword';
 import Logout from '../pages/Authentication/Logout';
 import Register from '../pages/Authentication/Register';
 
@@ -99,6 +100,7 @@ const publicRoutes = [
   { path: '/logout', component: <Logout /> },
   { path: '/login', component: <Login /> },
   { path: '/forgot-password', component: <ForgetPasswordPage /> },
+  { path: '/reset-password', component: <ResetPasswordPage /> },
   { path: '/register', component: <Register /> },
 ];
 

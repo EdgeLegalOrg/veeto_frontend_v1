@@ -11,6 +11,7 @@ import {
   getUserDetail,
   updateUserInfo,
   userRoleDetails,
+  sendLogonInfo,
 } from "../../../apis";
 import { BsArchiveFill } from "react-icons/bs";
 import { HiLockClosed, HiLockOpen, HiPlus } from "react-icons/hi";
@@ -299,6 +300,24 @@ const ManageUserPage = () => {
     }
   };
 
+  const handleSendLogonInfo = async () => {
+    setLoading(true);
+    try {
+      const { data } = await sendLogonInfo(selectedUser);
+      if (data.success) {
+        toast.success("Logon info sent successfully!");
+        setSelectedUser([]);
+      } else {
+        toast.error(data.error || "Something went wrong please try later.");
+      }
+      setLoading(false);
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to send logon info.");
+      setLoading(false);
+    }
+  };
+
   return (
     <Fragment>
       <div className="page-content">
@@ -386,6 +405,7 @@ const ManageUserPage = () => {
                   <Button
                     className="d-flex mx-1"
                     disabled={selectedUser?.length === 0}
+                    onClick={handleSendLogonInfo}
                     color="success"
                   >
                     <AiOutlineMail className="user-bigIcon" />
