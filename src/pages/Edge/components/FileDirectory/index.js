@@ -38,6 +38,7 @@ const FileDirectoryModal = ({
     useState([]);
   const [filesBySelection, setFilesBySelection] = useState([]);
   const [templateList, setTemplateList] = useState([]);
+  const [defaultTemplateList, setDefaultTemplateList] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
   const [selectedBaseTemplate, setSelectedBaseTemplate] = useState(null);
   const [reset, setReset] = useState(false);
@@ -60,6 +61,7 @@ const FileDirectoryModal = ({
   const onClosehandler = () => {
     setSelected("");
     setSelectedBaseTemplate(null);
+    setDefaultTemplateList([]);
     setInitLoad(false);
     setFiles([]);
     onClose();
@@ -188,9 +190,8 @@ const FileDirectoryModal = ({
     try {
       const userResp = await userProfile();
       window.localStorage.setItem("userDetails", JSON.stringify(userResp.data));
-
-      fetchTemplate();
-      getDefaultTemplateId();
+      const userDefaultTemplateId = userResp.data?.defaultTemplateId || null;
+      fetchTemplate(userDefaultTemplateId);
     } catch (error) {
       console.error(error);
     }
@@ -202,7 +203,7 @@ const FileDirectoryModal = ({
     setSelectedBaseTemplate(userDetails?.defaultTemplateId || null);
   };
 
-  const fetchTemplate = async () => {
+  const fetchTemplate = async (userDefaultTemplateId = null) => {
     try {
       const { data } = await getAllBaseTemplates();
       if (data.success) {
@@ -272,17 +273,27 @@ const FileDirectoryModal = ({
   const findFilesByName = (data, name) => {
     const results = [];
     const search = (node) => {
-      if (node[name]) {
+      // Stop if node is null or not an object
+      if (!node || typeof node !== "object") {
+        return;
+      }
+
+      // Process the requested folder type (NORMAL, FORM, LETTER)
+      if (node?.[name] && typeof node[name] === "object") {
         Object.values(node[name]).forEach((item) => {
-          if (item.isFile && item.isFile === true) {
+          if (!item) return;
+
+          if (item.isFile === true) {
             results.push(item);
           } else {
             search(item);
           }
         });
       }
+
+      // Traverse all child objects
       Object.values(node).forEach((child) => {
-        if (typeof child === "object" && !Array.isArray(child)) {
+        if (child && typeof child === "object" && !Array.isArray(child)) {
           search(child);
         }
       });
@@ -359,7 +370,7 @@ const FileDirectoryModal = ({
     if (selected && searchTermForMainContent && filesBySelection?.length > 0) {
       const _files = filterFilesBySearchTerm(
         filesBySelection,
-        searchTermForMainContent
+        searchTermForMainContent,
       );
       setFilteredFilesForMainContent(_files);
     } else if (!selected && files?.length > 0) {
@@ -448,8 +459,20 @@ const FileDirectoryModal = ({
                     ...templateList.map((d) => ({
                       label: d.display,
                       value: d.value,
-                      disabled: d.disabled || false,
                     })),
+                    ...(defaultTemplateList.length > 0
+                      ? [
+                          {
+                            label: "── Defaults ──",
+                            value: "__separator__",
+                            disabled: true,
+                          },
+                          ...defaultTemplateList.map((d) => ({
+                            label: d.display,
+                            value: d.value,
+                          })),
+                        ]
+                      : []),
                   ]}
                   onChange={({ target }) => {
                     setSubmitted(false);

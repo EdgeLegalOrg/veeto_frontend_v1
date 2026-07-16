@@ -414,8 +414,8 @@ export const allSafecustody = (filterData) =>
   API.get(
     `/api/safecustody?requestId=${uuidv1()}&status=${
       filterData.status === ""
-        ? filterData.safeCustodyStatus
-        : filterData.status
+      ? filterData.safeCustodyStatus
+      : filterData.status
     }&page=${filterData.pageNo}&pageSize=${filterData.pageSize}&siteName=${
       filterData.siteName
     }&companyName=${filterData.companyName}&packetNumber=${
@@ -549,6 +549,27 @@ export const getDocDetail = (id) =>
   API.get(`/api/document/${id}?requestId=${uuidv1()}`);
 
 export const updateDocDetail = (formData) => API.put(`/api/document`, formData);
+
+// Google Drive Section
+export const getGoogleDriveFiles = (folderId = null) =>
+  API.get(`/api/googledrive/files${folderId ? `?folderId=${encodeURIComponent(folderId)}` : ""}`);
+
+export const uploadGoogleDriveFile = (formData) =>
+  API.post(`/api/googledrive/upload`, formData);
+
+export const downloadGoogleDriveFile = (fileId) =>
+  API.get(`/api/googledrive/download/${fileId}`, { responseType: "blob" });
+
+export const deleteGoogleDriveFile = (fileId) =>
+  API.delete(`/api/googledrive/file/${fileId}`);
+
+export const searchGoogleDriveFiles = (query) =>
+  API.get(`/api/googledrive/search?query=${encodeURIComponent(query)}`);
+
+export const createGoogleDriveFolder = (folderName, parentFolderId = null) =>
+  API.post(
+    `/api/googledrive/folder?folderName=${encodeURIComponent(folderName)}${parentFolderId ? `&parentFolderId=${encodeURIComponent(parentFolderId)}` : ""}`
+  );
 
 // Accounting
 
@@ -752,11 +773,11 @@ export const allStaffMember = (filters) =>
     }&sortOn=${filters.sortOn ?? ""}&sortType=${filters.sortType ?? ""}`
   );
 
-  export const allStaffMemberAndAccountInfoStaff = () =>
+export const allStaffMemberAndAccountInfoStaff = () =>
   API.get(
     `/api/staff/by-account-site?requestId=${uuidv1()}`
   );
-  
+
 export const editStaffDetails = (formData) =>
   API.put(`/api/staff`, {
     requestId: uuidv1(),
@@ -1070,3 +1091,18 @@ export const checkContactsLinked = (contactIds, contactTypes) =>
   API.get(
     `/api/contacts/isLinked/${contactIds}?type=${contactTypes}&requestId=${uuidv1()}`
   );
+
+// Storage Type - matches /api/user/storage controller
+export const getStorageTypeApi = () =>
+  API.get(`/api/storage?requestId=${uuidv1()}`);
+
+// Fetch existing storage provider configuration
+export const fetchStorageConfigApi = () =>
+  API.get(`/api/storage/config?requestId=${uuidv1()}`);
+
+// Save storage provider configuration (tenant/client ids, folder, category, etc.)
+export const saveStorageConfigApi = (config) =>
+  API.post(`/api/storage/config`, {
+    requestId: uuidv1(),
+    data: config,
+  });

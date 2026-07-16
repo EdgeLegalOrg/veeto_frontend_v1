@@ -29,3 +29,8 @@ export const listMap = {
   PROPERTY: "propertyList",
   INVOICES: "invoiceList",
 };
+
+export const driveUpload = {
+  GDRIVE: "GOOGLE_DRIVE",
+  ONEDRIVE: "ONEDRIVE",
+};

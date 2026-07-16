@@ -328,6 +328,53 @@ const AttachmentList = (props) => {
     return checkHasPermission(DELETEMATTERATTACHMENT);
   };
 
+  const renderStorageBadge = (storageType) => {
+    switch (storageType) {
+      case "GOOGLE_DRIVE":
+        return (
+          <span
+            className="d-inline-flex align-items-center gap-1 px-2 py-1 rounded"
+            style={{ background: "#e8f0fe", color: "#1a73e8", fontSize: "12px", fontWeight: 500, whiteSpace: "nowrap" }}
+          >
+            <svg width="14" height="14" viewBox="0 0 87.3 78" xmlns="http://www.w3.org/2000/svg">
+              <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/>
+              <path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0 -1.2 4.5h27.5z" fill="#00ac47"/>
+              <path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z" fill="#ea4335"/>
+              <path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#00832d"/>
+              <path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#2684fc"/>
+              <path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 27h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/>
+            </svg>
+            Google Drive
+          </span>
+        );
+      case "ONEDRIVE":
+        return (
+          <span
+            className="d-inline-flex align-items-center gap-1 px-2 py-1 rounded"
+            style={{ background: "#e3f2fd", color: "#0078d4", fontSize: "12px", fontWeight: 500, whiteSpace: "nowrap" }}
+          >
+            <svg width="16" height="11" viewBox="0 0 16 11" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M9.6 4.4A3.6 3.6 0 0 0 6.2 2a3.6 3.6 0 0 0-3.4 2.45A2.8 2.8 0 0 0 0 7.2 2.8 2.8 0 0 0 2.8 10h9.6A2.6 2.6 0 0 0 15 7.4a2.6 2.6 0 0 0-2.4-2.6A3.6 3.6 0 0 0 9.6 4.4z" fill="#0078d4"/>
+            </svg>
+            OneDrive
+          </span>
+        );
+      default:
+        return (
+          <span
+            className="d-inline-flex align-items-center gap-1 px-2 py-1 rounded"
+            style={{ background: "#f1f3f4", color: "#5f6368", fontSize: "12px", fontWeight: 500, whiteSpace: "nowrap" }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="2" y="3" width="20" height="14" rx="2" stroke="#5f6368" strokeWidth="2"/>
+              <path d="M8 21h8M12 17v4" stroke="#5f6368" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+            Server
+          </span>
+        );
+    }
+  };
+
   return (
     <div className="mx-2">
       {/* <div className="d-flex align-items-center justify-content-end mb-2">
@@ -495,6 +542,9 @@ const AttachmentList = (props) => {
                 onChange={handleFilter}
               />
             </th>
+            <th>
+              <p className="mb-0">Storage</p>
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -553,6 +603,7 @@ const AttachmentList = (props) => {
                   content={convertSubstring(attach.uploadedBy, 25)}
                 ></TooltipWrapper>
               </td>
+              <td>{renderStorageBadge(attach.storageType)}</td>
             </tr>
           ))}
         </tbody>
@@ -575,6 +626,8 @@ const AttachmentList = (props) => {
               closeForm={() => setAdd(false)}
               refresh={props.refresh}
               matterId={props?.data?.id}
+              matterNumber={props?.data?.matterNumber}
+              matterRe={props?.data?.letterSubject}
               mode="add"
             />
           </ModalBody>
