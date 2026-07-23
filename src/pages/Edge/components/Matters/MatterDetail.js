@@ -424,6 +424,13 @@ const MatterDetail = (props) => {
           {showArchiveButton()}
           {showSettlement()}
           <Button
+            color="warning"
+            className="mx-2"
+            onClick={() => handleRefresh()}
+          >
+            Refresh
+          </Button>
+          <Button
             color="danger"
             className="mx-2"
             onClick={() => {

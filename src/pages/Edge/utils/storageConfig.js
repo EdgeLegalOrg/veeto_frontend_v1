@@ -26,8 +26,8 @@ export const STORAGE_OPTIONS = [
 ];
 
 export const STORAGE_CATEGORY_OPTIONS = [
-  { value: "GENERAL", label: "General" },
-  { value: "SPECIFIC", label: "Specific" },
+  { value: "GENERAL", label: "Company Files" },
+  { value: "SPECIFIC", label: "Site Files" },
 ];
 
 /**

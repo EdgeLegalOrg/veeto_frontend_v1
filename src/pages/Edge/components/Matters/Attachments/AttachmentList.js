@@ -242,17 +242,19 @@ const AttachmentList = (props) => {
   };
 
   const handleDownload = (d) => {
-    let rval = [];
-    rval.push(d.name);
+  let rval = [];
+  rval.push(d.name);
 
-    if (d.type) {
-      rval.push(d.type);
-    }
+  const hasExtension = d.name && /\.[^./\\]+$/.test(d.name);
 
-    downloadMatterAttach(d.id).then((res) => {
-      fileDownload(res.data, rval.join("."));
-    });
-  };
+  if (d.type && !hasExtension) {
+    rval.push(d.type);
+  }
+
+  downloadMatterAttach(d.id).then((res) => {
+    fileDownload(res.data, rval.join("."));
+  });
+};
 
   const handleDeleteAlert = () => {
     if (selectedList && selectedList.length > 0) {
