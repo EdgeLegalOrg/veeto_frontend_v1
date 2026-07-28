@@ -34,3 +34,13 @@ export const driveUpload = {
   GDRIVE: "GOOGLE_DRIVE",
   ONEDRIVE: "ONEDRIVE",
 };
+
+export const UPLOAD_CONFIG  = {
+  MAX_FILES: 15,
+  initialData : {
+  name: "",
+  documentType: "",
+  subTypes: [],
+  storageType: null,
+},
+};
