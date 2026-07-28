@@ -31,7 +31,7 @@ const AddCustodyForm = (props) => {
   const { closeForm, safeCustodyPacketId, setBoolVal, setFormStatusNew } =
     props;
   const [formData, setFormData] = useState(initialData);
-  const [uploadedFile, setUploadedFile] = useState(undefined);
+  const [uploadedFiles, setUploadedFiles] = useState([]);
   const [fileName, setFileName] = useState("");
   const [isEnableButton, setIsEnableButton] = useState(true);
   const [confirmScreen, setConfirmScreen] = useState(false);
@@ -62,42 +62,76 @@ const AddCustodyForm = (props) => {
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
 
-    const file = files[0];
-    setUploadedFile(file);
-    const flname = file.name.split(".").slice(0, -1).join(".");
-    setFileName(flname);
-    setFormData({
-      ...formData,
-      name: flname,
+    setUploadedFiles((prev) => [...prev, ...files]);
+    const fileNames = files.map((file) => file.name).join(", ");
+    setFileName(fileNames);
+    setFormData((prevForm) => ({
+      ...prevForm,
       dateReceived: formatDateFunc(new Date()),
-    });
+    }));
     e.target.value = "";
   };
 
   const handleUploadFile = (acceptedFile) => {
     if (acceptedFile?.length) {
-      setUploadedFile(acceptedFile[0]);
-      const flname = acceptedFile[0].name.split(".").slice(0, -1).join(".");
-      setFileName(flname);
-      setFormData({
-        ...formData,
-        name: flname,
+      setUploadedFiles((prev) => [...prev, ...acceptedFile]);
+      const fileNames = acceptedFile.map((file) => file.name).join(", ");
+      setFileName(fileNames);
+      setFormData((prevForm) => ({
+        ...prevForm,
         dateReceived: formatDateFunc(new Date()),
-      });
+      }));
     }
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDragEnter = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleCloudDrop = (e, storageTypeValue) => {
+    handleDragOver(e);
+    const files = Array.from(e.dataTransfer.files || []);
+    if (!files.length) return;
+
+    setUploadedFiles((prev) => [...prev, ...files]);
+    const fileNames = files.map((file) => file.name).join(", ");
+    setFileName(fileNames);
+    setFormData((prevForm) => ({
+      ...prevForm,
+      dateReceived: formatDateFunc(new Date()),
+    }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    let inputData = new FormData();
-    if (uploadedFile) {
-      const storageTypeValue =
-        uploadSource === "google"
-          ? "GOOGLE_DRIVE"
-          : uploadSource === "onedrive"
-            ? "ONEDRIVE"
-            : null;
+    if (!uploadedFiles.length) {
+      setSubmitted(true);
+      return;
+    }
 
+    const storageTypeValue =
+      uploadSource === "google"
+        ? "GOOGLE_DRIVE"
+        : uploadSource === "onedrive"
+          ? "ONEDRIVE"
+          : null;
+
+    setLoading(true);
+    setIsEnableButton(false);
+
+    const uploadPromises = uploadedFiles.map((file) => {
+      const inputData = new FormData();
       const data = {
         requestId: uuidv1(),
         data: {
@@ -107,33 +141,47 @@ const AddCustodyForm = (props) => {
         },
       };
       inputData.append("custodyAttachment", JSON.stringify(data));
-      inputData.append("attachment", uploadedFile);
-      try {
-        setLoading(true);
-        setIsEnableButton(false);
-        const { data } = await uploadCustodyAttachment(inputData);
-        setLoading(false);
-        setBoolVal(false);
-        setIsEnableButton(true);
-        setLoading(false);
-        if (!data.success) {
-          return toast.error("Failed to upload file");
-        }
-        toast.success("File uploaded successfully");
-        closeForm(true);
-      } catch (err) {
-        console.error(err);
-        setIsEnableButton(true);
-        setLoading(false);
-        toast.error("Failed to upload file");
-      }
-    } else {
-      setSubmitted(true);
+      inputData.append("attachment", file);
+      return uploadCustodyAttachment(inputData)
+        .then(({ data }) => ({
+          fileName: file.name,
+          success: data.success,
+        }))
+        .catch(() => ({
+          fileName: file.name,
+          success: false,
+        }));
+    });
+
+    const results = await Promise.all(uploadPromises);
+    const succeeded = results.filter((r) => r.success).map((r) => r.fileName);
+    const failed = results.filter((r) => !r.success).map((r) => r.fileName);
+
+    setLoading(false);
+    setIsEnableButton(true);
+
+    if (succeeded.length) {
+      toast.success(`${succeeded.length} file(s) uploaded successfully`);
     }
+    if (failed.length) {
+      toast.error(
+        `Failed to upload:\n${failed.map((f) => `• ${f}`).join("\n")}`,
+        { autoClose: false },
+      );
+      setUploadedFiles((prev) => prev.filter((file) => failed.includes(file.name)));
+      setFileName(failed.join(", "));
+      return;
+    }
+
+    setUploadedFiles([]);
+    setFileName("");
+    setBoolVal(false);
+    toast.success("All files uploaded successfully");
+    closeForm(true);
   };
 
   const handleCheck = () => {
-    if (uploadedFile) {
+    if (uploadedFiles.length) {
       setConfirmScreen(true);
     } else {
       closeForm();
@@ -143,94 +191,18 @@ const AddCustodyForm = (props) => {
   return (
     <div className="">
       <div className="">
-        <div
-          style={{
-            display: "flex",
-            border: "1px solid #dee2e6",
-            borderRadius: "8px",
-            overflow: "hidden",
-            marginBottom: "12px",
-          }}
-        >
-          <button
-            type="button"
-            onClick={() => setUploadSource("device")}
-            disabled={getUploadModeFromStorage(globalStorageType) !== "device"}
-            style={{
-              flex: 1,
-              padding: "12px 8px",
-              border: "none",
-              borderRight: "1px solid #dee2e6",
-              background: uploadSource === "device" ? "#eef2ff" : "white",
-              cursor: "pointer",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: "4px",
-              fontSize: "12px",
-              color: uploadSource === "device" ? "#4f46e5" : "#374151",
-              fontWeight: uploadSource === "device" ? "600" : "400",
-            }}
-          >
-            <DeviceUploadIcon />
-            Device
-          </button>
-          <button
-            type="button"
-            onClick={() => setUploadSource("google")}
-            disabled={getUploadModeFromStorage(globalStorageType) !== "google"}
-            style={{
-              flex: 1,
-              padding: "12px 8px",
-              border: "none",
-              borderRight: "1px solid #dee2e6",
-              background: uploadSource === "google" ? "#f0fdf4" : "white",
-              cursor: "pointer",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: "4px",
-              fontSize: "12px",
-              color: uploadSource === "google" ? "#16a34a" : "#374151",
-              fontWeight: uploadSource === "google" ? "600" : "400",
-            }}
-          >
-            <GoogleDriveColorIcon size={20} />
-            Google Drive
-          </button>
-          <button
-            type="button"
-            onClick={() => setUploadSource("onedrive")}
-            disabled={getUploadModeFromStorage(globalStorageType) !== "onedrive"}
-            style={{
-              flex: 1,
-              padding: "12px 8px",
-              border: "none",
-              background: uploadSource === "onedrive" ? "#eff6ff" : "white",
-              cursor: "pointer",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: "4px",
-              fontSize: "12px",
-              color: uploadSource === "onedrive" ? "#0369a1" : "#374151",
-              fontWeight: uploadSource === "onedrive" ? "600" : "400",
-            }}
-          >
-            <OneDriveIcon />
-            OneDrive
-          </button>
-        </div>
 
         <input
           ref={googleDriveInputRef}
           type="file"
+          multiple
           style={{ display: "none" }}
           onChange={(e) => handleCloudFileSelect(e, "GOOGLE_DRIVE")}
         />
         <input
           ref={oneDriveInputRef}
           type="file"
+          multiple
           style={{ display: "none" }}
           onChange={(e) => handleCloudFileSelect(e, "ONEDRIVE")}
         />
@@ -240,7 +212,7 @@ const AddCustodyForm = (props) => {
             className="addCustody-dropzone-div"
             style={{ margin: "0 10px", marginBottom: "5px" }}
           >
-            <Dropzone onDrop={handleUploadFile}>
+            <Dropzone onDrop={handleUploadFile} multiple>
               {({ getRootProps, getInputProps }) => (
                 <div {...getRootProps({ className: "addCustody-dropzone" })}>
                   <input {...getInputProps()} />
@@ -248,7 +220,7 @@ const AddCustodyForm = (props) => {
                     Drag and drop to upload or browse for files.
                   </p>
                   <span style={{ color: "#555", paddingTop: "10px" }}>
-                    {fileName}
+                    {fileName || "No files selected"}
                   </span>
                 </div>
               )}
@@ -261,6 +233,15 @@ const AddCustodyForm = (props) => {
                 ? googleDriveInputRef.current?.click()
                 : oneDriveInputRef.current?.click()
             }
+            onDrop={(e) =>
+              handleCloudDrop(
+                e,
+                uploadSource === "google" ? "GOOGLE_DRIVE" : "ONEDRIVE",
+              )
+            }
+            onDragOver={handleDragOver}
+            onDragEnter={handleDragEnter}
+            onDragLeave={handleDragLeave}
             style={{
               border: "2px dashed #dee2e6",
               borderRadius: "8px",
@@ -294,9 +275,9 @@ const AddCustodyForm = (props) => {
             )}
           </div>
         )}
-        {!uploadedFile && submitted && (
+        {!uploadedFiles.length && submitted && (
           <span className="input-error" style={{ margin: "10px" }}>
-            Please select a file
+            Please select at least one file
           </span>
         )}
 
