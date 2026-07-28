@@ -60,6 +60,27 @@ const AddAttachment = (props) => {
     e.target.value = "";
   };
 
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleCloudDrop = (e, storageType) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const files = Array.from(e.dataTransfer.files || []);
+    if (!files.length) return;
+
+    setUploadedFiles((prev) => [...prev, ...files]);
+    setFormData((prev) => [
+      ...prev,
+      ...files.map((file) => ({
+        name: file.name.split(".").slice(0, -1).join("."),
+        storageType,
+      })),
+    ]);
+  };
+
   const handleSubmit = async () => {
     if (!uploadedFiles || uploadedFiles.length === 0) {
       setSubmitted(true);
@@ -194,100 +215,13 @@ const AddAttachment = (props) => {
           onChange={(e) => handleCloudFileSelect(e, "ONEDRIVE")}
         />
 
-        {props.mode !== "edit" && (
-          <div
-            style={{
-              display: "flex",
-              border: "1px solid #dee2e6",
-              borderRadius: "8px",
-              overflow: "hidden",
-              marginBottom: "12px",
-            }}
-          >
-            <button
-              type="button"
-              onClick={() => setUploadSource("device")}
-              disabled={
-                getUploadModeFromStorage(globalStorageType) !== "device"
-              }
-              style={{
-                flex: 1,
-                padding: "12px 8px",
-                border: "none",
-                borderRight: "1px solid #dee2e6",
-                background: uploadSource === "device" ? "#eef2ff" : "white",
-                cursor: "pointer",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: "4px",
-                fontSize: "12px",
-                color: uploadSource === "device" ? "#4f46e5" : "#374151",
-                fontWeight: uploadSource === "device" ? "600" : "400",
-              }}
-            >
-              <DeviceUploadIcon />
-              Device
-            </button>
-            <button
-              type="button"
-              onClick={() => setUploadSource("google")}
-              disabled={
-                getUploadModeFromStorage(globalStorageType) !== "google"
-              }
-              style={{
-                flex: 1,
-                padding: "12px 8px",
-                border: "none",
-                borderRight: "1px solid #dee2e6",
-                background: uploadSource === "google" ? "#f0fdf4" : "white",
-                cursor: "pointer",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: "4px",
-                fontSize: "12px",
-                color: "#374151",
-                fontWeight: uploadSource === "google" ? "600" : "400",
-              }}
-            >
-              <GoogleDriveColorIcon size={20} />
-              Google Drive
-            </button>
-            {/* ← OneDrive now enabled */}
-            <button
-              type="button"
-              onClick={() => setUploadSource("onedrive")}
-              disabled={
-                getUploadModeFromStorage(globalStorageType) !== "onedrive"
-              }
-              style={{
-                flex: 1,
-                padding: "12px 8px",
-                border: "none",
-                background: uploadSource === "onedrive" ? "#eff6ff" : "white",
-                cursor: "pointer",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: "4px",
-                fontSize: "12px",
-                color: uploadSource === "onedrive" ? "#0369a1" : "#374151",
-                fontWeight: uploadSource === "onedrive" ? "600" : "400",
-              }}
-            >
-              <OneDriveIcon />
-              OneDrive
-            </button>
-          </div>
-        )}
-
         {/* Device dropzone */}
         {(props.mode === "edit" || uploadSource === "device") && (
           <div
             className="staff-attachDrop"
             style={{ margin: "0 10px", marginBottom: "5px" }}
           >
+            
             <Dropzone
               onDrop={handleUploadFile}
               multiple={props.mode !== "edit"}
@@ -327,6 +261,8 @@ const AddAttachment = (props) => {
         {props.mode !== "edit" && uploadSource === "google" && (
           <div
             onClick={() => googleDriveInputRef.current.click()}
+            onDrop={(e) => handleCloudDrop(e, "GOOGLE_DRIVE")}
+            onDragOver={handleDragOver}
             style={{
               border: "2px dashed #dee2e6",
               borderRadius: "8px",
@@ -368,6 +304,8 @@ const AddAttachment = (props) => {
         {props.mode !== "edit" && uploadSource === "onedrive" && (
           <div
             onClick={() => oneDriveInputRef.current.click()}
+            onDrop={(e) => handleCloudDrop(e, "ONEDRIVE")}
+            onDragOver={handleDragOver}
             style={{
               border: "2px dashed #dee2e6",
               borderRadius: "8px",
