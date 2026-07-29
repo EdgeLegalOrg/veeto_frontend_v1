@@ -95,7 +95,7 @@ const AddNewTemplate = (props) => {
       toast.warning(`Maximum ${MAX_FILES} uploads allowed. Only the first ${MAX_FILES} files were kept.`);
       files = files.slice(0, MAX_FILES);
     }
-    return validFiles;
+    return files;
   };
 
   const addUploadedFiles = (files = [], storageType = null) => {
