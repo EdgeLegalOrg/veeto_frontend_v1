@@ -31,7 +31,7 @@ const initialData = {
   storageType: null,
 };
 
-const ALLOWED_EXTENSIONS = [".doc", ".docx"];
+const MAX_FILES = 15;
 
 const AddNewTemplate = (props) => {
   const [formData, setFormData] = useState([]);
@@ -91,15 +91,11 @@ const AddNewTemplate = (props) => {
   };
 
   const filterValidFiles = (files = []) => {
-    const validFiles = files.filter((file) =>
-      ALLOWED_EXTENSIONS.some((ext) => file.name.toLowerCase().endsWith(ext)),
-    );
-
-    if (validFiles.length < files.length) {
-      toast.warning("Only .doc and .docx files are supported.");
+    if (files.length > MAX_FILES) {
+      toast.warning(`Maximum ${MAX_FILES} uploads allowed. Only the first ${MAX_FILES} files were kept.`);
+      files = files.slice(0, MAX_FILES);
     }
-
-    return validFiles;
+    return files;
   };
 
   const addUploadedFiles = (files = [], storageType = null) => {
@@ -300,24 +296,10 @@ const AddNewTemplate = (props) => {
   return (
     <div className="">
       <div className="mb-4">
-        {/* <div className="tempForm-header">
-          <h2 className="tempForm-heading">Add New Precedent</h2>
-          <button
-            onClick={handleClose}
-            className="close-form-btn"
-          >
-            {" "}
-            <img
-              src={closeBtn}
-              alt="close-btn"
-            />
-          </button>
-        </div> */}
         <div className="tempForm-gridContent">
           <input
             ref={googleDriveInputRef}
             type="file"
-            accept=".doc,.docx"
             multiple
             style={{ display: "none" }}
             onChange={handleGoogleDriveFileSelect}
@@ -325,98 +307,14 @@ const AddNewTemplate = (props) => {
           <input
             ref={oneDriveInputRef}
             type="file"
-            accept=".doc,.docx"
             multiple
             style={{ display: "none" }}
             onChange={handleOneDriveFileSelect}
           />
-          <div
-            style={{
-              display: "flex",
-              border: "1px solid #dee2e6",
-              borderRadius: "8px",
-              overflow: "hidden",
-              marginBottom: "12px",
-            }}
-          >
-            <button
-              type="button"
-              onClick={() => setUploadSource("device")}
-              disabled={
-                getUploadModeFromStorage(globalStorageType) !== "device"
-              }
-              style={{
-                flex: 1,
-                padding: "12px 8px",
-                border: "none",
-                borderRight: "1px solid #dee2e6",
-                background: uploadSource === "device" ? "#eef2ff" : "white",
-                cursor: "pointer",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: "4px",
-                fontSize: "12px",
-                color: uploadSource === "device" ? "#4f46e5" : "#374151",
-                fontWeight: uploadSource === "device" ? "600" : "400",
-              }}
-            >
-              <DeviceUploadIcon />
-              Device
-            </button>
-            <button
-              type="button"
-              onClick={() => setUploadSource("google")}
-              disabled={
-                getUploadModeFromStorage(globalStorageType) !== "google"
-              }
-              style={{
-                flex: 1,
-                padding: "12px 8px",
-                border: "none",
-                borderRight: "1px solid #dee2e6",
-                background: uploadSource === "google" ? "#f0fdf4" : "white",
-                cursor: "pointer",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: "4px",
-                fontSize: "12px",
-                color: "#374151",
-                fontWeight: uploadSource === "google" ? "600" : "400",
-              }}
-            >
-              <GoogleDriveColorIcon size={20} />
-              Google Drive
-            </button>
-            <button
-              type="button"
-              onClick={() => setUploadSource("onedrive")}
-              disabled={
-                getUploadModeFromStorage(globalStorageType) !== "onedrive"
-              }
-              style={{
-                flex: 1,
-                padding: "12px 8px",
-                border: "none",
-                background: uploadSource === "onedrive" ? "#eff6ff" : "white",
-                cursor: "pointer",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: "4px",
-                fontSize: "12px",
-                color: uploadSource === "onedrive" ? "#0369a1" : "#374151",
-                fontWeight: uploadSource === "onedrive" ? "600" : "400",
-              }}
-            >
-              <OneDriveIcon />
-              OneDrive
-            </button>
-          </div>
+        
           {uploadSource === "device" && (
             <div className="tempForm-dropzone-div">
-              <Dropzone accept=".doc, .docx" onDrop={handleUploadFile}>
+              <Dropzone onDrop={handleUploadFile}>
                 {({ getRootProps, getInputProps }) => (
                   <div {...getRootProps({ className: "tempForm-dropzone" })}>
                     <input {...getInputProps()} />
