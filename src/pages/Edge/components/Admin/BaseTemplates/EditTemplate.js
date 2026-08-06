@@ -83,15 +83,33 @@ const EditTemplate = (props) => {
     return "";
   };
 
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleSingleFileDrop = (e, storageType) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const file = Array.from(e.dataTransfer.files || "")[0];
+    if (!file) return;
+
+    setUploadedFile(file);
+    setFormData((prevData) => ({ ...prevData, storageType }));
+  };
+
   const handleUploadFile = (acceptedFile) => {
-    setUploadedFile(acceptedFile[0]);
+    const file = acceptedFile?.[0];
+    if (!file) return;
+    setUploadedFile(file);
   };
 
   const handleGoogleDriveFileSelect = (e) => {
     const file = e.target.files[0];
     if (!file) return;
     setUploadedFile(file);
-    setFormData({ ...formData, storageType: "GOOGLE_DRIVE" });
+    setFormData((prevData) => ({ ...prevData, storageType: "GOOGLE_DRIVE" }));
     e.target.value = "";
   };
 
@@ -99,7 +117,7 @@ const EditTemplate = (props) => {
     const file = e.target.files[0];
     if (!file) return;
     setUploadedFile(file);
-    setFormData({ ...formData, storageType: "ONEDRIVE" });
+    setFormData((prevData) => ({ ...prevData, storageType: "ONEDRIVE" }));
     e.target.value = "";
   };
 
@@ -184,6 +202,8 @@ const EditTemplate = (props) => {
         {uploadSource === "google" && (
           <div
             onClick={() => googleDriveInputRef.current.click()}
+            onDragOver={handleDragOver}
+            onDrop={(e) => handleSingleFileDrop(e, "GOOGLE_DRIVE")}
             style={{
               border: "2px dashed #dee2e6",
               borderRadius: "8px",
@@ -221,6 +241,8 @@ const EditTemplate = (props) => {
         {uploadSource === "onedrive" && (
           <div
             onClick={() => oneDriveInputRef.current.click()}
+            onDragOver={handleDragOver}
+            onDrop={(e) => handleSingleFileDrop(e, "ONEDRIVE")}
             style={{
               border: "2px dashed #dee2e6",
               borderRadius: "8px",
