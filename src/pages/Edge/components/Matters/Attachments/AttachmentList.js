@@ -61,9 +61,37 @@ const AttachmentList = (props) => {
       props.data.attachmentList &&
       props.data.attachmentList.length > 0
     ) {
-      const latestList = props.data.attachmentList;
+      const latestList = [...props.data.attachmentList];
       setAttachList(latestList);
-      startTypeFilter(filterInput.type, true, latestList);
+
+      // Apply current filters to the new list without forcing a date-only sort
+      let arr = filterData(filterInput, true, latestList);
+      arr = filterFileType(arr, filterInput.type);
+
+      // Re-apply current sort (if any) without mutating original arrays
+      if (sortField === "uploadDate") {
+        const type = sortOrder || "desc";
+        arr = [...arr].sort((a, b) =>
+          type === "desc"
+            ? new Date(b.uploadDate) - new Date(a.uploadDate)
+            : new Date(a.uploadDate) - new Date(b.uploadDate)
+        );
+      } else if (sortField) {
+        const type = sortOrder || "asc";
+        arr = [...arr].sort((a, b) => {
+          const va = a[sortField] ? a[sortField].toLowerCase() : "";
+          const vb = b[sortField] ? b[sortField].toLowerCase() : "";
+          if (va === vb) return 0;
+          if (va === "" || va === null) return 1;
+          if (vb === "" || vb === null) return -1;
+          return type === "asc" ? (va < vb ? -1 : 1) : va < vb ? 1 : -1;
+        });
+      }
+
+      setFilteredList(arr);
+    } else {
+      setAttachList([]);
+      setFilteredList([]);
     }
   }, [props.data]);
 
