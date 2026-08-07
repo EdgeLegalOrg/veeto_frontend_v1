@@ -106,10 +106,24 @@ const Attachid = (props) => {
   const [previewImage, setPreviewImage] = useState(null);
   const [previewScreen, setPreviewScreen] = useState(false);
 
-  const handleDownload = (id, fileName) => {
+  const normalizeType = (type) => type?.toLowerCase().replace(/^\./, "");
+
+  const ensureFilenameHasExtension = (fileName, type) => {
+    if (!fileName) return fileName;
+    const normalizedType = normalizeType(type);
+    if (!normalizedType) return fileName;
+    const lowerName = fileName.toLowerCase();
+    if (lowerName.endsWith(`.${normalizedType}`)) {
+      return fileName;
+    }
+    return `${fileName}.${normalizedType}`;
+  };
+
+  const handleDownload = (id, fileName, type) => {
+    const finalName = ensureFilenameHasExtension(fileName, type);
     downloadContactAttachment(id)
       .then((res) => {
-        fileDownload(res.data, fileName);
+        fileDownload(res.data, finalName);
       })
       .catch((err) => {
         console.error("error", err);
@@ -118,19 +132,26 @@ const Attachid = (props) => {
   };
 
   const handleLinkDownload = (id, fileName, type) => {
+    const normalizedType = normalizeType(type);
+    const imageTypes = [
+      "jpeg",
+      "jpg",
+      "png",
+      "tif",
+      "tiff",
+      "gif",
+      "bmp",
+      "svg",
+      "webp",
+      "heic",
+    ];
+    const finalName = ensureFilenameHasExtension(fileName, type);
     downloadContactAttachment(id).then((res) => {
-      // fileDownload(res.data, fileName);
-      if (
-        type === "image" ||
-        type === "jpeg" ||
-        type === "jpg" ||
-        type === "png" ||
-        type === "tif"
-      ) {
+      if (imageTypes.includes(normalizedType)) {
         setPreviewImage(URL.createObjectURL(res.data));
         setPreviewScreen(true);
       } else {
-        fileDownload(res.data, fileName);
+        fileDownload(res.data, finalName);
       }
     });
   };
@@ -284,7 +305,7 @@ const Attachid = (props) => {
                           </Tooltip>
                         }
                       >
-                        <span>{convertSubstring(data.name)}</span>
+                        <span>{convertSubstring(ensureFilenameHasExtension(data.name, data.type))}</span>
                       </OverlayTrigger>
                     </div>
                   </td>

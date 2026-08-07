@@ -5,8 +5,11 @@ import pdf from '../images/fileIcons/pdf.png';
 import word from '../images/fileIcons/word.png';
 import other from '../images/fileIcons/other.png';
 
+const normalizeType = (type) =>
+  type ? type.toLowerCase().replace(/^\./, "") : type;
+
 export const returnFileIcon = (type) => {
-  switch (type ? type.toLowerCase() : type) {
+  switch (normalizeType(type)) {
     case 'doc':
     case 'docx':
     case 'rtf':
@@ -62,12 +65,16 @@ export const filterFileType = (list, type) => {
     arr = list;
   } else {
     arr = list.filter(
-      (file) =>
-        !excel.includes(file.type.toLowerCase()) &&
-        !word.includes(file.type.toLowerCase()) &&
-        !mail.includes(file.type.toLowerCase()) &&
-        !image.includes(file.type.toLowerCase()) &&
-        !pdf.includes(file.type.toLowerCase())
+      (file) => {
+        const fileType = normalizeType(file?.type);
+        return (
+          !excel.includes(fileType) &&
+          !word.includes(fileType) &&
+          !mail.includes(fileType) &&
+          !image.includes(fileType) &&
+          !pdf.includes(fileType)
+        );
+      }
     );
   }
 
