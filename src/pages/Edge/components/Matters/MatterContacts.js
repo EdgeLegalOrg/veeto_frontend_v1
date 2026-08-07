@@ -81,10 +81,10 @@ const MatterContacts = (props) => {
     if (props.data) {
       setData(props.data);
       setContactList(
-        props?.data?.matterContacts ? props?.data?.matterContacts : []
+        props?.data?.matterContacts ? props?.data?.matterContacts : [],
       );
       setFilteredList(
-        props?.data?.matterContacts ? props?.data?.matterContacts : []
+        props?.data?.matterContacts ? props?.data?.matterContacts : [],
       );
     }
   }, [props.data]);
@@ -120,11 +120,11 @@ const MatterContacts = (props) => {
           : true) &&
         (obj["contactRole"] !== ""
           ? data["contactRoleList"]?.some((role) =>
-              role.toLowerCase()?.includes(obj["contactRole"]?.toLowerCase())
+              role.toLowerCase()?.includes(obj["contactRole"]?.toLowerCase()),
             )
           : true) &&
         (obj["companyName"] !== ""
-          ? data?.contactDetails["companyName"]
+          ? data?.contactDetails["organisation"]
               ?.toLowerCase()
               ?.includes(obj["companyName"]?.toLowerCase())
           : true)
@@ -142,19 +142,21 @@ const MatterContacts = (props) => {
       setSortField(sorton);
 
       newArray = filteredList.sort((a, b) => {
-        if (get(a, map) === get(b, map)) {
+        const valA = get(a, map);
+        const valB = get(b, map);
+
+        if (valA === valB) {
           return 0;
         }
 
-        if (get(a, map) === "" || get(a, map) === null) {
+        if (valA === "" || valA === null || valA === undefined) {
           return 1;
         }
-        if (get(b, map) === "" || get(b, map) === null) {
+        if (valB === "" || valB === null || valB === undefined) {
           return -1;
         }
 
-        return (get(a, map) ? get(a, map).toLowerCase() : "") <
-          (get(b, map) ? get(b, map).toLowerCase() : "")
+        return String(valA).toLowerCase() < String(valB).toLowerCase()
           ? -1
           : 1;
       });
@@ -163,19 +165,21 @@ const MatterContacts = (props) => {
       setSortOrder("desc");
       setSortField(sorton);
       newArray = filteredList.sort((a, b) => {
-        if (get(a, map) === get(b, map)) {
+        const valA = get(a, map);
+        const valB = get(b, map);
+
+        if (valA === valB) {
           return 0;
         }
 
-        if (get(a, map) === "" || get(a, map) === null) {
+        if (valA === "" || valA === null || valA === undefined) {
           return 1;
         }
-        if (get(b, map) === "" || get(b, map) === null) {
+        if (valB === "" || valB === null || valB === undefined) {
           return -1;
         }
 
-        return (get(a, map) ? get(a, map).toLowerCase() : "") <
-          (get(b, map) ? get(b, map).toLowerCase() : "")
+        return String(valA).toLowerCase() < String(valB).toLowerCase()
           ? 1
           : -1;
       });
@@ -228,7 +232,7 @@ const MatterContacts = (props) => {
       navigationEditFormAction({
         currentValue: { ...row, tab: "CONTACTS", original: "Matters" },
         newValue: formValue,
-      })
+      }),
     );
     navigate("/Contacts");
   };
@@ -285,18 +289,6 @@ const MatterContacts = (props) => {
 
   return (
     <div className="mx-2">
-      {/* <div className="d-flex align-items-center justify-content-end mb-2">
-        <Button
-          color="success"
-          disabled={disabled}
-          onClick={() => setLinkContact(true)}
-          className="d-flex mx-4"
-        >
-          <span className="plusdiv">+</span>Link
-        </Button>
-        
-      </div> */}
-
       <Table responsive={true} striped={true} hover={true}>
         <thead className="mb-2 bg-light">
           <tr>
@@ -504,7 +496,7 @@ const MatterContacts = (props) => {
               <div
                 className="matter-sorting-label"
                 onClick={() =>
-                  sortFunc("companyName", "contactDetails.companyName")
+                  sortFunc("companyName", "contactDetails.organisation")
                 }
               >
                 <p>Company</p>
@@ -551,15 +543,6 @@ const MatterContacts = (props) => {
               className="pe-cursor"
             >
               <td>
-                {/* <input
-                className='mc-check'
-                type='checkbox'
-                checked={isSelected(contact)}
-                onClick={(e) => {
-                  e.stopPropagation();
-                }}
-                onChange={() => handleSelect(contact)}
-              /> */}
                 <p className="mb-0">{`${i + 1}`}</p>
               </td>
               <td>
@@ -595,7 +578,7 @@ const MatterContacts = (props) => {
                 <p className="mb-0">{contact.contactType}</p>
               </td>
               <td>
-                <p className="mb-0">{contact?.contactDetails?.companyName}</p>
+                <p className="mb-0">{contact?.contactDetails?.organisation}</p>
               </td>
             </tr>
           ))}
@@ -603,16 +586,6 @@ const MatterContacts = (props) => {
       </Table>
       <div className="mc-header" style={{ display: "none" }}>
         <div className="mc-col xsm">
-          {/* <input
-            className='mc-check'
-            type='checkbox'
-            onClick={(e) => e.stopPropagation()}
-            onChange={handleSelectAll}
-            checked={
-              contactList.length > 0 &&
-              selectedList.length === contactList.length
-            }
-          /> */}
           <p>#</p>
         </div>
         <div className="mc-col md"></div>
@@ -621,9 +594,6 @@ const MatterContacts = (props) => {
         <div className="mc-col md"></div>
         <div className="mc-col md"></div>
         <div className="mc-col md"></div>
-        {/* <div className='mc-col md'>
-          <p>Actions</p>
-        </div> */}
       </div>
       {/************Table rows************ */}
       <div className="mc-tBody" style={{ display: "none" }}>
@@ -634,15 +604,6 @@ const MatterContacts = (props) => {
             onClick={() => handleViewDetail(contact)}
           >
             <div className="mc-col xsm">
-              {/* <input
-                className='mc-check'
-                type='checkbox'
-                checked={isSelected(contact)}
-                onClick={(e) => {
-                  e.stopPropagation();
-                }}
-                onChange={() => handleSelect(contact)}
-              /> */}
               <p>{`${i + 1}`}</p>
             </div>
             <div className="mc-col md">
@@ -661,7 +622,7 @@ const MatterContacts = (props) => {
               <p>{contact.contactType}</p>
             </div>
             <div className="mc-col md">
-              <p>{contact?.contactDetails?.companyName}</p>
+              <p>{contact?.contactDetails?.organisation}</p>
             </div>
           </div>
         ))}

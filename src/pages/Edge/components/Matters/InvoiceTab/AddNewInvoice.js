@@ -78,7 +78,7 @@ const AddNewInvoice = (props) => {
       if (a.contactType === "ORGANISATION") {
         if (a.contactDetails) {
           arr.push({
-            display: `${a.contactDetails.companyName || ""}`,
+            display: `${a.contactDetails.organisation || ""}`,   // ✅ fixed
             value: a.contactId,
             type: a.contactType,
             valueKey: `${a.contactType}-${a.contactId}`,
