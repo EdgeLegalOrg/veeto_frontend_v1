@@ -105,7 +105,7 @@ const LinkedList = (props) => {
       parseAllList(allList);
     }
 
-    if (enumList["MatterType"] && enumList["MatterType"].length > 0) {
+    if (enumList?.["MatterType"] && enumList["MatterType"].length > 0) {
       setFilteredOption({ ...filteredOption, type: enumList["MatterType"] });
     }
   };
@@ -182,6 +182,7 @@ const LinkedList = (props) => {
 
   const updateCheckIds = (arg, list) => {
     let tempList = [...list];
+
     if (arg && arg.length > 0) {
       for (let a in arg) {
         let item = arg[a];
@@ -195,10 +196,12 @@ const LinkedList = (props) => {
           }
         }
       }
-
-      setAllCombinations(tempList);
-      setFilteredList(tempList);
     }
+
+    // Always publish the full matter type list, even when nothing is linked
+    // yet, so every matter type stays selectable on a fresh company.
+    setAllCombinations(tempList);
+    setFilteredList(tempList);
   };
 
   const handleFetchDefaults = async (list) => {
@@ -206,12 +209,15 @@ const LinkedList = (props) => {
     try {
       const { data } = await fetchMatterDefaultChecklist();
       if (data.success) {
-        updateCheckIds(data.data.matterChecklistList, list);
+        updateCheckIds(data?.data?.matterChecklistList, list);
       } else {
+        // Still show the matter types so they remain linkable.
+        updateCheckIds([], list);
         toast.warning("Something went wrong, please try later!");
       }
       setLoading(false);
     } catch (error) {
+      updateCheckIds([], list);
       setLoading(false);
       console.error("error", error);
     }

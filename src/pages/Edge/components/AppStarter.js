@@ -259,10 +259,9 @@ const AppStarter = (props) => {
           data?.data?.paymentTypeList &&
           data?.data?.paymentTypeList?.length > 0
         ) {
-          window.localStorage.setItem(
-            "matterContactRole",
-            JSON.stringify(data.data.paymentTypeList)
-          );
+          // NB: do not cache this under "matterContactRole" - that key holds the
+          // matter type/subtype combinations. parsePaymentSubType stores the
+          // payment types under enumList["PaymentType"].
           await parsePaymentSubType(data.data.paymentTypeList);
         }
       }
