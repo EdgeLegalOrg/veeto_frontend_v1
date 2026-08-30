@@ -331,6 +331,15 @@ export const updateMatterChecklist = (formData) =>
     data: formData,
   });
 
+// Applies a single Workflow task action (status transition or due date edit)
+// and persists it immediately. Responds with the refreshed tracker, including
+// its new checksum.
+export const updateMatterChecklistTaskAction = (formData) =>
+  API.put(`/api/matter/checklist/task`, {
+    requestId: uuidv1(),
+    data: formData,
+  });
+
 // Contacts
 export const allContacts = (filterData) =>
   API.get(

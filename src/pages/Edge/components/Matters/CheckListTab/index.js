@@ -1,137 +1,148 @@
 import React, { useEffect, useState } from "react";
-import { updateMatterChecklist } from "pages/Edge/apis";
+import { updateMatterChecklistTaskAction } from "pages/Edge/apis";
 import { toast } from "react-toastify";
+import {
+  Table,
+  UncontrolledDropdown,
+  DropdownToggle,
+  DropdownMenu,
+  DropdownItem,
+} from "reactstrap";
 import "../../../stylesheets/CheckListTab.css";
 import LoadingPage from "pages/Edge/utils/LoadingPage";
+import { formatDateFunc } from "pages/Edge/utils/utilFunc";
+
+const STATUS = {
+  NEW: "NEW",
+  IN_PROGRESS: "IN_PROGRESS",
+  COMPLETE: "COMPLETE",
+  NOT_APPLICABLE: "NOT_APPLICABLE",
+};
+
+// Velzon tickets-list uses subtle badges keyed off the row status.
+const STATUS_META = {
+  [STATUS.NEW]: { label: "New", badge: "bg-secondary-subtle text-secondary" },
+  [STATUS.IN_PROGRESS]: {
+    label: "In Progress",
+    badge: "bg-warning-subtle text-warning",
+  },
+  [STATUS.COMPLETE]: {
+    label: "Complete",
+    badge: "bg-success-subtle text-success",
+  },
+  [STATUS.NOT_APPLICABLE]: {
+    label: "Not Applicable",
+    badge: "bg-light text-muted",
+  },
+};
+
+const statusOf = (task) => task?.status || STATUS.NEW;
+
+const statusMeta = (task) => STATUS_META[statusOf(task)] || STATUS_META[STATUS.NEW];
+
+// Actions offered for a row, matched to where it currently sits.
+const actionsFor = (task) => {
+  switch (statusOf(task)) {
+    case STATUS.NEW:
+      return [STATUS.IN_PROGRESS, STATUS.COMPLETE, STATUS.NOT_APPLICABLE];
+    case STATUS.IN_PROGRESS:
+      return [STATUS.COMPLETE, STATUS.NOT_APPLICABLE, STATUS.NEW];
+    case STATUS.COMPLETE:
+      return [STATUS.IN_PROGRESS, STATUS.NOT_APPLICABLE, STATUS.NEW];
+    case STATUS.NOT_APPLICABLE:
+      return [STATUS.IN_PROGRESS, STATUS.COMPLETE, STATUS.NEW];
+    default:
+      return [STATUS.IN_PROGRESS, STATUS.COMPLETE, STATUS.NOT_APPLICABLE];
+  }
+};
+
+const ACTION_LABEL = {
+  [STATUS.IN_PROGRESS]: "Start",
+  [STATUS.COMPLETE]: "Complete",
+  [STATUS.NOT_APPLICABLE]: "Mark Not Applicable",
+  [STATUS.NEW]: "Reset to New",
+};
+
+const ACTION_ICON = {
+  [STATUS.IN_PROGRESS]: "ri-play-circle-line",
+  [STATUS.COMPLETE]: "ri-check-double-line",
+  [STATUS.NOT_APPLICABLE]: "ri-forbid-line",
+  [STATUS.NEW]: "ri-restart-line",
+};
+
+// Native date inputs need YYYY-MM-DD regardless of how dates are displayed.
+const toDateInputValue = (value) => {
+  if (!value) {
+    return "";
+  }
+
+  const parsed = new Date(value);
+
+  if (isNaN(parsed.getTime())) {
+    return "";
+  }
+
+  const month = `${parsed.getMonth() + 1}`.padStart(2, "0");
+  const day = `${parsed.getDate()}`.padStart(2, "0");
+
+  return `${parsed.getFullYear()}-${month}-${day}`;
+};
 
 const ChecklistTab = (props) => {
-  const { setExtraButtons } = props;
+  const { setExtraButtons, isArchived } = props;
   const [loading, setLoading] = useState(false);
-  const [data, setData] = useState({});
+  const [tracker, setTracker] = useState(null);
   const [taskList, setTaskList] = useState([]);
+  const [expanded, setExpanded] = useState({});
 
   useEffect(() => {
-    if (props.data) {
-      getTaskList(props.data);
-      setData(props.data);
+    if (props.data?.checklistTracker) {
+      applyTracker(props.data.checklistTracker);
+    } else {
+      setTracker(null);
+      setTaskList([]);
     }
   }, [props.data]);
 
+  // Every action persists on click, so the tab has nothing left to Save.
   useEffect(() => {
     if (setExtraButtons) {
-      setExtraButtons(
-        <div className="d-flex align-items-center">
-          {data.checklistTracker && (
-            <button
-              type="button"
-              className="mx-2 btn btn-success"
-              disabled={props.isArchived}
-              onClick={handleUpdateTask}
-            >
-              Save
-            </button>
-          )}
-        </div>,
-      );
+      setExtraButtons(null);
     }
-  }, [setExtraButtons, data, taskList]);
+  }, [setExtraButtons]);
 
-  const getTaskList = (arg) => {
-    if (arg?.checklistTracker?.taskList?.length) {
-      setTaskList([...arg?.checklistTracker?.taskList]);
-    }
+  const applyTracker = (arg) => {
+    setTracker(arg);
+    setTaskList(arg?.taskList?.length ? [...arg.taskList] : []);
   };
 
-  const handleSelectTask = (id) => {
-    let tl = [...taskList];
-
-    for (let a in tl) {
-      if (tl[a].id === id) {
-        const flag = !tl[a].taskCompleted;
-
-        let sl = tl[a].subTaskList;
-        for (let b in sl) {
-          sl[b].taskCompleted = flag;
-        }
-
-        tl[a].taskCompleted = flag;
-        tl[a].subTaskList = sl;
-
-        break;
-      }
-    }
-
-    setTaskList(tl);
+  const toggleExpanded = (taskId) => {
+    setExpanded((prev) => ({ ...prev, [taskId]: !prev[taskId] }));
   };
 
-  const handleSelectSubTask = (taskId, subId) => {
-    let tl = [...taskList];
-    for (let a in tl) {
-      if (tl[a].id === taskId) {
-        let sl = [...tl[a].subTaskList];
-        let allCompleted = true;
-        for (let b in sl) {
-          if (sl[b].id === subId) {
-            sl[b].taskCompleted = !sl[b].taskCompleted;
-            break;
-          }
-        }
-
-        tl[a].subTaskList = sl;
-
-        for (let b in sl) {
-          if (!sl[b].taskCompleted) {
-            allCompleted = false;
-            break;
-          }
-        }
-
-        tl[a].taskCompleted = allCompleted;
-
-        break;
-      }
+  /**
+   * Sends one task action and swaps in the tracker returned by the server, so
+   * the refreshed checksum, roll-up status and staff names all land together.
+   */
+  const sendTaskAction = async (payload) => {
+    if (isArchived) {
+      return;
     }
 
-    setTaskList(tl);
-  };
-
-  const isTaskSelected = (id) => {
-    for (let a in taskList) {
-      if (taskList[a].id === id) {
-        return taskList[a].taskCompleted;
-      }
-    }
-
-    return false;
-  };
-
-  const isSubTaskSelected = (taskId, subId) => {
-    for (let a in taskList) {
-      if (taskList[a].id === taskId) {
-        const sl = taskList[a].subTaskList;
-        for (let b in sl) {
-          if (sl[b].id === subId) {
-            return sl[b].taskCompleted;
-          }
-        }
-      }
-    }
-
-    return false;
-  };
-
-  const handleUpdateTask = async () => {
     setLoading(true);
+
     try {
-      let inputData = {
-        id: props?.data?.checklistTracker?.id,
-        checksum: props?.data?.checklistTracker?.checksum,
-        matterId: props?.data?.checklistTracker?.matterId,
-        taskList: taskList,
-      };
-      const { data } = await updateMatterChecklist(inputData);
+      const { data } = await updateMatterChecklistTaskAction({
+        trackerId: tracker?.id,
+        ...payload,
+      });
+
       if (data.success) {
-        toast.success("Checklist updated successfully");
+        // Apply locally for immediate feedback, then let the parent refetch so
+        // its copy of the matter does not go stale and overwrite this on the
+        // next render.
+        applyTracker(data.data);
+
         if (props.refresh) {
           props.refresh();
         }
@@ -146,158 +157,145 @@ const ChecklistTab = (props) => {
     }
   };
 
-  const subtaskList = (arg) => {
-    if (arg?.subTaskList?.length) {
-      return arg.subTaskList.map((sub) => (
-        <div
-          className="d-flex align-items-center px-3 py-2 ms-2 sub-task-item"
-          key={`subtask-${sub.id}`}
-          onClick={(e) => {
-            e.stopPropagation();
-            handleSelectSubTask(arg.id, sub.id);
-          }}
-        >
-          <input
-            type="checkbox"
-            className="me-3 mt-0 form-check-input"
-            checked={isSubTaskSelected(arg.id, sub.id)}
-          />
-          <span className="fs-6 fw-normal">{sub.taskTitle}</span>
-          <span className="fs-12 ms-2">
-            {!sub.mandatory ? "(optional)" : ""}
-          </span>
-        </div>
-      ));
-    } else {
-      return <></>;
-    }
-  };
+  const handleStatusAction = (task, status) =>
+    sendTaskAction({ taskId: task.id, status });
 
-  const calculateHalf = () => {
-    if (taskList.length <= 5) {
-      return taskList?.length || 0;
-    } else if (taskList?.length > 5 && taskList?.length < 10) {
-      return 5;
-    } else {
-      return Math.ceil(taskList?.length / 2);
-    }
-  };
+  const handleDueDateChange = (task, value) =>
+    sendTaskAction(
+      value
+        ? { taskId: task.id, dueDate: new Date(value).toISOString() }
+        : { taskId: task.id, clearDueDate: true }
+    );
 
-  const displayTaskTitle = (task) => {
-    return <p className="fs-16">{task.taskTitle} </p>;
-  };
+  const renderRow = (task, label, isSubTask) => {
+    const meta = statusMeta(task);
+    const subTaskList = task.subTaskList || [];
+    const hasSubTasks = subTaskList.length > 0;
+    const isOpen = !!expanded[task.id];
 
-  const ui = () => {
-    if (data.checklistTracker) {
-      const findHalf = calculateHalf();
-      return (
-        <div className="d-flex justify-content-start row mt-2 pb-4 pe-4 task-container">
-          <div className={`task-list two`}>
-            {taskList?.slice(0, findHalf)?.map((task, i) => (
-              <div className="d-flex align-item-start" key={`task-${task.id}`}>
-                <span className="mt-2 me-2 fs-16">{i + 1}.</span>
-                <div className="d-flex flex-column flex-grow-1">
-                  <div
-                    className="d-flex align-items-center  px-3 py-2 task-item"
-                    key={`task-${task.id}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleSelectTask(task.id);
-                    }}
-                  >
-                    <input
-                      type="checkbox"
-                      className="me-3 mt-0 form-check-input"
-                      checked={isTaskSelected(task.id)}
-                      onChange={() => {}}
-                    />
-                    {displayTaskTitle(task)}
-                  </div>
-                  <div className="sub-task-container">{subtaskList(task)}</div>
-                </div>
-              </div>
-            ))}
+    return (
+      <tr key={`task-${task.id}`} className={isSubTask ? "workflow-subtask-row" : ""}>
+        <td className="fw-medium">{label}</td>
+        <td>
+          <div className={`d-flex align-items-center ${isSubTask ? "ps-4" : ""}`}>
+            {hasSubTasks ? (
+              <button
+                type="button"
+                className="btn btn-sm btn-link p-0 me-2 text-body"
+                onClick={() => toggleExpanded(task.id)}
+                aria-label={isOpen ? "Collapse subtasks" : "Expand subtasks"}
+              >
+                <i className={isOpen ? "ri-arrow-down-s-line" : "ri-arrow-right-s-line"} />
+              </button>
+            ) : (
+              <span className="d-inline-block me-2 workflow-toggle-spacer" />
+            )}
+            <span>{task.taskTitle}</span>
+            {!task.mandatory && (
+              <span className="fs-12 ms-2 text-muted">(optional)</span>
+            )}
           </div>
-          <div
-            style={{
-              width: "1px",
-              padding: 0,
-              background: "#f3f6f9",
-              margin: "0px 20px",
-            }}
-          ></div>
-          {taskList?.slice(findHalf, taskList?.length)?.length > 0 && (
-            <div className={`task-list ${taskList.length > 5 ? "two" : ""}`}>
-              {taskList?.slice(findHalf, taskList?.length)?.map((task, i) => (
-                <>
-                  <div
-                    className="d-flex align-items-start"
-                    key={`task-${task.id}`}
-                  >
-                    <span className="mt-2 me-2 fs-16">{findHalf + i + 1}.</span>
-                    <div className="d-flex flex-column flex-grow-1">
-                      <div
-                        className="d-flex align-items-center px-3 py-2 task-item"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleSelectTask(task.id);
-                        }}
-                      >
-                        <input
-                          type="checkbox"
-                          className="me-3 mt-0 form-check-input"
-                          checked={isTaskSelected(task.id)}
-                          onChange={() => {}}
-                        />
-                        <p className="fs-5 fw-normal">
-                          {displayTaskTitle(task)}
-                        </p>
-                      </div>
-                      <div className="sub-task-container">
-                        {subtaskList(task)}
-                      </div>
-                    </div>
-                  </div>
-                </>
+        </td>
+        <td>
+          <span className={`badge ${meta.badge}`}>{meta.label}</span>
+        </td>
+        <td>
+          <input
+            type="date"
+            className="form-control form-control-sm workflow-due-date"
+            value={toDateInputValue(task.dueDate)}
+            disabled={isArchived}
+            onChange={(e) => handleDueDateChange(task, e.target.value)}
+          />
+        </td>
+        <td>{formatDateFunc(task.completionDate) || "-"}</td>
+        <td>{task.startedByName || "-"}</td>
+        <td>{task.completedByName || "-"}</td>
+        <td className="text-end">
+          <UncontrolledDropdown>
+            <DropdownToggle
+              tag="button"
+              type="button"
+              className="btn btn-soft-secondary btn-sm"
+              disabled={isArchived}
+            >
+              <i className="ri-more-fill align-middle" />
+            </DropdownToggle>
+            <DropdownMenu className="dropdown-menu-end">
+              {actionsFor(task).map((status) => (
+                <DropdownItem
+                  key={`${task.id}-${status}`}
+                  onClick={() => handleStatusAction(task, status)}
+                >
+                  <i className={`${ACTION_ICON[status]} align-bottom me-2 text-muted`} />
+                  {ACTION_LABEL[status]}
+                </DropdownItem>
               ))}
-            </div>
-          )}
-        </div>
-      );
-    } else {
-      return (
-        <div className="row mt-4 text-center pb-4">
-          <h5 className="mb-0">No checklist available!</h5>
-        </div>
-      );
-    }
+            </DropdownMenu>
+          </UncontrolledDropdown>
+        </td>
+      </tr>
+    );
   };
 
-  const updateBtn = () => {
-    if (data.checklistTracker) {
-      return (
-        <button
-          type="button"
-          className="mx-4 btn btn-success"
-          onClick={handleUpdateTask}
-        >
-          Save
-        </button>
-      );
-    } else {
-      return <></>;
-    }
+  const renderRows = () => {
+    const rows = [];
+
+    taskList.forEach((task, i) => {
+      rows.push(renderRow(task, `${i + 1}`, false));
+
+      if (expanded[task.id] && task.subTaskList?.length) {
+        task.subTaskList.forEach((subTask, j) => {
+          rows.push(renderRow(subTask, `${i + 1}.${j + 1}`, true));
+        });
+      }
+    });
+
+    return rows;
   };
+
+  if (!tracker) {
+    return (
+      <div className="row mt-4 text-center pb-4">
+        <h5 className="mb-0">No checklist available!</h5>
+      </div>
+    );
+  }
 
   return (
     <>
-      <div className="mx-4">
-        {/* <div className="row mt-1">
-          <div className="d-flex align-items-center justify-content-end p-2">
-            {updateBtn()}
-          </div>
-        </div> */}
-        {ui()}
+      <div className="mx-4 mt-2 pb-4">
+        <div className="table-responsive table-card workflow-table-container">
+          <Table className="align-middle table-nowrap mb-0" hover>
+            <thead className="table-light">
+              <tr>
+                <th scope="col" style={{ width: "60px" }}>
+                  #
+                </th>
+                <th scope="col">Task</th>
+                <th scope="col" style={{ width: "140px" }}>
+                  Status
+                </th>
+                <th scope="col" style={{ width: "170px" }}>
+                  Due Date
+                </th>
+                <th scope="col" style={{ width: "140px" }}>
+                  Date Completed
+                </th>
+                <th scope="col" style={{ width: "160px" }}>
+                  Started By
+                </th>
+                <th scope="col" style={{ width: "160px" }}>
+                  Completed By
+                </th>
+                <th scope="col" style={{ width: "80px" }} className="text-end">
+                  Action
+                </th>
+              </tr>
+            </thead>
+            <tbody>{renderRows()}</tbody>
+          </Table>
+        </div>
       </div>
       {loading && <LoadingPage />}
     </>
