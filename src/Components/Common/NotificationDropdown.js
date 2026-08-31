@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Col, Dropdown, DropdownMenu, DropdownToggle, Row } from 'reactstrap';
 import { useSelector, useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 
 //SimpleBar
 import SimpleBar from "simplebar-react";
@@ -38,6 +39,7 @@ const hasLiveSession = () => {
 
 const NotificationDropdown = () => {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const { formStatus } = useSelector((state) => state.Layout);
 
     const [isNotificationDropdown, setIsNotificationDropdown] = useState(false);
@@ -108,6 +110,25 @@ const NotificationDropdown = () => {
         } catch (error) {
             console.error("error", error);
         }
+    };
+
+    /**
+     * Deep link onto the matter, opening the tab the alert's date relates to.
+     * Real href so it can be copied or opened in a new tab; MatterList reads
+     * these params on load.
+     */
+    const matterHref = (notification) =>
+        `/Matters?matterId=${notification.matterId}&tab=${notification.matterTab || "BASIC"}`;
+
+    const handleMatterClick = (e, notification) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        // Following the link counts as reading it.
+        handleMarkRead(notification);
+        setIsNotificationDropdown(false);
+
+        navigate(matterHref(notification));
     };
 
     const handleMarkAllRead = async () => {
@@ -191,7 +212,12 @@ const NotificationDropdown = () => {
                                             {notification.matterReference && (
                                                 <span className="me-2">
                                                     <i className="mdi mdi-folder-outline"></i>{" "}
-                                                    {notification.matterReference}
+                                                    <a
+                                                        href={matterHref(notification)}
+                                                        onClick={(e) => handleMatterClick(e, notification)}
+                                                    >
+                                                        {notification.matterReference}
+                                                    </a>
                                                 </span>
                                             )}
                                             {notification.targetDate && (

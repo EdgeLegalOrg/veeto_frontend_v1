@@ -32,6 +32,24 @@ export const RECIPIENT_OPTIONS = [
   { value: "CUSTOM", display: "Custom Email" },
 ];
 
+// Tab the alert's matter link opens - the one the date relates to. Keys match
+// matterTabName in utils/Constant, which is what MatterDetail selects on.
+export const MATTER_TAB_OPTIONS = [
+  { value: "BASIC", display: "Matter Summary" },
+  { value: "CHECKLIST", display: "Workflow" },
+  { value: "CONTACTS", display: "Contacts" },
+  { value: "PROPERTY", display: "Property" },
+  { value: "ATTACHMENTS", display: "Attachments" },
+  { value: "TIME_BILLING", display: "Time Billing" },
+  { value: "INVOICES", display: "Invoices" },
+  { value: "CONVEYANCE", display: "Conveyance" },
+  { value: "ESTATE", display: "Estate" },
+  { value: "LEASE", display: "Lease" },
+  { value: "FAMILY_LAW", display: "Family Law" },
+  { value: "BUSINESS_SALE_PURCHASE", display: "Business Sale/Purchase" },
+  { value: "MARRIAGE_DEFACTO", display: "Marriage Defacto" },
+];
+
 const initialState = {
   tableSchema: "",
   tableName: "",
@@ -43,6 +61,7 @@ const initialState = {
   deliveryMethod: "IN_SYSTEM",
   recipientType: "",
   customEmail: "",
+  matterTab: "BASIC",
   isActive: true,
 };
 
@@ -241,6 +260,27 @@ const NotificationForm = (props) => {
               />
               <div className="form-text">Shown as the alert body text.</div>
             </Col>
+
+            {formData.matterIdColumn && (
+              <Col md={12}>
+                <Label className="form-label">Matter Link Opens</Label>
+                <Input
+                  type="select"
+                  name="matterTab"
+                  value={formData.matterTab || "BASIC"}
+                  onChange={handleChange}
+                >
+                  {MATTER_TAB_OPTIONS.map((o) => (
+                    <option key={o.value} value={o.value}>
+                      {o.display}
+                    </option>
+                  ))}
+                </Input>
+                <div className="form-text">
+                  The tab shown when the matter number in the alert is clicked.
+                </div>
+              </Col>
+            )}
 
             <Col md={6}>
               <Label className="form-label">Issue Alert</Label>
