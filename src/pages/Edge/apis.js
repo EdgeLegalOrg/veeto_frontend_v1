@@ -1115,3 +1115,43 @@ export const saveStorageConfigApi = (config) =>
     requestId: uuidv1(),
     data: config,
   });
+
+// Notifications ------------------------------------------------------------
+
+// Every date column in the database, discovered from INFORMATION_SCHEMA.
+export const fetchNotificationDateFields = () =>
+  API.get(`/api/notification/date-fields?requestId=${uuidv1()}`);
+
+export const fetchNotificationDefinitions = () =>
+  API.get(`/api/notification/definition?requestId=${uuidv1()}`);
+
+export const addNotificationDefinition = (formData) =>
+  API.post(`/api/notification/definition`, {
+    requestId: uuidv1(),
+    data: formData,
+  });
+
+export const updateNotificationDefinition = (formData) =>
+  API.put(`/api/notification/definition`, {
+    requestId: uuidv1(),
+    data: formData,
+  });
+
+export const deleteNotificationDefinition = (definitionId) =>
+  API.delete(
+    `/api/notification/definition/${definitionId}?requestId=${uuidv1()}`
+  );
+
+// Header bell feed.
+export const fetchNotifications = () =>
+  API.get(`/api/notification?requestId=${uuidv1()}`);
+
+export const markNotificationRead = (notificationId) =>
+  API.put(`/api/notification/${notificationId}/read?requestId=${uuidv1()}`);
+
+export const markAllNotificationsRead = () =>
+  API.put(`/api/notification/read-all?requestId=${uuidv1()}`);
+
+// Runs the generator on demand rather than waiting for the scheduled job.
+export const generateNotifications = () =>
+  API.post(`/api/notification/generate?requestId=${uuidv1()}`);

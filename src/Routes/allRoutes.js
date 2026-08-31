@@ -37,6 +37,7 @@ import ManageTemplate from '../pages/Edge/components/Admin/Templates/ManageTempl
 import AddTaskList from '../pages/Edge/components/Admin/TaskList/TaskList';
 import ListPage from '../pages/Edge/components/Admin/CheckList/ListPage';
 import LinkedList from '../pages/Edge/components/Admin/LinkToMatter/LinkedList';
+import NotificationList from '../pages/Edge/components/Admin/Notifications/NotificationList';
 import PreviewInvoiceTemplate from '../pages/Edge/components/Matters/InvoiceTab/PreviewInvoiceTemplate';
 import PaymentListPage from '../pages/Edge/components/AccountingSection/PaymentListing/PaymentListingPage';
 import StorageTypePage from 'pages/Edge/components/Admin/Settings/StorageTypePage';
@@ -81,6 +82,7 @@ const authProtectedRoutes = [
   { path: '/admin-checklist-taskList', component: <AddTaskList /> },
   { path: '/admin-checklist-checkList', component: <ListPage /> },
   { path: '/admin-checklist-linkToMatter', component: <LinkedList /> },
+  { path: '/admin-notifications', component: <NotificationList /> },
 
   // User Profile
   { path: '/profile', component: <UserProfile /> },
