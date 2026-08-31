@@ -258,7 +258,21 @@ const NotificationForm = (props) => {
                 value={formData.alertNote || ""}
                 onChange={handleChange}
               />
-              <div className="form-text">Shown as the alert body text.</div>
+              <div className="form-text">
+                Shown as the alert body text. Use{" "}
+                <code>{"{{table.column}}"}</code> for a value, and{" "}
+                <code>{"<<link:Matter…>>"}</code> to hyperlink its contents to
+                the matter. For example:
+                <br />
+                <code>
+                  {
+                    "The {{checklist_task.title}} for Matter <<link:Matter{{matter.matternumber}}>> is due on {{vw_matter_checklist_task_due.dueDate}}."
+                  }
+                </code>
+                <br />
+                Values are read from the record that raised the alert and from
+                its matter, so the column must exist on one of those two.
+              </div>
             </Col>
 
             {formData.matterIdColumn && (

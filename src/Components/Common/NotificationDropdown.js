@@ -132,6 +132,34 @@ const NotificationDropdown = () => {
         navigate(matterHref(notification));
     };
 
+    /**
+     * The body is server-rendered HTML, so its matter anchor is not a React
+     * element and cannot carry its own handler. Catch the click on the way up
+     * and route it, rather than letting the browser do a full page load.
+     */
+    const handleBodyClick = (e, notification) => {
+        const anchor = e.target.closest("a[href]");
+
+        if (!anchor) {
+            return;
+        }
+
+        const href = anchor.getAttribute("href");
+
+        // Only intercept in-app links; anything absolute is left alone.
+        if (!href || !href.startsWith("/")) {
+            return;
+        }
+
+        e.preventDefault();
+        e.stopPropagation();
+
+        handleMarkRead(notification);
+        setIsNotificationDropdown(false);
+
+        navigate(href);
+    };
+
     const handleDismiss = async (e, notification) => {
         e.preventDefault();
         e.stopPropagation();
@@ -232,25 +260,19 @@ const NotificationDropdown = () => {
                                         <h6 className="mt-0 mb-1 fs-13 fw-semibold">
                                             {notification.title}
                                         </h6>
-                                        <div className="fs-13 text-muted">
-                                            <p className="mb-1">
-                                                {notification.body}
-                                                {notification.matterId && (
-                                                    <>
-                                                        {notification.body ? " " : ""}
-                                                        Matter{" "}
-                                                        <a
-                                                            href={matterHref(notification)}
-                                                            onClick={(e) => handleMatterClick(e, notification)}
-                                                            className="fw-semibold"
-                                                        >
-                                                            {notification.matterReference || notification.matterId}
-                                                        </a>
-                                                        .
-                                                    </>
-                                                )}
-                                            </p>
-                                        </div>
+                                        {/*
+                                          The body is HTML built server side, where every
+                                          literal and every substituted value is escaped
+                                          and the only markup emitted is the matter
+                                          anchor. Clicks on those anchors are caught
+                                          below rather than followed, so the router
+                                          handles them and the alert is marked read.
+                                        */}
+                                        <div
+                                            className="fs-13 text-muted notification-body"
+                                            onClick={(e) => handleBodyClick(e, notification)}
+                                            dangerouslySetInnerHTML={{ __html: notification.body || "" }}
+                                        />
                                         {/* The matter link lives in the body text above. */}
                                         <p className="mb-0 fs-11 fw-medium text-uppercase text-muted">
                                             {notification.targetDate && (
