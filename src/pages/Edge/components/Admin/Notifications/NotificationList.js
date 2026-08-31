@@ -15,6 +15,7 @@ import {
   deleteNotificationDefinition,
   fetchNotificationDateFields,
   fetchNotificationDefinitions,
+  generateNotifications,
 } from "../../../apis";
 import NotificationForm, {
   DELIVERY_OPTIONS,
@@ -34,6 +35,7 @@ const NotificationList = () => {
   const [editing, setEditing] = useState(null);
   const [filter, setFilter] = useState("");
   const [fieldsError, setFieldsError] = useState("");
+  const [generating, setGenerating] = useState(false);
 
   useEffect(() => {
     loadAll();
@@ -81,6 +83,37 @@ const NotificationList = () => {
           ? "The notifications API is not available. The backend may be running an older build."
           : "Could not load the list of date fields."
       );
+    }
+  };
+
+  /**
+   * Runs the generator now rather than waiting for the daily job. Safe to press
+   * repeatedly - raising is deduplicated on (definition, source record, day).
+   */
+  const handleGenerate = async () => {
+    setGenerating(true);
+
+    try {
+      const { data } = await generateNotifications();
+
+      if (data.success) {
+        const raised = data.data || 0;
+
+        if (raised > 0) {
+          toast.success(
+            `${raised} notification${raised === 1 ? "" : "s"} raised.`
+          );
+        } else {
+          toast.info("No notifications were due today.");
+        }
+      } else {
+        toast.error("Something went wrong, please try later.");
+      }
+    } catch (error) {
+      console.error("error", error);
+      toast.error("Something went wrong, please try later.");
+    } finally {
+      setGenerating(false);
     }
   };
 
@@ -173,6 +206,14 @@ const NotificationList = () => {
                   value={filter}
                   onChange={(e) => setFilter(e.target.value)}
                 />
+                <Button
+                  color="soft-primary"
+                  onClick={handleGenerate}
+                  disabled={generating}
+                  title="Raise any alerts due today without waiting for the daily job"
+                >
+                  {generating ? "Generating..." : "Generate Now"}
+                </Button>
                 <Button color="success" onClick={handleAdd}>
                   Add
                 </Button>
