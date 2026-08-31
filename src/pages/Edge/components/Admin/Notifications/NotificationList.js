@@ -33,6 +33,7 @@ const NotificationList = () => {
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [filter, setFilter] = useState("");
+  const [fieldsError, setFieldsError] = useState("");
 
   useEffect(() => {
     loadAll();
@@ -65,9 +66,21 @@ const NotificationList = () => {
 
       if (data.success) {
         setDateFields(data.data?.dateFieldList || []);
+        setFieldsError("");
+      } else {
+        setFieldsError(
+          data?.error?.message || "Could not load the list of date fields."
+        );
       }
     } catch (error) {
       console.error("error", error);
+      // Surface this: without it the picker is simply empty with no
+      // explanation of why.
+      setFieldsError(
+        error?.response?.status === 404
+          ? "The notifications API is not available. The backend may be running an older build."
+          : "Could not load the list of date fields."
+      );
     }
   };
 
@@ -167,6 +180,11 @@ const NotificationList = () => {
             </div>
           </CardHeader>
           <CardBody>
+            {fieldsError && (
+              <div className="alert alert-warning" role="alert">
+                {fieldsError}
+              </div>
+            )}
             <div className="table-responsive table-card">
               <Table className="align-middle table-nowrap mb-0" hover>
                 <thead className="table-light">
