@@ -1152,6 +1152,10 @@ export const markNotificationRead = (notificationId) =>
 export const markAllNotificationsRead = () =>
   API.put(`/api/notification/read-all?requestId=${uuidv1()}`);
 
+// Soft delete - the row is kept so the generator does not re-raise the alert.
+export const dismissNotification = (notificationId) =>
+  API.delete(`/api/notification/${notificationId}?requestId=${uuidv1()}`);
+
 // Runs the generator on demand rather than waiting for the scheduled job.
 export const generateNotifications = () =>
   API.post(`/api/notification/generate?requestId=${uuidv1()}`);

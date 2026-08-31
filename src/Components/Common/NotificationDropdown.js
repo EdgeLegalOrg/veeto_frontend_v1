@@ -11,6 +11,7 @@ import { jwtDecode } from "jwt-decode";
 
 import { updateFormStatusAction } from "slices/layouts/reducer";
 import {
+    dismissNotification,
     fetchNotifications,
     markAllNotificationsRead,
     markNotificationRead,
@@ -131,6 +132,25 @@ const NotificationDropdown = () => {
         navigate(matterHref(notification));
     };
 
+    const handleDismiss = async (e, notification) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        try {
+            const { data } = await dismissNotification(notification.id);
+
+            if (data.success) {
+                setNotifications((prev) => prev.filter((n) => n.id !== notification.id));
+
+                if (!notification.isRead) {
+                    setUnreadCount((prev) => (prev > 0 ? prev - 1 : 0));
+                }
+            }
+        } catch (error) {
+            console.error("error", error);
+        }
+    };
+
     const handleMarkAllRead = async () => {
         try {
             const { data } = await markAllNotificationsRead();
@@ -151,7 +171,7 @@ const NotificationDropdown = () => {
                     <i className='bx bx-bell fs-22'></i>
                     {unreadCount > 0 && (
                         <span
-                            className="position-absolute topbar-badge fs-10 translate-middle badge rounded-pill bg-danger">
+                            className="position-absolute topbar-badge fs-10 translate-middle badge rounded-pill bg-danger text-white">
                             {unreadCount}
                             <span className="visually-hidden">unread notifications</span>
                         </span>
@@ -165,7 +185,16 @@ const NotificationDropdown = () => {
                                     <h6 className="m-0 fs-16 fw-semibold text-white"> Notifications </h6>
                                 </Col>
                                 <div className="col-auto dropdown-tabs">
-                                    <span className="badge bg-light-subtle fs-13"> {unreadCount} New</span>
+                                    {/*
+                                      bg-light-subtle is near white and the header sets
+                                      white text, so the count has to state its own
+                                      colour or it disappears in light mode.
+                                    */}
+                                    <span
+                                        className={`badge bg-light-subtle fs-13 ${unreadCount > 0 ? "text-danger" : "text-dark"}`}
+                                    >
+                                        {unreadCount} New
+                                    </span>
                                 </div>
                             </Row>
                         </div>
@@ -203,23 +232,27 @@ const NotificationDropdown = () => {
                                         <h6 className="mt-0 mb-1 fs-13 fw-semibold">
                                             {notification.title}
                                         </h6>
-                                        {notification.body && (
-                                            <div className="fs-13 text-muted">
-                                                <p className="mb-1">{notification.body}</p>
-                                            </div>
-                                        )}
+                                        <div className="fs-13 text-muted">
+                                            <p className="mb-1">
+                                                {notification.body}
+                                                {notification.matterId && (
+                                                    <>
+                                                        {notification.body ? " " : ""}
+                                                        Matter{" "}
+                                                        <a
+                                                            href={matterHref(notification)}
+                                                            onClick={(e) => handleMatterClick(e, notification)}
+                                                            className="fw-semibold"
+                                                        >
+                                                            {notification.matterReference || notification.matterId}
+                                                        </a>
+                                                        .
+                                                    </>
+                                                )}
+                                            </p>
+                                        </div>
+                                        {/* The matter link lives in the body text above. */}
                                         <p className="mb-0 fs-11 fw-medium text-uppercase text-muted">
-                                            {notification.matterReference && (
-                                                <span className="me-2">
-                                                    <i className="mdi mdi-folder-outline"></i>{" "}
-                                                    <a
-                                                        href={matterHref(notification)}
-                                                        onClick={(e) => handleMatterClick(e, notification)}
-                                                    >
-                                                        {notification.matterReference}
-                                                    </a>
-                                                </span>
-                                            )}
                                             {notification.targetDate && (
                                                 <span>
                                                     <i className="mdi mdi-clock-outline"></i>{" "}
@@ -228,11 +261,20 @@ const NotificationDropdown = () => {
                                             )}
                                         </p>
                                     </div>
-                                    {!notification.isRead && (
-                                        <div className="px-2 fs-15">
-                                            <span className="badge bg-danger-subtle text-danger">New</span>
-                                        </div>
-                                    )}
+                                    <div className="d-flex align-items-start flex-shrink-0">
+                                        {!notification.isRead && (
+                                            <span className="badge bg-danger-subtle text-danger me-2">New</span>
+                                        )}
+                                        <button
+                                            type="button"
+                                            className="btn btn-sm btn-ghost-secondary p-0 px-1 lh-1"
+                                            title="Dismiss this notification"
+                                            aria-label="Dismiss this notification"
+                                            onClick={(e) => handleDismiss(e, notification)}
+                                        >
+                                            <i className="ri-close-line fs-16"></i>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         ))}
