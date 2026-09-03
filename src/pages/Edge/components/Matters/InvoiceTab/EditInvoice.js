@@ -102,43 +102,71 @@ const EditInvoice = (props) => {
     }
   };
 
+  const constructAddress = (details) => {
+    if (!details) return "";
+    const parts = [
+      details.mailingAddress1 || details.commAddress1 || "",
+      details.mailingAddress2 || details.commAddress2 || "",
+      details.mailingCity || details.commCity || "",
+      details.mailingState || details.commState || "",
+      details.mailingPostCode || details.commPostCode || "",
+      details.mailingCountry || details.commCountry || "",
+    ].filter(Boolean);
+    return parts.join(", ");
+  };
+
   const parseContactList = (arg) => {
     let arr = [];
+    if (!arg || !Array.isArray(arg)) return;
     arg.forEach((a) => {
+      const details = a.contactDetails || {};
+      const fullAddr =
+        a.fullAddress ||
+        details.fullAddress ||
+        constructAddress(details);
+
       if (a.contactType === "ORGANISATION") {
-        if (a.contactDetails) {
+        const orgName =
+          details.organisation ||
+          details.companyName ||
+          a.organisation ||
+          a.display ||
+          "";
+        if (orgName) {
           arr.push({
-            display: `${a.contactDetails.companyName || ""}`,
+            display: orgName,
             value: a.contactId,
             type: a.contactType,
             valueKey: `${a.contactType}-${a.contactId}`,
-            fullAddress: a.fullAddress,
-            address1: a.contactDetails.mailingAddress1,
-            address2: a.contactDetails.mailingAddress2,
-            address3: a.contactDetails.mailingAddress3,
-            country: a.contactDetails.mailingCountry,
-            state: a.contactDetails.mailingState,
-            city: a.contactDetails.mailingCity,
-            postCode: a.contactDetails.mailingPostCode,
+            fullAddress: fullAddr,
+            address1: details.mailingAddress1 || details.commAddress1,
+            address2: details.mailingAddress2 || details.commAddress2,
+            address3: details.mailingAddress3 || details.commAddress3,
+            country: details.mailingCountry || details.commCountry,
+            state: details.mailingState || details.commState,
+            city: details.mailingCity || details.commCity,
+            postCode: details.mailingPostCode || details.commPostCode,
           });
         }
       } else {
-        if (a.contactDetails) {
+        const firstName = details.firstName || a.firstName || "";
+        const middleName = details.middleName ? ` ${details.middleName} ` : " ";
+        const lastName = details.lastName || a.lastName || "";
+        const fullName = `${firstName}${middleName}${lastName}`.trim() || a.display || "";
+        if (fullName) {
           arr.push({
-            display: `${a.contactDetails.firstName || ""} ${
-              a.contactDetails.lastName || ""
-            }`,
+            display: fullName,
             value: a.contactId,
             type: a.contactType,
             valueKey: `${a.contactType}-${a.contactId}`,
-            fullAddress: a.fullAddress,
-            address1: a.contactDetails.mailingAddress1,
-            address2: a.contactDetails.mailingAddress2,
-            address3: a.contactDetails.mailingAddress3,
-            country: a.contactDetails.mailingCountry,
-            state: a.contactDetails.mailingState,
-            city: a.contactDetails.mailingCity,
-            postCode: a.contactDetails.mailingPostCode,
+            fullAddress: fullAddr,
+            address1: details.mailingAddress1 || details.commAddress1,
+            address2: details.mailingAddress2 || details.commAddress2,
+            address3: details.mailingAddress3 || details.commAddress3,
+            country: details.mailingCountry || details.commCountry,
+            state: details.mailingState || details.commState,
+            city: details.mailingCity || details.commCity,
+            postCode: details.mailingPostCode || details.commPostCode,
           });
         }
       }
@@ -285,6 +313,33 @@ const EditInvoice = (props) => {
         ...invoiceData,
         matterId: props?.data?.id,
       };
+    }
+
+    if (!invoiceData.fullAddress && (invoiceData.address1 || invoiceData.city)) {
+      const parts = [
+        invoiceData.address1,
+        invoiceData.address2,
+        invoiceData.city,
+        invoiceData.state,
+        invoiceData.postCode,
+        invoiceData.country,
+      ].filter(Boolean);
+      if (parts.length > 0) {
+        invoiceData.fullAddress = parts.join(", ");
+      }
+    }
+
+    if (!invoiceData.fullAddress && invoiceData.billToList?.length && contactList?.length) {
+      const match = contactList.find(c => c.display === invoiceData.billToList[0]?.billTo || (c.value === invoiceData.billToList[0]?.contactId && c.type === invoiceData.billToList[0]?.contactType));
+      if (match?.fullAddress) {
+        invoiceData.fullAddress = match.fullAddress;
+        invoiceData.address1 = invoiceData.address1 || match.address1;
+        invoiceData.address2 = invoiceData.address2 || match.address2;
+        invoiceData.city = invoiceData.city || match.city;
+        invoiceData.state = invoiceData.state || match.state;
+        invoiceData.postCode = invoiceData.postCode || match.postCode;
+        invoiceData.country = invoiceData.country || match.country;
+      }
     }
 
     if (
@@ -628,6 +683,7 @@ const EditInvoice = (props) => {
           close={handleCloseTab}
           contactList={contactList}
           onChange={handleChange}
+          onSelectAddress={(addr) => setFormData(prev => ({ ...prev, ...addr }))}
           selectedList={formData.billToList}
         />
         <Address
