@@ -19,6 +19,10 @@ import LoadingPage from "../../../../utils/LoadingPage";
 import { toast } from "react-toastify";
 import ResponseAlert from "./ResponseAlert";
 import Pagination from "../../../Pagination";
+import upArrow from "../../../../images/upArrow.svg";
+import downArrow from "../../../../images/downArrow.svg";
+import upArrowColoured from "../../../../images/upArrowColoured.svg";
+import downArrowColoured from "../../../../images/downArrowColoured.svg";
 
 const InvoiceList = (props) => {
   const [list, setList] = useState([]);
@@ -30,6 +34,8 @@ const InvoiceList = (props) => {
   const [pageSize, setPageSize] = useState(100);
   const [totalRecords, setTotalRecords] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
+  const [sortField, setSortField] = useState("invoiceNumber");
+  const [sortOrder, setSortOrder] = useState("desc");
   const [filterInput, setFilterInput] = useState({
     invoiceNumber: "",
     matterNumber: "",
@@ -51,12 +57,12 @@ const InvoiceList = (props) => {
   }, []);
 
   useEffect(() => {
-    fetchInvoiceList(pageNo, pageSize, filterInput);
+    fetchInvoiceList(pageNo, pageSize, filterInput, sortField, sortOrder);
   }, [pageNo, pageSize]);
 
   useEffect(() => {
     if (props.refreshList) {
-      fetchInvoiceList(pageNo, pageSize, filterInput);
+      fetchInvoiceList(pageNo, pageSize, filterInput, sortField, sortOrder);
     }
   }, [props.refreshList]);
 
@@ -68,7 +74,21 @@ const InvoiceList = (props) => {
   const handleSearch = (filters = filterInput) => {
     setSelected([]);
     setPageNo(0);
-    fetchInvoiceList(0, pageSize, filters);
+    fetchInvoiceList(0, pageSize, filters, sortField, sortOrder);
+  };
+
+  const handleSortByLabel = (field) => {
+    if (sortField !== field) {
+      setSortField(field);
+      setSortOrder("asc");
+      setPageNo(0);
+      fetchInvoiceList(0, pageSize, filterInput, field, "asc");
+    } else {
+      const newOrder = sortOrder === "asc" ? "desc" : "asc";
+      setSortOrder(newOrder);
+      setPageNo(0);
+      fetchInvoiceList(0, pageSize, filterInput, field, newOrder);
+    }
   };
   const handleInvoiceStatusChange = (e) => {
     const updated = {
@@ -84,13 +104,15 @@ const InvoiceList = (props) => {
     setFilterInput(reset);
     setSelected([]);
     setPageNo(0);
-    fetchInvoiceList(0, pageSize, reset);
+    setSortField("invoiceNumber");
+    setSortOrder("desc");
+    fetchInvoiceList(0, pageSize, reset, "invoiceNumber", "desc");
   };
 
-  const fetchInvoiceList = async (page = pageNo, size = pageSize, filters = filterInput) => {
+  const fetchInvoiceList = async (page = pageNo, size = pageSize, filters = filterInput, sortF = sortField, sortO = sortOrder) => {
     setLoading(true);
     try {
-      const { data } = await getEligibleInvoice({ page, pageSize: size, ...filters });
+      const { data } = await getEligibleInvoice({ page, pageSize: size, sortOn: sortF, sortType: sortO.toUpperCase(), ...filters });
       if (!data.success) {
         toast.warning("Something went wrong, please try later.");
         return;
@@ -185,6 +207,23 @@ const InvoiceList = (props) => {
     }
   };
 
+  const renderSortIcon = (field) => (
+    <div className="associatedContacts-label-btn labelCursor d-inline-flex ml-1">
+      <img
+        src={sortOrder === "asc" && sortField === field ? upArrowColoured : upArrow}
+        alt="asc"
+        className="label-btn-img-1"
+        style={{ width: "10px", height: "8px" }}
+      />
+      <img
+        src={sortOrder === "desc" && sortField === field ? downArrowColoured : downArrow}
+        alt="desc"
+        className="label-btn-img-2"
+        style={{ width: "10px", height: "8px" }}
+      />
+    </div>
+  );
+
   const ui = () => {
     if (props.active) {
       return (
@@ -203,8 +242,9 @@ const InvoiceList = (props) => {
                     />
                   </th>
                   <th>
-                    <div className="d-flex">
-                      <label>Invoice No.</label>
+                    <div className="d-flex align-items-center labelCursor" onClick={() => handleSortByLabel("invoiceNumber")} style={{ cursor: "pointer" }}>
+                      <label style={{ cursor: "pointer", marginBottom: 0 }}>Invoice No.</label>
+                      {renderSortIcon("invoiceNumber")}
                     </div>
                     <Input
                       type="text"
@@ -216,8 +256,9 @@ const InvoiceList = (props) => {
                     />
                   </th>
                   <th>
-                    <div className="d-flex">
-                      <label>Matter No.</label>
+                    <div className="d-flex align-items-center labelCursor" onClick={() => handleSortByLabel("matterNumber")} style={{ cursor: "pointer" }}>
+                      <label style={{ cursor: "pointer", marginBottom: 0 }}>Matter No.</label>
+                      {renderSortIcon("matterNumber")}
                     </div>
                     <Input
                       type="text"
@@ -229,8 +270,9 @@ const InvoiceList = (props) => {
                     />
                   </th>
                   <th>
-                    <div className="d-flex">
-                      <label>Date</label>
+                    <div className="d-flex align-items-center labelCursor" onClick={() => handleSortByLabel("invoiceDate")} style={{ cursor: "pointer" }}>
+                      <label style={{ cursor: "pointer", marginBottom: 0 }}>Date</label>
+                      {renderSortIcon("invoiceDate")}
                     </div>
                     <Input
                       type="date"
@@ -244,8 +286,9 @@ const InvoiceList = (props) => {
                     />
                   </th>
                   <th>
-                    <div className="d-flex">
-                      <label>Total Amount</label>
+                    <div className="d-flex align-items-center labelCursor" onClick={() => handleSortByLabel("totalAmount")} style={{ cursor: "pointer" }}>
+                      <label style={{ cursor: "pointer", marginBottom: 0 }}>Total Amount</label>
+                      {renderSortIcon("totalAmount")}
                     </div>
                     <Input
                       type="text"
@@ -257,8 +300,9 @@ const InvoiceList = (props) => {
                     />
                   </th>
                   <th>
-                    <div className="d-flex">
-                      <label>Invoice Status</label>
+                    <div className="d-flex align-items-center labelCursor" onClick={() => handleSortByLabel("status")} style={{ cursor: "pointer" }}>
+                      <label style={{ cursor: "pointer", marginBottom: 0 }}>Invoice Status</label>
+                      {renderSortIcon("status")}
                     </div>
                     <Input
                       type="select"
