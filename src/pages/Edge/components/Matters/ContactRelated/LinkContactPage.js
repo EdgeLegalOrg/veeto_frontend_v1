@@ -1,6 +1,6 @@
 import React, { useState, useEffect, Fragment } from "react";
 import { Button, Input } from "reactstrap";
-import { fetchAllContactsFromDb, linkMatterContact } from "../../../apis";
+import { fetchAllContactsFromDb, linkMatterContact, fetchMatterRole } from "../../../apis";
 import LoadingPage from "../../../utils/LoadingPage";
 import { toast } from "react-toastify";
 import { CustomDropDown } from "../../InputField";
@@ -52,13 +52,36 @@ const LinkContactPage = (props) => {
 
   const [loading, setLoading] = useState(false);
 
-  const fetchRoles = (arg) => {
-    let list = JSON.parse(window.localStorage.getItem("matterContactRole"));
-    let roles = list.filter(
-      (d) => d.type === arg.type && d.subType === arg.subType
+  const matchType = (t1, t2) => {
+    if (!t1 || !t2) return false;
+    return (
+      t1.toString().toLowerCase().replace(/[_s-]/g, "") ===
+      t2.toString().toLowerCase().replace(/[_s-]/g, "")
     );
-    if (roles && roles[0]?.contactRoleList?.length > 0) {
-      setRoleList(roles[0]?.contactRoleList);
+  };
+
+  const fetchRoles = async (arg) => {
+    if (!arg) return;
+    let list = JSON.parse(window.localStorage.getItem("matterContactRole"));
+    if (!list || !Array.isArray(list) || list.length === 0 || !list[0]?.contactRoleList) {
+      try {
+        const res = await fetchMatterRole();
+        if (res?.data?.success && res?.data?.data?.matterTypeList) {
+          list = res.data.data.matterTypeList;
+          window.localStorage.setItem("matterContactRole", JSON.stringify(list));
+        }
+      } catch (err) {
+        console.error("Failed to fetch matter roles from API", err);
+      }
+    }
+
+    if (list && Array.isArray(list)) {
+      let roles = list.filter(
+        (d) => matchType(d.type, arg.type) && matchType(d.subType, arg.subType)
+      );
+      if (roles && roles[0]?.contactRoleList?.length > 0) {
+        setRoleList(roles[0]?.contactRoleList);
+      }
     }
   };
 
@@ -173,10 +196,10 @@ const LinkContactPage = (props) => {
           handleSubmit(req);
         }, 10);
       } else {
-        // toast.warning("Please select any role");
+        toast.warning("Please select at least one role checkbox.");
       }
     } else {
-      // toast.warning("Please select any contact");
+      toast.warning("Please select a contact from the dropdown.");
     }
   };
 

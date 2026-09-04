@@ -260,7 +260,7 @@ const AppStarter = (props) => {
           data?.data?.paymentTypeList?.length > 0
         ) {
           window.localStorage.setItem(
-            "matterContactRole",
+            "paymentTypeList",
             JSON.stringify(data.data.paymentTypeList)
           );
           await parsePaymentSubType(data.data.paymentTypeList);

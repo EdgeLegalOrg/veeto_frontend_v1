@@ -43,7 +43,7 @@ const ReceivedPaymentDetails = (props) => {
               </td>
               <td>
                 <p className="mb-0">
-                  {formatCurrency(payment.totalPaymentAmount)}
+                  {formatCurrency(payment.totalPaymentAmount != null ? payment.totalPaymentAmount : payment.amount)}
                 </p>
               </td>
               <td>
