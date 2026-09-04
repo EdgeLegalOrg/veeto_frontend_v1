@@ -331,6 +331,15 @@ export const updateMatterChecklist = (formData) =>
     data: formData,
   });
 
+// Applies a single Workflow task action (status transition or due date edit)
+// and persists it immediately. Responds with the refreshed tracker, including
+// its new checksum.
+export const updateMatterChecklistTaskAction = (formData) =>
+  API.put(`/api/matter/checklist/task`, {
+    requestId: uuidv1(),
+    data: formData,
+  });
+
 // Contacts
 export const allContacts = (filterData) =>
   API.get(
@@ -1108,3 +1117,47 @@ export const saveStorageConfigApi = (config) =>
     requestId: uuidv1(),
     data: config,
   });
+
+// Notifications ------------------------------------------------------------
+
+// Every date column in the database, discovered from INFORMATION_SCHEMA.
+export const fetchNotificationDateFields = () =>
+  API.get(`/api/notification/date-fields?requestId=${uuidv1()}`);
+
+export const fetchNotificationDefinitions = () =>
+  API.get(`/api/notification/definition?requestId=${uuidv1()}`);
+
+export const addNotificationDefinition = (formData) =>
+  API.post(`/api/notification/definition`, {
+    requestId: uuidv1(),
+    data: formData,
+  });
+
+export const updateNotificationDefinition = (formData) =>
+  API.put(`/api/notification/definition`, {
+    requestId: uuidv1(),
+    data: formData,
+  });
+
+export const deleteNotificationDefinition = (definitionId) =>
+  API.delete(
+    `/api/notification/definition/${definitionId}?requestId=${uuidv1()}`
+  );
+
+// Header bell feed.
+export const fetchNotifications = () =>
+  API.get(`/api/notification?requestId=${uuidv1()}`);
+
+export const markNotificationRead = (notificationId) =>
+  API.put(`/api/notification/${notificationId}/read?requestId=${uuidv1()}`);
+
+export const markAllNotificationsRead = () =>
+  API.put(`/api/notification/read-all?requestId=${uuidv1()}`);
+
+// Soft delete - the row is kept so the generator does not re-raise the alert.
+export const dismissNotification = (notificationId) =>
+  API.delete(`/api/notification/${notificationId}?requestId=${uuidv1()}`);
+
+// Runs the generator on demand rather than waiting for the scheduled job.
+export const generateNotifications = () =>
+  API.post(`/api/notification/generate?requestId=${uuidv1()}`);

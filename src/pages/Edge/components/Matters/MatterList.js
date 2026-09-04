@@ -45,6 +45,7 @@ import { resetCurrentRouterState } from "../../../../slices/thunks.js";
 import {
   updateFormStatusAction,
   resetFormStatusAction,
+  navigationEditFormAction,
 } from "slices/layouts/reducer";
 import { fetchStorageType } from "slices/storage/reducer";
 
@@ -162,6 +163,31 @@ const MatterList = () => {
       fetchMatterDetail(navigationEditForm.currentFormValue.matterId);
     }
   }, [navigationEditForm]);
+
+  /**
+   * Deep link support for /Matters?matterId=123&tab=CHECKLIST, used by the
+   * notification bell and by the matter links in notification emails. Routed
+   * through navigationEditFormAction because that is what MatterDetail already
+   * reads to pick the opening tab.
+   */
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const matterId = params.get("matterId");
+
+    if (!matterId || isNaN(Number(matterId))) {
+      return;
+    }
+
+    dispatch(
+      navigationEditFormAction({
+        currentValue: {
+          matterId: Number(matterId),
+          tab: params.get("tab") || "BASIC",
+        },
+        newValue: null,
+      })
+    );
+  }, [location.search, dispatch]);
 
   const fetchMatterDetail = async (id) => {
     let rval = {};

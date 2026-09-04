@@ -61,6 +61,7 @@ const MatterDetail = (props) => {
   const { staffList, refresh, refreshListing } = props;
   const [data, setData] = useState(props.data);
   const [selected, setSelected] = useState("");
+  const defaultTabApplied = useRef(false);
   const [displayTab, setDisplayTab] = useState([]);
   const [loading, setLoading] = useState(false);
   const [extraButtons, setExtraButtons] = useState(null);
@@ -132,6 +133,16 @@ const MatterDetail = (props) => {
       let arr = Object.keys(tabToDisplay[0].tabsToDisplay);
       arr = ["CHECKLIST", ...arr];
       setDisplayTab(arr);
+    }
+
+    // Open on Workflow when the matter has a checklist assigned, otherwise on
+    // Matter Summary. Applied once only, so refreshing after a save does not
+    // bounce the user off whichever tab they are currently on.
+    if (!defaultTabApplied.current) {
+      defaultTabApplied.current = true;
+      setSelected(
+        arg?.checklistTracker?.taskList?.length > 0 ? "CHECKLIST" : "BASIC"
+      );
     }
 
     setData(arg);
