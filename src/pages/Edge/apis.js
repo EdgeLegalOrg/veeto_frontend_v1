@@ -104,8 +104,8 @@ export const generatePrecedentApi = (obj) =>
     `/api/document/generatePrecedentDocument?precedentId=${
       obj.docId
     }&matterId=${obj.matterId}&basePrecedentId=${
-      obj.basePrecedentId
-    }&requestId=${uuidv1()}`,
+      obj.basePrecedentId || ""
+    }&isForm=${obj.isForm ? "true" : "false"}&requestId=${uuidv1()}`,
     {
       responseType: "blob",
     }
@@ -722,7 +722,9 @@ export const getEligibleInvoice = (filters = {}) =>
       filters?.matterNumber || ""
     }&status=${filters?.status || ""}&invoiceDate=${
       filters?.invoiceDate || ""
-    }&totalAmount=${filters?.totalAmount || ""}&page=${filters?.page || 0}&pageSize=${filters?.pageSize || 100}&requestId=${uuidv1()}`
+    }&totalAmount=${filters?.totalAmount || ""}&page=${filters?.page || 0}&pageSize=${
+      filters?.pageSize || 100
+    }&sortOn=${filters?.sortOn || "invoiceNumber"}&sortType=${filters?.sortType || "DESC"}&requestId=${uuidv1()}`
   );
 
 export const uploadInvoiceToXero = (formData) =>
@@ -740,7 +742,7 @@ export const getEligiblePayments = (filters = {}) =>
       filters?.matterNumber || ""
     }&paymentDate=${filters?.paymentDate || ""}&amount=${filters?.amount || ""}&paymentType=${
       filters?.paymentType || ""
-    }&page=${filters?.page || 0}&pageSize=${filters?.pageSize || 100}&requestId=${uuidv1()}`
+    }&page=${filters?.page || 0}&pageSize=${filters?.pageSize || 100}&sortOn=${filters?.sortOn || "paymentDate"}&sortType=${filters?.sortType || "DESC"}&requestId=${uuidv1()}`
   );
 
 export const uploadPaymentToXero = (formData) =>

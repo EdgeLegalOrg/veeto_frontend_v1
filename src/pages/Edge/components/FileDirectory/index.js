@@ -225,7 +225,11 @@ const FileDirectoryModal = ({
         const arr = [];
         specific.forEach((d) => arr.push({ display: d.name, value: d.id }));
         if (defaults.length > 0) {
-          arr.push({ display: "Defaults", value: "__separator__", disabled: true });
+          arr.push({
+            display: "Defaults",
+            value: "__separator__",
+            disabled: true,
+          });
           defaults.forEach((d) => arr.push({ display: d.name, value: d.id }));
         }
 
@@ -384,15 +388,18 @@ const FileDirectoryModal = ({
   const generatePrecedent = async () => {
     setLoading(true);
     setSubmitted(true);
-    if (!selectedBaseTemplate) {
+    const isForm = modal?.type === "FORM";
+    if (!isForm && !selectedBaseTemplate) {
       setLoading(false);
+      toast.error("No base template found.");
       return;
     }
     if (selectedFile) {
       let obj = {
         matterId: matterData?.id,
         docId: selectedFile.id,
-        basePrecedentId: selectedBaseTemplate,
+        basePrecedentId: isForm ? "" : (selectedBaseTemplate || ""),
+        isForm: isForm,
       };
       try {
         const { data } = await generatePrecedentApi(obj);
@@ -411,7 +418,7 @@ const FileDirectoryModal = ({
         setSubmitted(false);
       } catch (error) {
         console.error("error", error);
-        toast.error("An error occured. Unable to download file.");
+        toast.error("An error occurred. Unable to download file.");
         setLoading(false);
       }
     } else {
