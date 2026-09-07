@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Dropdown, DropdownMenu, DropdownToggle, Form } from "reactstrap";
 
@@ -28,6 +28,62 @@ const Header = ({ onChangeLayoutMode, layoutModeType, headerClass }) => {
   const sidebarVisibilitytype = useSelector(selectSidebarVisibility);
 
   const [search, setSearch] = useState(false);
+  const [activeSiteDisplay, setActiveSiteDisplay] = useState("");
+
+  const updateActiveSiteDisplay = () => {
+    try {
+      const userDetails = JSON.parse(localStorage.getItem("userDetails") || "{}");
+      const companyInfo = JSON.parse(localStorage.getItem("companyInfo") || "{}");
+
+      const currentSiteId = userDetails.siteId;
+      const siteList = companyInfo.siteInfoList || userDetails.siteInfoList || [];
+      const companyName = companyInfo.companyName || userDetails.organizationName || "";
+
+      const activeSite = siteList.find(
+        (s) => s.id === currentSiteId || s.siteId === currentSiteId
+      );
+
+      if (activeSite) {
+        const siteCode =
+          activeSite.siteCode ||
+          (activeSite.id
+            ? String(activeSite.id).padStart(2, "0")
+            : activeSite.siteId
+            ? String(activeSite.siteId).padStart(2, "0")
+            : "");
+        const siteName = activeSite.siteName || activeSite.name || "";
+        if (siteCode && siteName) {
+          setActiveSiteDisplay(`(${siteCode} - ${siteName}) ${companyName}`.trim());
+        } else if (siteName) {
+          setActiveSiteDisplay(`(${siteName}) ${companyName}`.trim());
+        } else {
+          setActiveSiteDisplay(`${companyName}`.trim());
+        }
+      } else if (userDetails.siteName) {
+        setActiveSiteDisplay(`(${userDetails.siteName}) ${companyName}`.trim());
+      } else if (companyName) {
+        setActiveSiteDisplay(companyName);
+      }
+    } catch (err) {
+      console.error("Error reading active site info:", err);
+    }
+  };
+
+  useEffect(() => {
+    updateActiveSiteDisplay();
+
+    const handleSiteChange = () => {
+      updateActiveSiteDisplay();
+    };
+
+    window.addEventListener("siteChanged", handleSiteChange);
+    window.addEventListener("storage", handleSiteChange);
+
+    return () => {
+      window.removeEventListener("siteChanged", handleSiteChange);
+      window.removeEventListener("storage", handleSiteChange);
+    };
+  }, []);
 
   const toogleSearch = () => {
     setSearch(!search);
@@ -165,6 +221,16 @@ const Header = ({ onChangeLayoutMode, layoutModeType, headerClass }) => {
 
               {/* NotificationDropdown */}
               <NotificationDropdown />
+
+              {/* Active Site Badge */}
+              {activeSiteDisplay && (
+                <div className="active-site-badge d-flex align-items-center me-3 px-3 py-1 bg-light border rounded">
+                  <i className="ri-building-line text-primary me-2 fs-15"></i>
+                  <span className="fw-semibold text-primary fs-13">
+                    {activeSiteDisplay}
+                  </span>
+                </div>
+              )}
 
               {/* ProfileDropdown */}
               <ProfileDropdown />
