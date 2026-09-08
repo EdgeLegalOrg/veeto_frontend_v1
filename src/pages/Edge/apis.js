@@ -1191,6 +1191,15 @@ export const saveChecklistTaskGroup = (groupData, iconFile) => {
 export const deleteChecklistTaskGroup = (groupId) =>
   API.delete(`/api/checklist/task-group/${groupId}?requestId=${uuidv1()}`);
 
+// Global search -----------------------------------------------------------
+
+// limit is per section: the header dropdown asks for a few, the results page
+// for more.
+export const globalSearch = (term, limit = 5) =>
+  API.get(
+    `/api/search?q=${encodeURIComponent(term)}&limit=${limit}&requestId=${uuidv1()}`
+  );
+
 // Task group comments, per matter -----------------------------------------
 
 export const fetchTaskGroupComments = (trackerId, taskGroupId) =>
