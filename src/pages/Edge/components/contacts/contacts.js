@@ -1,4 +1,5 @@
 import React, { useEffect, useState, Fragment } from "react";
+import { useLocation } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { OverlayTrigger, Tooltip } from "react-bootstrap";
 import {
@@ -97,6 +98,9 @@ const ConfirmationPopup = (props) => {
 function Contacts(props) {
   document.title = "Contacts | Veeto";
   const dispatch = useDispatch();
+  // Named routerLocation to avoid shadowing props.location, which this
+  // component already reads for its aboutProps handoff.
+  const routerLocation = useLocation();
   const { currentRouterState, navigationEditForm } = useSelector(
     (state) => state.Layout
   );
@@ -149,6 +153,29 @@ function Contacts(props) {
       setSelectedContact(navigationEditForm.currentFormValue);
     }
   }, [navigationEditForm]);
+
+  /**
+   * Deep link support for /Contacts?contactId=123&contactType=PERSON, used by
+   * the global search results.
+   *
+   * SingleContact only reads contactId and contactType off the contact it is
+   * given and fetches the record itself, so there is nothing to look up here -
+   * which also means this works for a contact on any page of the list.
+   */
+  useEffect(() => {
+    const params = new URLSearchParams(routerLocation.search);
+    const contactId = params.get("contactId");
+    const contactType = params.get("contactType");
+
+    if (!contactId || isNaN(Number(contactId)) || !contactType) {
+      return;
+    }
+
+    setSelectedContact({
+      contactId: Number(contactId),
+      contactType: contactType.toUpperCase(),
+    });
+  }, [routerLocation.search]);
 
   useEffect(() => {
     if (currentRouterState) {

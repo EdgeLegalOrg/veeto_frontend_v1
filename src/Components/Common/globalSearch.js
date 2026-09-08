@@ -19,10 +19,9 @@ export const SECTION_ICON = {
 /**
  * Where a result goes when clicked.
  *
- * Matters and Safe Custody open the record itself - Matters through the query
- * params MatterList already reads, Safe Custody through its own detail route.
- * Contacts and Property carry the record id, which those pages do not read yet,
- * so today they land on the list.
+ * Matters, Contacts, Property and Safe Custody all open the record itself -
+ * the first three through query params those pages read on load, Safe Custody
+ * through its own detail route.
  *
  * The Accounting sections have no way to open a single record, so they carry
  * the search term to their list instead of pretending to.
@@ -37,8 +36,10 @@ export const resultHref = (result, term) => {
     case "SAFE_CUSTODY":
       return `/safe-custody/${result.id}`;
 
+    // Contacts are keyed on (contactId, contactType) and the contact panel
+    // needs both to fetch the record.
     case "CONTACTS":
-      return `/Contacts?contactId=${result.id}`;
+      return `/Contacts?contactId=${result.id}&contactType=${encodeURIComponent(result.recordType || "")}`;
 
     case "PROPERTY":
       return `/property?propertyId=${result.id}`;
