@@ -89,7 +89,7 @@ const Login = (props) => {
                     </Link>
                   </div>
                   <p className="mt-3 fs-15 fw-medium">
-                    See how Edge can help your law firm succeed
+                    See how Veeto can help your law firm succeed
                   </p>
                 </div>
               </Col>
