@@ -104,8 +104,9 @@ const ChecklistTab = (props) => {
   const renderGroupCard = (group) => {
     const percent = group.progressPercent || 0;
 
+    // md={6} puts two per row at any width above mobile, so the pair fills the
+    // tab.
     return (
-      {/* Two per row at any width above mobile, so the pair fills the tab. */}
       <Col md={6} key={`group-${group.id ?? "ungrouped"}`}>
         <Card
           className="workflow-group-card h-100"
