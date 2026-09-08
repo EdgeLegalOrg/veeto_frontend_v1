@@ -105,7 +105,8 @@ const ChecklistTab = (props) => {
     const percent = group.progressPercent || 0;
 
     return (
-      <Col xxl={3} lg={4} md={6} key={`group-${group.id ?? "ungrouped"}`}>
+      {/* Two per row at any width above mobile, so the pair fills the tab. */}
+      <Col md={6} key={`group-${group.id ?? "ungrouped"}`}>
         <Card
           className="workflow-group-card h-100"
           onClick={() => setOpenGroupId(group.id ?? null)}
@@ -137,14 +138,23 @@ const ChecklistTab = (props) => {
               <span className="text-muted fs-12">Tasks</span>
               <span className="fw-semibold fs-12">
                 {group.completedTasks}/{group.totalTasks}
+                {group.notApplicableTasks > 0 && (
+                  <span className="text-muted fw-normal">
+                    {" "}
+                    ({group.notApplicableTasks} N/A)
+                  </span>
+                )}
               </span>
             </div>
+            {/* The figure is printed on the bar itself, which is why it is tall
+                enough to hold text. */}
             <Progress
               value={percent}
-              className="animated-progress custom-progress mb-3"
+              className="workflow-group-progress mb-3"
               barClassName={progressColour(percent)}
-              style={{ height: "6px" }}
-            />
+            >
+              {percent}%
+            </Progress>
 
             <div className="d-flex justify-content-between align-items-center">
               <span className="text-muted fs-12">
@@ -153,7 +163,6 @@ const ChecklistTab = (props) => {
                   ? `Next due ${formatDateFunc(group.nextDueDate)}`
                   : "Nothing due"}
               </span>
-              <span className="badge bg-light text-muted">{percent}%</span>
             </div>
           </CardBody>
         </Card>
@@ -184,6 +193,7 @@ const ChecklistTab = (props) => {
       <TaskGroupModal
         group={openGroup}
         tasks={openGroup ? tasksInGroup(openGroup.id) : []}
+        trackerId={tracker?.id}
         isOpen={!!openGroup}
         close={() => setOpenGroupId(undefined)}
         isArchived={isArchived}

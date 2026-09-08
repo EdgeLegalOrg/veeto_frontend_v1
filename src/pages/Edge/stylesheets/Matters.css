@@ -237,6 +237,13 @@
   border-top-right-radius: 30px;
   border-bottom-right-radius: 30px;
 }
+
+/* At 0% the filled bar has no width to print inside, so the figure sits on the
+   track instead of vanishing. */
+.pg-bars .pg-zero-label {
+  padding: 6px 0 6px 10px;
+  font-size: 12px;
+}
 /***************************************************/
 
 .mb-detailContainer {

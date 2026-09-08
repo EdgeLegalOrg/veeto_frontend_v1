@@ -1,137 +1,100 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
+const STATUS_COMPLETE = 'COMPLETE';
+const STATUS_NOT_APPLICABLE = 'NOT_APPLICABLE';
+
+/**
+ * Overall completion across the matter's workflow tasks.
+ *
+ * Counts top level tasks, matching how each task group card counts its own, so
+ * the matter figure and the group figures describe the same thing. Not
+ * Applicable tasks are left out of both sides of the fraction - treating them as
+ * outstanding would hold a finished matter below 100% forever.
+ */
 const MatterProgressbar = (props) => {
-  const [show, setShow] = useState(false);
-  const [progressWidth, setProgressWidth] = useState(0);
-  const { checklistTracker } = props?.data;
+  const [progress, setProgress] = useState(0);
+  const [hasCountableTasks, setHasCountableTasks] = useState(false);
+  const { checklistTracker } = props?.data || {};
 
   useEffect(() => {
-    if (props?.data?.checklistTracker) {
-      calculateProgress(props?.data?.checklistTracker);
-    }
+    calculateProgress(props?.data?.checklistTracker);
   }, [props.data]);
 
-  const calculateProgress = (arg) => {
-    const { taskList } = arg;
-    let totalSubTasks = taskList?.length || 0;
-    let subTaskCompleted = 0;
-    let progress = 0;
+  const calculateProgress = (tracker) => {
+    const taskList = tracker?.taskList || [];
 
-    for (let a in taskList) {
-      const item = taskList[a];
-      const subList = taskList[a].subTaskList;
-      let mandatorySubtasks = 0;
-      if (subList.length) {
-        for (let b in subList) {
-          if (subList[b].mandatory && subList[b].taskCompleted) {
-            subTaskCompleted++;
-          }
+    let complete = 0;
+    let countable = 0;
 
-          if (subList[b].mandatory) {
-            mandatorySubtasks++;
-          }
-        }
+    taskList.forEach((task) => {
+      // Fall back to the legacy boolean for rows written before status existed.
+      const status =
+        task.status || (task.taskCompleted ? STATUS_COMPLETE : null);
+
+      if (status === STATUS_NOT_APPLICABLE) {
+        return;
       }
 
-      if (item.taskCompleted) {
-        subTaskCompleted++;
+      countable++;
+
+      if (status === STATUS_COMPLETE) {
+        complete++;
       }
-      totalSubTasks += mandatorySubtasks;
-    }
+    });
 
-    if (totalSubTasks == 0) {
-      setShow(false);
-    } else if (totalSubTasks > 0 && subTaskCompleted) {
-      setShow(true);
-      progress = ((subTaskCompleted / totalSubTasks) * 100).toFixed(2);
-    }
-
-    setProgressWidth(progress);
+    setHasCountableTasks(countable > 0);
+    // Whole numbers: two decimals on a progress bar read as noise.
+    setProgress(countable > 0 ? Math.round((complete / countable) * 100) : 0);
   };
 
-  const getStyles = () => {
-    // const { taskList } = checklistTracker;
-    // let totalSubTasks = 0;
-    // let subTaskCompleted = 0;
-    let progress = progressWidth;
-    let rval = {};
+  // Rendered from state rather than written into the DOM, so the figure is
+  // present on first paint instead of appearing only once something changes.
+  const barStyles = () => {
+    const styles = {
+      width: `${progress}%`,
+      color: '#353f43',
+      fontWeight: '600',
+      textAlign: 'center',
+    };
 
-    // for (let a in taskList) {
-    //   const item = taskList[a];
-    //   if (item?.mandatory) {
-    //     const subList = taskList[a].subTaskList;
-    //     if (subList.length) {
-    //       for (let b in subList) {
-    //         if (subList[b].taskCompleted) {
-    //           subTaskCompleted++;
-    //         }
-    //       }
-    //     } else if (item.taskCompleted) {
-    //       subTaskCompleted++;
-    //     }
-    //     totalSubTasks += item?.subTaskList?.length || 1;
-    //   }
-    // }
-
-    if (progress == 0) {
-      rval.display = 'none';
-      // setShow(false);
-      return rval;
-    }
-    // else if (totalSubTasks > 0 && subTaskCompleted) {
-    //   setShow(true);
-    //   progress = ((subTaskCompleted / totalSubTasks) * 100).toFixed(2);
-    // }
-
-    rval.width = `${progress}%`;
-    rval.color = '#353f43';
-    rval.fontWeight = '600';
-    rval.textAlign = 'center';
-
-    const ele = document.getElementById('progress-percent');
-
-    if (parseInt(progress) == 100) {
-      rval.background = '#d1f1b8';
-      if (ele) {
-        ele.innerText = `${parseInt(progress)}%`;
-      }
+    if (progress >= 100) {
+      styles.background = '#d1f1b8';
     } else {
-      if (progress > 0) {
-        rval.background = '#e1f6cf';
-        rval.borderRight = '5px solid #0d9540';
-        rval.borderRadius = 0;
-
-        if (ele) {
-          ele.innerText = `${progress}%`;
-        }
-      } else {
-        if (ele) {
-          ele.innerText = ``;
-        }
-      }
+      styles.background = '#e1f6cf';
+      styles.borderRight = '5px solid #0d9540';
+      styles.borderRadius = 0;
     }
 
-    return rval;
+    return styles;
   };
 
-  if (checklistTracker && show) {
-    return (
-      <div className='full'>
-        <div className='pg-container'>
-          <div className='pg-label'>
-            <p className='mb-0'>Matter Progress</p>
-          </div>
-          <div className='pg-bars'>
-            <div className='pg-tab' style={getStyles()}>
-              <p className='mb-0 text-dark' id={'progress-percent'}></p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  } else {
+  if (!checklistTracker || !hasCountableTasks) {
     return <></>;
   }
+
+  return (
+    <div className='full'>
+      <div className='pg-container'>
+        <div className='pg-label'>
+          <p className='mb-0'>Matter Progress</p>
+        </div>
+        <div className='pg-bars'>
+          <div className='pg-tab' style={barStyles()}>
+            {/* Sits outside the filled bar at low percentages, where there is
+                no room for it inside. */}
+            {progress > 0 && (
+              <p className='mb-0 text-dark' id={'progress-percent'}>
+                {progress}%
+              </p>
+            )}
+          </div>
+          {progress === 0 && (
+            <p className='mb-0 text-dark pg-zero-label'>0%</p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default MatterProgressbar;

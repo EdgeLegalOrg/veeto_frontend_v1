@@ -1190,3 +1190,17 @@ export const saveChecklistTaskGroup = (groupData, iconFile) => {
 
 export const deleteChecklistTaskGroup = (groupId) =>
   API.delete(`/api/checklist/task-group/${groupId}?requestId=${uuidv1()}`);
+
+// Task group comments, per matter -----------------------------------------
+
+export const fetchTaskGroupComments = (trackerId, taskGroupId) =>
+  API.get(
+    `/api/matter/checklist/${trackerId}/group/${taskGroupId}/comment?requestId=${uuidv1()}`
+  );
+
+// Responds with the refreshed history, not just the new comment.
+export const addTaskGroupComment = (formData) =>
+  API.post(`/api/matter/checklist/group/comment`, {
+    requestId: uuidv1(),
+    data: formData,
+  });

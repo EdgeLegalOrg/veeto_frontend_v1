@@ -1,8 +1,10 @@
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
+  Button,
   Card,
   CardBody,
   Col,
+  Input,
   Modal,
   ModalBody,
   ModalHeader,
@@ -14,7 +16,12 @@ import {
   DropdownMenu,
   DropdownItem,
 } from "reactstrap";
-import { API_BASE_URL } from "pages/Edge/apis";
+import { toast } from "react-toastify";
+import {
+  addTaskGroupComment,
+  API_BASE_URL,
+  fetchTaskGroupComments,
+} from "pages/Edge/apis";
 import { formatDateFunc } from "pages/Edge/utils/utilFunc";
 import {
   ACTION_ICON,
@@ -25,14 +32,20 @@ import {
   toDateInputValue,
 } from "./taskStatus";
 
+// Comments need the time as well as the date, unlike the task columns.
+const formatDateTime = (value) =>
+  formatDateFunc(value, "DD-MM-YYYY h:mm A") || "";
+
 /**
  * Task group detail, laid out like the Velzon project overview: a summary header
- * with the group's icon, description and progress, then the tasks themselves.
+ * with the group's icon, description and progress, then the tasks themselves,
+ * then the group's comment history.
  */
 const TaskGroupModal = (props) => {
   const {
     group,
     tasks,
+    trackerId,
     isOpen,
     close,
     isArchived,
@@ -41,9 +54,69 @@ const TaskGroupModal = (props) => {
   } = props;
 
   const [expanded, setExpanded] = useState({});
+  const [comments, setComments] = useState([]);
+  const [newComment, setNewComment] = useState("");
+  const [savingComment, setSavingComment] = useState(false);
+
+  const groupId = group?.id ?? null;
+
+  const loadComments = useCallback(async () => {
+    // Ungrouped is synthetic and has no id to hang comments off.
+    if (!trackerId || groupId == null) {
+      setComments([]);
+      return;
+    }
+
+    try {
+      const { data } = await fetchTaskGroupComments(trackerId, groupId);
+
+      if (data.success) {
+        setComments(data.data?.commentList || []);
+      }
+    } catch (error) {
+      console.error("error", error);
+    }
+  }, [trackerId, groupId]);
+
+  useEffect(() => {
+    if (isOpen) {
+      setNewComment("");
+      loadComments();
+    }
+  }, [isOpen, loadComments]);
 
   const toggleExpanded = (taskId) =>
     setExpanded((prev) => ({ ...prev, [taskId]: !prev[taskId] }));
+
+  const handleAddComment = async () => {
+    if (!newComment.trim() || groupId == null) {
+      return;
+    }
+
+    setSavingComment(true);
+
+    try {
+      const { data } = await addTaskGroupComment({
+        checklistTrackerId: trackerId,
+        taskGroupId: groupId,
+        comment: newComment,
+      });
+
+      if (data.success) {
+        // The server returns the whole history, so there is one source of truth
+        // rather than an optimistic local copy that can drift.
+        setComments(data.data?.commentList || []);
+        setNewComment("");
+      } else {
+        toast.error("Could not add the comment, please try later.");
+      }
+    } catch (error) {
+      console.error("error", error);
+      toast.error("Could not add the comment, please try later.");
+    } finally {
+      setSavingComment(false);
+    }
+  };
 
   if (!group) {
     return null;
@@ -148,7 +221,13 @@ const TaskGroupModal = (props) => {
   };
 
   return (
-    <Modal isOpen={isOpen} toggle={close} size="xl" centered scrollable>
+    <Modal
+      isOpen={isOpen}
+      toggle={close}
+      size="xl"
+      scrollable
+      className="workflow-group-modal"
+    >
       <ModalHeader toggle={close}>{group.title}</ModalHeader>
       <ModalBody>
         <Card className="mb-3">
@@ -256,6 +335,73 @@ const TaskGroupModal = (props) => {
             </tbody>
           </Table>
         </div>
+
+        <Card className="mt-3 mb-0">
+          <CardBody>
+            <h5 className="fs-15 mb-3">Comments</h5>
+
+            {groupId == null ? (
+              <p className="text-muted mb-0 fs-13">
+                Comments are not available for ungrouped tasks.
+              </p>
+            ) : (
+              <>
+                {comments.length === 0 && (
+                  <p className="text-muted fs-13">No comments yet.</p>
+                )}
+
+                {comments.map((entry) => (
+                  <div
+                    key={`comment-${entry.id}`}
+                    className="d-flex mb-3 workflow-comment"
+                  >
+                    <div className="avatar-xs me-3 flex-shrink-0">
+                      <div className="avatar-title bg-light rounded-circle text-primary fs-14">
+                        <i className="ri-user-3-line" />
+                      </div>
+                    </div>
+                    <div className="flex-grow-1">
+                      <div className="d-flex align-items-center flex-wrap gap-2">
+                        <span className="fw-semibold fs-13">
+                          {entry.staffName || "Unknown user"}
+                        </span>
+                        <span className="text-muted fs-12">
+                          {formatDateTime(entry.createdAt)}
+                        </span>
+                      </div>
+                      {/* Preserve the author's line breaks. */}
+                      <p className="text-muted mb-0 fs-13 workflow-comment-body">
+                        {entry.comment}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+
+                <div className="mt-3">
+                  <Input
+                    type="textarea"
+                    rows={3}
+                    maxLength={4000}
+                    placeholder="Add a comment..."
+                    value={newComment}
+                    disabled={isArchived || savingComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                  />
+                  <div className="text-end mt-2">
+                    <Button
+                      color="success"
+                      size="sm"
+                      disabled={isArchived || savingComment || !newComment.trim()}
+                      onClick={handleAddComment}
+                    >
+                      {savingComment ? "Adding..." : "Add Comment"}
+                    </Button>
+                  </div>
+                </div>
+              </>
+            )}
+          </CardBody>
+        </Card>
       </ModalBody>
     </Modal>
   );
