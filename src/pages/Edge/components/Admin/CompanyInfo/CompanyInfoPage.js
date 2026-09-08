@@ -44,7 +44,7 @@ const initialData = {
 };
 
 function CompanyInfoPage(props) {
-  document.title = "Company Details | EdgeLegal";
+  document.title = "Company Details | Veeto";
   const [companyData, setCompanyData] = useState(initialData);
   const [tempSearchField, setTempSearchField] = useState(initialData);
 

@@ -41,7 +41,7 @@ const initialFilter = {
 };
 
 const DocumentPage = () => {
-  document.title = "Document | EdgeLegal";
+  document.title = "Document | Veeto";
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { currentRouterState, navigationEditForm } = useSelector(

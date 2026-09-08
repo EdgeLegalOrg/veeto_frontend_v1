@@ -98,7 +98,7 @@ const ResetPasswordPage = (props) => {
     },
   });
 
-  document.title = "Reset Password | EdgeLegal";
+  document.title = "Reset Password | Veeto";
 
   const isInvalidLink = !token && !userId;
   const passwordHasError = !!(

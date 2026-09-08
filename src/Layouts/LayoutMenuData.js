@@ -299,6 +299,13 @@ const Navdata = () => {
             },
             {
               id: 1,
+              label: "Task Groups",
+              link: "/admin-checklist-taskGroups",
+              show: true,
+              parentId: "admin",
+            },
+            {
+              id: 1,
               label: "Link To Matter",
               link: "/admin-checklist-linkToMatter",
               show: true,

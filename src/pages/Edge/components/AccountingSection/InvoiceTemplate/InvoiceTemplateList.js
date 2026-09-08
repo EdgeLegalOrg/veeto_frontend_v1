@@ -27,7 +27,7 @@ import { TextInputField } from "pages/Edge/components/InputField";
 import { MdFilterAltOff } from "react-icons/md";
 
 const InvoiceTemplateList = () => {
-  document.title = "Invoices | EdgeLegal";
+  document.title = "Invoices | Veeto";
   const [typeList, setTypeList] = useState([]);
   const [taxTypeList, setTaxTypeList] = useState([]);
   const [serviceList, setServiceList] = useState([]);

@@ -53,7 +53,7 @@ const ForgetPasswordPage = props => {
     forgetError, forgetSuccessMsg
   } = useSelector(selectLayoutProperties);
 
-  document.title = "Reset Password | EdgeLegal";
+  document.title = "Reset Password | Veeto";
   return (
     <ParticlesAuth>
       <div className="auth-page-content mt-lg-5">
@@ -67,7 +67,7 @@ const ForgetPasswordPage = props => {
                     <img src={logoLight} alt="" height="20" />
                   </Link>
                 </div>
-                <p className="mt-3 fs-15 fw-medium">Premium Admin & Dashboard Template</p>
+                <p className="mt-3 fs-15 fw-medium">See how Veeto can help your law firm succeed</p>
               </div>
             </Col>
           </Row>

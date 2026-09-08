@@ -41,7 +41,7 @@ const initialFilter = {
 };
 
 const ManageUserPage = () => {
-  document.title = "User Security | EdgeLegal";
+  document.title = "User Security | Veeto";
   const location = useLocation();
   const dispatch = useDispatch();
   const { currentRouterState } = useSelector((state) => state.Layout);

@@ -31,7 +31,7 @@ const initialFilter = {
 };
 
 const LinkedList = (props) => {
-  document.title = "Link Checklist to Matter | EdgeLegal";
+  document.title = "Link Checklist to Matter | Veeto";
   const [add, setAdd] = useState(false);
   const [loading, setLoading] = useState(false);
   const [allCombination, setAllCombinations] = useState([]);

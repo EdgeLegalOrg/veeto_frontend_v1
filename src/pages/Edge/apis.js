@@ -1161,3 +1161,55 @@ export const dismissNotification = (notificationId) =>
 // Runs the generator on demand rather than waiting for the scheduled job.
 export const generateNotifications = () =>
   API.post(`/api/notification/generate?requestId=${uuidv1()}`);
+
+// Workflow task groups -----------------------------------------------------
+
+export const fetchChecklistTaskGroups = () =>
+  API.get(`/api/checklist/task-group?requestId=${uuidv1()}`);
+
+// Multipart so the icon can travel with the group; a request cannot carry both
+// a JSON body and a file, so the group goes as a "data" part.
+export const saveChecklistTaskGroup = (groupData, iconFile) => {
+  const formData = new FormData();
+
+  formData.append(
+    "data",
+    new Blob([JSON.stringify(groupData)], { type: "application/json" })
+  );
+
+  if (iconFile) {
+    formData.append("icon", iconFile);
+  }
+
+  return API.post(
+    `/api/checklist/task-group?requestId=${uuidv1()}`,
+    formData,
+    config
+  );
+};
+
+export const deleteChecklistTaskGroup = (groupId) =>
+  API.delete(`/api/checklist/task-group/${groupId}?requestId=${uuidv1()}`);
+
+// Global search -----------------------------------------------------------
+
+// limit is per section: the header dropdown asks for a few, the results page
+// for more.
+export const globalSearch = (term, limit = 5) =>
+  API.get(
+    `/api/search?q=${encodeURIComponent(term)}&limit=${limit}&requestId=${uuidv1()}`
+  );
+
+// Task group comments, per matter -----------------------------------------
+
+export const fetchTaskGroupComments = (trackerId, taskGroupId) =>
+  API.get(
+    `/api/matter/checklist/${trackerId}/group/${taskGroupId}/comment?requestId=${uuidv1()}`
+  );
+
+// Responds with the refreshed history, not just the new comment.
+export const addTaskGroupComment = (formData) =>
+  API.post(`/api/matter/checklist/group/comment`, {
+    requestId: uuidv1(),
+    data: formData,
+  });

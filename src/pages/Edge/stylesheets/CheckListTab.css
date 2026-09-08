@@ -1,3 +1,66 @@
+/* Task group popup */
+
+/* 20px clear of the viewport on every side, rather than the Bootstrap default
+   which centres a fixed-width dialog. */
+.workflow-group-modal .modal-dialog {
+  margin: 20px;
+  max-width: calc(100vw - 40px);
+  height: calc(100vh - 40px);
+}
+
+/* Drag the bottom-right corner to resize. resize needs a non-visible overflow
+   to take effect; hidden is what modal-dialog-scrollable already sets, and
+   keeps the body as the scrolling element rather than the whole dialog. */
+.workflow-group-modal .modal-content {
+  resize: both;
+  overflow: hidden;
+  min-width: 320px;
+  min-height: 240px;
+  max-width: calc(100vw - 40px);
+  max-height: calc(100vh - 40px);
+}
+
+/* table-card runs the table edge to edge by design, which leaves it flush with
+   the dialog sides. Inset it instead. Margin rather than padding, so the
+   horizontal scroll region shrinks with it rather than scrolling under the
+   inset. */
+.workflow-group-modal .workflow-task-table {
+  margin-left: 20px;
+  margin-right: 20px;
+}
+
+/* Comment text is stored as typed, so keep the author's line breaks. */
+.workflow-comment-body {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Workflow tab task group cards */
+
+/* Three times the original 6px, so the percentage fits on the bar. */
+.workflow-group-progress {
+  height: 18px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* Keep the figure readable while the bar is still narrow. */
+.workflow-group-progress .progress-bar {
+  overflow: visible;
+  white-space: nowrap;
+  min-width: 2.5rem;
+}
+
+.workflow-group-card {
+  cursor: pointer;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.workflow-group-card:hover {
+  box-shadow: 0 5px 10px rgba(30, 32, 37, 0.12);
+  transform: translateY(-2px);
+}
+
 /* Workflow tab task table */
 .workflow-table-container {
   max-height: 60vh;

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, Fragment, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { v1 as uuidv1 } from "uuid";
 import validator from "validator";
@@ -172,9 +172,10 @@ const ConfirmationPopup = (props) => {
 };
 
 function RenderProperty() {
-  document.title = "Property | EdgeLegal";
+  document.title = "Property | Veeto";
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const routerLocation = useLocation();
   const { currentRouterState, formStatus, navigationEditForm } = useSelector(
     (state) => state.Layout
   );
@@ -310,6 +311,21 @@ function RenderProperty() {
       fetchPropertyData(navigationEditForm.editFormValue.id);
     }
   }, [navigationEditForm]);
+
+  /**
+   * Deep link support for /property?propertyId=123, used by the global search
+   * results. fetchPropertyData already does everything opening a row does, so
+   * this only has to call it.
+   */
+  useEffect(() => {
+    const propertyId = new URLSearchParams(routerLocation.search).get(
+      "propertyId"
+    );
+
+    if (propertyId && !isNaN(Number(propertyId))) {
+      fetchPropertyData(Number(propertyId));
+    }
+  }, [routerLocation.search]);
 
   useEffect(() => {
     const isChanged =

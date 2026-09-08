@@ -139,7 +139,7 @@ const ConfirmationPopup = (props) => {
 };
 
 function AllSafeCustody(props) {
-  document.title = "Safe Custody | EdgeLegal";
+  document.title = "Safe Custody | Veeto";
   const location = useLocation();
   const dispatch = useDispatch();
   const { currentRouterState, formStatus, navigationEditForm } = useSelector(

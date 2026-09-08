@@ -23,7 +23,7 @@ import {
 import BreadCrumb from "../../../../../Components/Common/BreadCrumb";
 
 const TaskList = (props) => {
-  document.title = "Task List | EdgeLegal";
+  document.title = "Task List | Veeto";
   const [add, setAdd] = useState(false);
   const [edit, setEdit] = useState(false);
   const [deleteAlert, setDeleteAlert] = useState(false);

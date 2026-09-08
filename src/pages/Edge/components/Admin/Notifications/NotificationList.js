@@ -26,7 +26,7 @@ const displayOf = (options, value) =>
   options.find((o) => o.value === value)?.display || "-";
 
 const NotificationList = () => {
-  document.title = "Notifications | EdgeLegal";
+  document.title = "Notifications | Veeto";
 
   const [loading, setLoading] = useState(false);
   const [definitions, setDefinitions] = useState([]);

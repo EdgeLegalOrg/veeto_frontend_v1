@@ -46,7 +46,7 @@ const initialFilter = {
 };
 
 const BaseTemplatePage = () => {
-  document.title = "Letterheads | EdgeLegal";
+  document.title = "Letterheads | Veeto";
   const [templateList, setTemplateList] = useState([]);
   const [filterInput, setFilterInput] = useState(initialFilter);
   const [labelSort, setLabelSort] = useState("");

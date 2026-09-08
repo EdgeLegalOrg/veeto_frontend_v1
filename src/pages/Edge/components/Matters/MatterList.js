@@ -68,7 +68,7 @@ const initialFilter = {
 };
 
 const MatterList = () => {
-  document.title = "Matters | EdgeLegal";
+  document.title = "Matters | Veeto";
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();

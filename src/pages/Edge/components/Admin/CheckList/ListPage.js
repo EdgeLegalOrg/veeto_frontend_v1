@@ -21,7 +21,7 @@ import {
 import BreadCrumb from "../../../../../Components/Common/BreadCrumb";
 
 const ListPage = () => {
-  document.title = "Check List | EdgeLegal";
+  document.title = "Check List | Veeto";
   const [add, setAdd] = useState(false);
   const [edit, setEdit] = useState(false);
   const [deleteAlert, setDeleteAlert] = useState(false);

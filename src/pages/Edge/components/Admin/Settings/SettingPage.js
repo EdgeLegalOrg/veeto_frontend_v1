@@ -27,7 +27,7 @@ const initialData = {
 };
 
 const SettingPage = () => {
-  document.title = "System Numerals | EdgeLegal";
+  document.title = "System Numerals | Veeto";
   const [content, setContent] = useState(initialData);
   const [error, setError] = useState({
     baseArchivedMatterSeriesNumber: "",

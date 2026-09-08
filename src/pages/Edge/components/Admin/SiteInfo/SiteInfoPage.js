@@ -45,7 +45,7 @@ const initialData = {
 };
 
 const SiteInfoPage = () => {
-  document.title = "Site Details | EdgeLegal";
+  document.title = "Site Details | Veeto";
   const [siteInfo, setSiteInfo] = useState(initialData);
   const [bankList, setBankList] = useState([]);
   const [addressList, setAddressList] = useState([]);

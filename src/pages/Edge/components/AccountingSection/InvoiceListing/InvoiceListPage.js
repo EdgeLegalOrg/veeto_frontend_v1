@@ -21,7 +21,7 @@ const initialFilters = {
 };
 
 const InvoiceListPage = (props) => {
-  document.title = "Invoices | EdgeLegal";
+  document.title = "Invoices | Veeto";
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [filterInput, setFilterInput] = useState(initialFilters);
