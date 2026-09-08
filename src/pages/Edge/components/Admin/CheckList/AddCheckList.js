@@ -7,6 +7,7 @@ import { toast } from "react-toastify";
 import { Input, Button, Table } from "reactstrap";
 import { TextInputField } from "pages/Edge/components/InputField";
 import { MdExpandMore, MdExpandLess } from "react-icons/md";
+import { TaskGroupSelect, useTaskGroups } from "./TaskGroupSelect";
 
 const initialState = {
   name: "",
@@ -21,6 +22,7 @@ const AddCheckList = (props) => {
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [showSelectedSubtask, setShowSelectedSubtask] = useState([]);
+  const taskGroups = useTaskGroups();
 
   useEffect(() => {
     if (props.data) {
@@ -53,11 +55,27 @@ const AddCheckList = (props) => {
       newArr.push({
         taskId: arg.id,
         mandatory: false,
+        taskGroupId: null,
       });
     }
 
     setSelected(newArr);
   };
+
+  /**
+   * Sets the group a task lands in on a new matter. Null means fall back to the
+   * company's first group.
+   */
+  const handleGroupChange = (taskId, taskGroupId) => {
+    setSelected((prev) =>
+      prev.map((entry) =>
+        entry.taskId === taskId ? { ...entry, taskGroupId } : entry
+      )
+    );
+  };
+
+  const groupOf = (taskId) =>
+    selected.find((entry) => entry.taskId === taskId)?.taskGroupId ?? null;
 
   const isSelected = (id) => {
     for (let i in selected) {
@@ -261,6 +279,15 @@ const AddCheckList = (props) => {
                 />
               </td> */}
                 <td>{t.title}</td>
+                <td style={{ width: "240px" }}>
+                  <TaskGroupSelect
+                    taskGroups={taskGroups}
+                    value={groupOf(t.id)}
+                    onChange={(taskGroupId) =>
+                      handleGroupChange(t.id, taskGroupId)
+                    }
+                  />
+                </td>
                 <td
                   onClick={(e) => {
                     e.preventDefault();
@@ -353,6 +380,11 @@ const AddCheckList = (props) => {
                 <th>
                   <p className="m-0">Task title</p>
                 </th>
+                <th>
+                  <p className="m-0">Task Group</p>
+                </th>
+                {/* Subtask expand/collapse column. */}
+                <th></th>
               </tr>
             ) : (
               <tr className="text-center">No Task Selected</tr>
