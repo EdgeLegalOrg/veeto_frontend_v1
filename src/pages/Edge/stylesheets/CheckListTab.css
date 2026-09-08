@@ -20,6 +20,15 @@
   max-height: calc(100vh - 40px);
 }
 
+/* table-card runs the table edge to edge by design, which leaves it flush with
+   the dialog sides. Inset it instead. Margin rather than padding, so the
+   horizontal scroll region shrinks with it rather than scrolling under the
+   inset. */
+.workflow-group-modal .workflow-task-table {
+  margin-left: 20px;
+  margin-right: 20px;
+}
+
 /* Comment text is stored as typed, so keep the author's line breaks. */
 .workflow-comment-body {
   white-space: pre-wrap;

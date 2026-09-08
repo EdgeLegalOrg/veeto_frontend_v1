@@ -295,7 +295,7 @@ const TaskGroupModal = (props) => {
           </CardBody>
         </Card>
 
-        <div className="table-responsive table-card">
+        <div className="table-responsive table-card workflow-task-table">
           <Table className="align-middle table-nowrap mb-0" hover>
             <thead className="table-light">
               <tr>
