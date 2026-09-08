@@ -1161,3 +1161,32 @@ export const dismissNotification = (notificationId) =>
 // Runs the generator on demand rather than waiting for the scheduled job.
 export const generateNotifications = () =>
   API.post(`/api/notification/generate?requestId=${uuidv1()}`);
+
+// Workflow task groups -----------------------------------------------------
+
+export const fetchChecklistTaskGroups = () =>
+  API.get(`/api/checklist/task-group?requestId=${uuidv1()}`);
+
+// Multipart so the icon can travel with the group; a request cannot carry both
+// a JSON body and a file, so the group goes as a "data" part.
+export const saveChecklistTaskGroup = (groupData, iconFile) => {
+  const formData = new FormData();
+
+  formData.append(
+    "data",
+    new Blob([JSON.stringify(groupData)], { type: "application/json" })
+  );
+
+  if (iconFile) {
+    formData.append("icon", iconFile);
+  }
+
+  return API.post(
+    `/api/checklist/task-group?requestId=${uuidv1()}`,
+    formData,
+    config
+  );
+};
+
+export const deleteChecklistTaskGroup = (groupId) =>
+  API.delete(`/api/checklist/task-group/${groupId}?requestId=${uuidv1()}`);

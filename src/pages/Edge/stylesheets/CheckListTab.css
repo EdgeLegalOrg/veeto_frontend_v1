@@ -1,3 +1,14 @@
+/* Workflow tab task group cards */
+.workflow-group-card {
+  cursor: pointer;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.workflow-group-card:hover {
+  box-shadow: 0 5px 10px rgba(30, 32, 37, 0.12);
+  transform: translateY(-2px);
+}
+
 /* Workflow tab task table */
 .workflow-table-container {
   max-height: 60vh;
