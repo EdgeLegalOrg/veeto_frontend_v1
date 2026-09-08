@@ -48,7 +48,7 @@ const initialFilter = {
 };
 
 const ManageTemplate = () => {
-  document.title = "Precedents | EdgeLegal";
+  document.title = "Precedents | Veeto";
   const [templateList, setTemplateList] = useState([]);
   const [matterSubtype, setMatterSubtype] = useState([]);
   const [docType, setDocType] = useState([]);

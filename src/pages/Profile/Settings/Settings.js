@@ -31,7 +31,7 @@ const Settings = () => {
   };
 
   document.title =
-    "Profile Settings | EdgeLegal";
+    "Profile Settings | Veeto";
 
   return (
     <React.Fragment>
@@ -330,7 +330,7 @@ const Settings = () => {
                                 className="form-control"
                                 id="emailInput"
                                 placeholder="Enter your email"
-                                defaultValue="daveadame@EdgeLegal.com"
+                                defaultValue="daveadame@Veeto.com"
                               />
                             </div>
                           </Col>
@@ -398,7 +398,7 @@ const Settings = () => {
                                 className="form-control"
                                 id="websiteInput1"
                                 placeholder="www.example.com"
-                                defaultValue="www.EdgeLegal.com"
+                                defaultValue="www.Veeto.com"
                               />
                             </div>
                           </Col>

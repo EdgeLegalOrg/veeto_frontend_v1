@@ -33,7 +33,7 @@ import { MdFilterAltOff } from "react-icons/md";
 import Pagination from "../../Pagination";
 
 const ServiceLineListPage = () => {
-  document.title = "Service Lines | EdgeLegal";
+  document.title = "Service Lines | Veeto";
   const [billingList, setBillingList] = useState([]);
   const [typeList, setTypeList] = useState([]);
   const [taxTypeList, setTaxTypeList] = useState([]);

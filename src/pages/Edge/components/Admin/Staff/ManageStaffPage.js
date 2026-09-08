@@ -43,7 +43,7 @@ const initialFilter = {
 };
 
 const ManageStaffPage = () => {
-  document.title = "Staff | EdgeLegal";
+  document.title = "Staff | Veeto";
   const location = useLocation();
   const dispatch = useDispatch();
   const { currentRouterState } = useSelector((state) => state.Layout);

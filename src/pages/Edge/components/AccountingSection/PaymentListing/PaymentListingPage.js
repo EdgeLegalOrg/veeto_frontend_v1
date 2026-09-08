@@ -22,7 +22,7 @@ const initialFilters = {
 };
 
 const PaymentListPage = (props) => {
-  document.title = "Payments | EdgeLegal";
+  document.title = "Payments | Veeto";
   const [list, setList] = useState([]);
   const [groupTotalAmountMap, setGroupTotalAmountMap] = useState({});
   const [groupSplitDetailsMap, setGroupSplitDetailsMap] = useState({});

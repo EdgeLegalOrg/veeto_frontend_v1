@@ -53,7 +53,7 @@ const ForgetPasswordPage = props => {
     forgetError, forgetSuccessMsg
   } = useSelector(selectLayoutProperties);
 
-  document.title = "Reset Password | EdgeLegal";
+  document.title = "Reset Password | Veeto";
   return (
     <ParticlesAuth>
       <div className="auth-page-content mt-lg-5">

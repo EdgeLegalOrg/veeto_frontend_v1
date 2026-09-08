@@ -172,7 +172,7 @@ const ConfirmationPopup = (props) => {
 };
 
 function RenderProperty() {
-  document.title = "Property | EdgeLegal";
+  document.title = "Property | Veeto";
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { currentRouterState, formStatus, navigationEditForm } = useSelector(

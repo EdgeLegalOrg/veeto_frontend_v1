@@ -95,7 +95,7 @@ const ConfirmationPopup = (props) => {
 };
 
 function Contacts(props) {
-  document.title = "Contacts | EdgeLegal";
+  document.title = "Contacts | Veeto";
   const dispatch = useDispatch();
   const { currentRouterState, navigationEditForm } = useSelector(
     (state) => state.Layout

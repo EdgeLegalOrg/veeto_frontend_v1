@@ -48,7 +48,7 @@ const initialFilter = {
 };
 
 const ManageRolePage = () => {
-  document.title = "Roles | EdgeLegal";
+  document.title = "Roles | Veeto";
   const [labelSort, setLabelSort] = useState("");
   const [sortOrder, setSortOrder] = useState("");
   const [sortField, setSortField] = useState("");

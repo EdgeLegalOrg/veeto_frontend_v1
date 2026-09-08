@@ -76,7 +76,7 @@ const Register = () => {
 
     }, [dispatch, success, error, history]);
 
-    document.title = "Basic SignUp | EdgeLegal";
+    document.title = "Basic SignUp | Veeto";
 
     return (
         <React.Fragment>

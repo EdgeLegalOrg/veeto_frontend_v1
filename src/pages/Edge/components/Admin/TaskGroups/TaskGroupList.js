@@ -19,7 +19,7 @@ import {
 import TaskGroupForm from "./TaskGroupForm";
 
 const TaskGroupList = () => {
-  document.title = "Task Groups | EdgeLegal";
+  document.title = "Task Groups | Veeto";
 
   const [loading, setLoading] = useState(false);
   const [groups, setGroups] = useState([]);

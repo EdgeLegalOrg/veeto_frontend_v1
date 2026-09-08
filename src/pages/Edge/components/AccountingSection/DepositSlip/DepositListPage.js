@@ -26,7 +26,7 @@ const initialFilter = {
 };
 
 const DepositListPage = (props) => {
-  document.title = "Deposit slips | EdgeLegal";
+  document.title = "Deposit slips | Veeto";
   const [loading, setLoading] = useState(false);
   const [details, setDetails] = useState(null);
   const [showAdd, setShowAdd] = useState(false);

@@ -8,7 +8,7 @@ import { toast } from "react-toastify";
 import { set } from "lodash";
 
 const XeroListing = () => {
-  document.title = "Xero Connect | EdgeLegal";
+  document.title = "Xero Connect | Veeto";
   const [selectedTab, setSelectedTab] = useState("invoices");
   const [refreshBothList, setRefreshBothList] = useState(false);
 
