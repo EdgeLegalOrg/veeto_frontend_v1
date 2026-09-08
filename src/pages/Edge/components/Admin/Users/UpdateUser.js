@@ -77,7 +77,7 @@ const UpdateUser = (props) => {
 
     try {
       let newData = {
-        defaultTemplateId,
+        defaultTemplateId: defaultTemplateId ? Number(defaultTemplateId) : null,
         userId: userDetail.id,
         siteRoleList: newDataList,
       };
@@ -145,10 +145,9 @@ const UpdateUser = (props) => {
             selected={defaultTemplateId}
             optionArray={[
               {
-                label: "Select",
+                label: "Use Site Default",
                 value: "",
-                disabled: true,
-                selected: true,
+                selected: !defaultTemplateId,
               },
               ...templateList.map((d) => ({
                 label: d.display,
