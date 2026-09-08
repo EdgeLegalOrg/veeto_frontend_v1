@@ -19,6 +19,8 @@ import {
   deleteBaseTemplate,
   getAllBaseTemplates,
   downloadBaseTemplate,
+  getSiteInfo,
+  updatePreferred,
 } from "../../../apis";
 import upArrow from "../../../images/upArrow.svg";
 import downArrow from "../../../images/downArrow.svg";
@@ -65,6 +67,37 @@ const BaseTemplatePage = () => {
   const [openAlert, setOpenAlert] = useState(false);
   const [addToast, setAddToast] = useState(false);
   const [editTemp, setEditTemp] = useState(null);
+  const [siteInfo, setSiteInfo] = useState(null);
+
+  const fetchSiteInfo = async () => {
+    try {
+      const { data } = await getSiteInfo();
+      if (data && data.success) {
+        setSiteInfo(data.data);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleMakeSiteDefault = async (e, templateId) => {
+    e.stopPropagation();
+    setLoading(true);
+    try {
+      const { data } = await updatePreferred({ defaultTemplateId: templateId });
+      if (data && data.success) {
+        toast.success("Site default letterhead updated successfully");
+        await fetchSiteInfo();
+      } else {
+        toast.error("Failed to update site default letterhead");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Error updating site default letterhead");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchTemplates = async () => {
     setLoading(true);
@@ -100,6 +133,7 @@ const BaseTemplatePage = () => {
     if (!boolVal) {
       fetchTemplates();
       fetchEnums();
+      fetchSiteInfo();
       setBoolVal(true);
     }
   }, [boolVal]);
@@ -505,6 +539,11 @@ const BaseTemplatePage = () => {
                           >
                             {template.name ? template.name : ""}
                           </p>
+                          {siteInfo?.defaultTemplateId === template.id && (
+                            <span className="badge bg-success ms-2">
+                              Site Default
+                            </span>
+                          )}
                         </div>
                       </td>
                       <td>
@@ -519,7 +558,22 @@ const BaseTemplatePage = () => {
                           {template.uploadedBy ? template.uploadedBy : ""}
                         </p>
                       </td>
-                      <td></td>
+                      <td>
+                        {siteInfo?.defaultTemplateId === template.id ? (
+                          <span className="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">
+                            Default
+                          </span>
+                        ) : (
+                          <Button
+                            size="sm"
+                            color="primary"
+                            className="btn-sm py-1 px-2 text-nowrap"
+                            onClick={(e) => handleMakeSiteDefault(e, template.id)}
+                          >
+                            Make Default
+                          </Button>
+                        )}
+                      </td>
                       <td></td>
                     </tr>
                   ))}

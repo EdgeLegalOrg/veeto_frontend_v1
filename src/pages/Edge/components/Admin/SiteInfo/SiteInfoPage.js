@@ -382,44 +382,7 @@ const SiteInfoPage = () => {
                       />
                     </div>
 
-                    <div className="col-md-3 mt-3">
-                      <TextInputField
-                        type="select"
-                        name="defaultTemplateId"
-                        label="Default Letter Head"
-                        placeholder="Default Letter Head"
-                        value={siteInfo.defaultTemplateId}
-                        // selected={siteInfo.defaultTemplateId}
-                        optionArray={templateList.map((d) => ({
-                          label: d.display,
-                          value: d.value,
-                        }))}
-                        onChange={({ target }) => {
-                          setSiteInfo((prev) => ({
-                            ...prev,
-                            defaultTemplateId: target.value,
-                          }));
-                        }}
-                        required={
-                          requiredFields.indexOf("defaultTemplateId") >= 0
-                        }
-                        invalid={
-                          submitted &&
-                          requiredFields.indexOf("defaultTemplateId") >= 0
-                            ? true
-                            : false
-                        }
-                        invalidMessage="Please enter a valid Default Letter Head"
-                        // details={siteInfo}
-                        // onSelectFunc={(val) => handleSelect(val)}
-                        // fieldVal={
-                        //   siteInfo.templateName
-                        //     ? siteInfo.templateName
-                        //     : findTemplateName(siteInfo.defaultTemplateId)
-                        // }
-                        // maxLength={null}
-                      />
-                    </div>
+
                     <div className="col-md-3 mt-3">
                       <TextInputField
                         label="ABN"
