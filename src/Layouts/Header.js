@@ -37,33 +37,13 @@ const Header = ({ onChangeLayoutMode, layoutModeType, headerClass }) => {
 
       const currentSiteId = userDetails.siteId;
       const siteList = companyInfo.siteInfoList || userDetails.siteInfoList || [];
-      const companyName = companyInfo.companyName || userDetails.organizationName || "";
 
       const activeSite = siteList.find(
         (s) => s.id === currentSiteId || s.siteId === currentSiteId
       );
 
-      if (activeSite) {
-        const siteCode =
-          activeSite.siteCode ||
-          (activeSite.id
-            ? String(activeSite.id).padStart(2, "0")
-            : activeSite.siteId
-            ? String(activeSite.siteId).padStart(2, "0")
-            : "");
-        const siteName = activeSite.siteName || activeSite.name || "";
-        if (siteCode && siteName) {
-          setActiveSiteDisplay(`(${siteCode} - ${siteName}) ${companyName}`.trim());
-        } else if (siteName) {
-          setActiveSiteDisplay(`(${siteName}) ${companyName}`.trim());
-        } else {
-          setActiveSiteDisplay(`${companyName}`.trim());
-        }
-      } else if (userDetails.siteName) {
-        setActiveSiteDisplay(`(${userDetails.siteName}) ${companyName}`.trim());
-      } else if (companyName) {
-        setActiveSiteDisplay(companyName);
-      }
+      const siteName = activeSite?.siteName || activeSite?.name || userDetails.siteName || "";
+      setActiveSiteDisplay(siteName.trim());
     } catch (err) {
       console.error("Error reading active site info:", err);
     }
