@@ -1019,6 +1019,13 @@ export const editCheckList = (formData) =>
 export const getCheckList = () =>
   API.get(`/api/checklist/template?requestId=${uuidv1()}&name=&description=`);
 
+// Pushes a checklist's current tasks out to the matters using it.
+// scope: EXISTING_WORKFLOWS | ALL_LINKED_MATTERS
+export const syncCheckList = (templateId, scope) =>
+  API.post(
+    `/api/checklist/template/${templateId}/sync?scope=${scope}&requestId=${uuidv1()}`
+  );
+
 export const deleteCheckList = (ids) =>
   API.delete(
     `/api/checklist/template?requestId=${uuidv1()}&templateIds=${ids}`

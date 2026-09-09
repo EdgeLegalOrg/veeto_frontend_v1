@@ -104,31 +104,38 @@ const ChecklistTaskGroups = (props) => {
     setDraft({ ...draft, [groupId]: "" });
   };
 
-  const handleRemoveTask = (task) => {
+  const sameTask = (a, b) =>
+    a.localKey ? a.localKey === b.localKey : a.taskId === b.taskId;
+
+  /**
+   * Renames a task in place.
+   *
+   * For a task that already exists in the library this renames the shared
+   * entry, so every checklist using that task shows the new title. That is
+   * what editing a task means here - there is one task, used in several
+   * places - but it is worth knowing before renaming something long-standing.
+   */
+  const handleRenameTask = (task, title) => {
     onChange(
-      tasks.filter((t) =>
-        task.localKey
-          ? t.localKey !== task.localKey
-          : !(t.taskId === task.taskId && t.taskGroupId === task.taskGroupId)
-      )
+      tasks.map((t) => (sameTask(task, t) ? { ...t, taskTitle: title } : t))
     );
+  };
+
+  const handleRemoveTask = (task) => {
+    onChange(tasks.filter((t) => !sameTask(task, t)));
   };
 
   const handleMoveTask = (task, nextGroupId) => {
     onChange(
-      tasks.map((t) => {
-        const same = task.localKey
-          ? t.localKey === task.localKey
-          : t.taskId === task.taskId && t.taskGroupId === task.taskGroupId;
-
-        return same
+      tasks.map((t) =>
+        sameTask(task, t)
           ? {
               ...t,
               taskGroupId:
                 nextGroupId === UNGROUPED ? null : Number(nextGroupId),
             }
-          : t;
-      })
+          : t
+      )
     );
   };
 
@@ -227,7 +234,14 @@ const ChecklistTaskGroups = (props) => {
                 <span className="text-muted fs-13" style={{ width: "24px" }}>
                   {i + 1}.
                 </span>
-                <span className="flex-grow-1">{task.taskTitle}</span>
+                <Input
+                  type="text"
+                  bsSize="sm"
+                  className="flex-grow-1"
+                  value={task.taskTitle || ""}
+                  placeholder="Task title"
+                  onChange={(e) => handleRenameTask(task, e.target.value)}
+                />
 
                 {/* Moving a task between groups is the one edit that also
                     applies to matters already underway, where a task cannot be
