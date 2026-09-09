@@ -53,7 +53,37 @@ const AttachmentList = (props) => {
   const [loading, setLoading] = useState(false);
   const [sortOrder, setSortOrder] = useState("");
   const [sortField, setSortField] = useState("");
-  const [labelSort, setLabelSort] = useState("");
+
+  const applySort = (list, field = sortField, order = sortOrder) => {
+    if (!field || !list || list.length === 0) return [...(list || [])];
+    const newArr = [...list];
+    if (field === "uploadDate") {
+      const type = order || "desc";
+      return newArr.sort((a, b) =>
+        type === "desc"
+          ? new Date(b.uploadDate) - new Date(a.uploadDate)
+          : new Date(a.uploadDate) - new Date(b.uploadDate)
+      );
+    }
+    const type = order || "asc";
+    return newArr.sort((a, b) => {
+      const va = a[field] ? a[field].toString().toLowerCase() : "";
+      const vb = b[field] ? b[field].toString().toLowerCase() : "";
+      if (va === vb) return 0;
+      if (va === "" || va === null) return 1;
+      if (vb === "" || vb === null) return -1;
+      return type === "asc" ? (va < vb ? -1 : 1) : va < vb ? 1 : -1;
+    });
+  };
+
+  const applyFilterAndSort = (filters, field = sortField, order = sortOrder, sourceList = null) => {
+    let arr = filterData(filters, true, sourceList);
+    arr = filterFileType(arr, filters.type);
+    if (field) {
+      arr = applySort(arr, field, order);
+    }
+    return arr;
+  };
 
   useEffect(() => {
     if (
@@ -64,30 +94,7 @@ const AttachmentList = (props) => {
       const latestList = [...props.data.attachmentList];
       setAttachList(latestList);
 
-      // Apply current filters to the new list without forcing a date-only sort
-      let arr = filterData(filterInput, true, latestList);
-      arr = filterFileType(arr, filterInput.type);
-
-      // Re-apply current sort (if any) without mutating original arrays
-      if (sortField === "uploadDate") {
-        const type = sortOrder || "desc";
-        arr = [...arr].sort((a, b) =>
-          type === "desc"
-            ? new Date(b.uploadDate) - new Date(a.uploadDate)
-            : new Date(a.uploadDate) - new Date(b.uploadDate)
-        );
-      } else if (sortField) {
-        const type = sortOrder || "asc";
-        arr = [...arr].sort((a, b) => {
-          const va = a[sortField] ? a[sortField].toLowerCase() : "";
-          const vb = b[sortField] ? b[sortField].toLowerCase() : "";
-          if (va === vb) return 0;
-          if (va === "" || va === null) return 1;
-          if (vb === "" || vb === null) return -1;
-          return type === "asc" ? (va < vb ? -1 : 1) : va < vb ? 1 : -1;
-        });
-      }
-
+      const arr = applyFilterAndSort(filterInput, sortField, sortOrder, latestList);
       setFilteredList(arr);
     } else {
       setAttachList([]);
@@ -169,86 +176,19 @@ const AttachmentList = (props) => {
     }
   };
 
-  const handleSortListByDate = (arg, type) => {
-    let newArray = [];
-    type = type ? type : "asc";
-    if (labelSort === "uploadDate") {
-      if (sortOrder === "desc") {
-        type = "asc";
-      } else {
-        type = "desc";
-      }
-    }
-
-    if (arg && arg.length > 0) {
-      if (type === "desc") {
-        newArray = arg.sort(
-          (a, b) => new Date(b.uploadDate) - new Date(a.uploadDate)
-        );
-      } else {
-        newArray = arg.sort(
-          (a, b) => new Date(a.uploadDate) - new Date(b.uploadDate)
-        );
-      }
-    }
-    setLabelSort("uploadDate");
-    setSortField("uploadDate");
-    setSortOrder(type);
-    setFilteredList(newArray);
-  };
-
   const sortFunc = (sorton) => {
-    let newArray = [];
-    if (labelSort !== sorton) {
-      setLabelSort(sorton);
-      setSortOrder("asc");
-      setSortField(sorton);
-      newArray = filteredList.sort((a, b) => {
-        if (a[sorton] === b[sorton]) {
-          return 0;
-        }
-
-        if (a[sorton] === "" || a[sorton] === null) {
-          return 1;
-        }
-        if (b[sorton] === "" || b[sorton] === null) {
-          return -1;
-        }
-
-        return (a[sorton] ? a[sorton].toLowerCase() : "") <
-          (b[sorton] ? b[sorton].toLowerCase() : "")
-          ? -1
-          : 1;
-      });
-    } else {
-      setLabelSort("");
-      setSortOrder("desc");
-      setSortField(sorton);
-      newArray = filteredList.sort((a, b) => {
-        if (a[sorton] === b[sorton]) {
-          return 0;
-        }
-
-        if (a[sorton] === "" || a[sorton] === null) {
-          return 1;
-        }
-        if (b[sorton] === "" || b[sorton] === null) {
-          return -1;
-        }
-
-        return (a[sorton] ? a[sorton].toLowerCase() : "") <
-          (b[sorton] ? b[sorton].toLowerCase() : "")
-          ? 1
-          : -1;
-      });
-    }
-    setFilteredList(newArray);
+    const newOrder = sortField === sorton && sortOrder === "asc" ? "desc" : "asc";
+    setSortField(sorton);
+    setSortOrder(newOrder);
+    setFilteredList((prevList) => applySort(prevList, sorton, newOrder));
   };
 
   const handleFilter = (e) => {
     const { name, value } = e.target;
-    setFilterInput({ ...filterInput, [name]: value });
-    filterData({ ...filterInput, [name]: value });
+    const updatedFilter = { ...filterInput, [name]: value };
+    setFilterInput(updatedFilter);
+    const arr = applyFilterAndSort(updatedFilter, sortField, sortOrder, attachList);
+    setFilteredList(arr);
   };
 
   const handleEditRowDetail = (row) => {
@@ -321,15 +261,18 @@ const AttachmentList = (props) => {
   };
 
   const startTypeFilter = (value, sortTo, sourceList = null) => {
-    let arr = filterData(filterInput, true, sourceList);
-    arr = filterFileType(arr, value);
-    setFilterInput({ ...filterInput, type: value });
+    const updatedFilter = { ...filterInput, type: value };
+    setFilterInput(updatedFilter);
 
+    const targetField = sortTo ? "uploadDate" : sortField;
+    const targetOrder = sortTo ? sortTo : sortOrder;
     if (sortTo) {
-      handleSortListByDate(arr, "desc");
-    } else {
-      setFilteredList(arr);
+      setSortField("uploadDate");
+      setSortOrder(sortTo);
     }
+
+    const arr = applyFilterAndSort(updatedFilter, targetField, targetOrder, sourceList || attachList);
+    setFilteredList(arr);
   };
 
   const handleChangeType = (e) => {
@@ -497,7 +440,7 @@ const AttachmentList = (props) => {
             <th>
               <div
                 className="matter-sorting-label"
-                onClick={() => handleSortListByDate(filteredList)}
+                onClick={() => sortFunc("uploadDate")}
               >
                 <p className="mb-0">Upload Date</p>
                 <div className="associatedContacts-label-btn">
