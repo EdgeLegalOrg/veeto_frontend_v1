@@ -11,7 +11,7 @@ import {
 } from "reactstrap";
 import BreadCrumb from "../../../../../Components/Common/BreadCrumb";
 import { AlertPopup } from "../../customComponents/CustomComponents";
-import { getRequiredFields, validate } from "../../../utils/Validation";
+import { validate } from "../../../utils/Validation";
 import {
   API_BASE_URL,
   getAllBaseTemplates,
@@ -21,10 +21,11 @@ import {
 
 import { toast } from "react-toastify";
 import LoadingPage from "../../../utils/LoadingPage";
-import { convertSubstring, findDisplayname } from "../../../utils/utilFunc";
+import { convertSubstring, findDisplayname, updateLocalSiteInfo } from "../../../utils/utilFunc";
 import AddressList from "./AddressList";
 import BankAccountList from "./BankAccountList";
 import DisclaimerList from "./DisclaimerList";
+import { AUSTRALIAN_TIMEZONES } from "pages/Edge/utils/Constant";
 
 const initialData = {
   siteName: "",
@@ -42,6 +43,7 @@ const initialData = {
   deactivatedDate: "",
   templateName: "",
   abn: "",
+  timeZone: "",
 };
 
 const SiteInfoPage = () => {
@@ -69,7 +71,7 @@ const SiteInfoPage = () => {
         if (f.mandatory) {
           arr.push(f.fieldName);
         }
-      }
+      },
     );
     setRequiredFields(arr);
   };
@@ -79,7 +81,12 @@ const SiteInfoPage = () => {
       setLoading(true);
       const { data } = await getSiteInfo();
       if (data.success) {
-        setSiteInfo({ ...siteInfo, ...data.data });
+        const disclaimerText = data.data?.preferredDisclaimer?.disclaimer || data.data?.disclaimer || "";
+        setSiteInfo({
+          ...siteInfo,
+          ...data.data,
+          disclaimer: disclaimerText,
+        });
         setBankList(data?.data?.bankAccountList);
         setAddressList(data?.data?.siteAddressList);
         setDisclaimerList(data?.data?.disclaimerList);
@@ -134,7 +141,18 @@ const SiteInfoPage = () => {
 
   const handleFormChange = (e) => {
     const { name, value } = e.target;
-    setSiteInfo({ ...siteInfo, [name]: value });
+    if (name === "disclaimer") {
+      setSiteInfo({
+        ...siteInfo,
+        disclaimer: value,
+        preferredDisclaimer: {
+          ...siteInfo.preferredDisclaimer,
+          disclaimer: value,
+        },
+      });
+    } else {
+      setSiteInfo({ ...siteInfo, [name]: value });
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -162,6 +180,8 @@ const SiteInfoPage = () => {
         setShowAlert(true);
         setAlertMsg(data?.error?.message);
       } else {
+        updateLocalSiteInfo(siteInfo);
+        toast.success("Site details saved successfully");
         fetchSiteInfo();
       }
     } catch (error) {
@@ -276,7 +296,6 @@ const SiteInfoPage = () => {
                         // maxLength={fieldLength['phoneNumber1'.toLowerCase()]}
                       />
                     </div>
-
                     <div className="col-md-3 mt-3">
                       <TextInputField
                         label="Email"
@@ -381,8 +400,6 @@ const SiteInfoPage = () => {
                         // maxLength={fieldLength['address3'.toLowerCase()]}
                       />
                     </div>
-
-
                     <div className="col-md-3 mt-3">
                       <TextInputField
                         label="ABN"
@@ -398,6 +415,17 @@ const SiteInfoPage = () => {
                         }
                         invalidMessage="Please enter a valid ABN"
                         // maxLength={fieldLength['website'.toLowerCase()]}
+                      />
+                    </div>
+                    <div className="col-md-3 mt-3">
+                      <TextInputField
+                        type="select"
+                        label="Timezone"
+                        name="timeZone"
+                        placeholder="Select Timezone"
+                        optionArray={AUSTRALIAN_TIMEZONES}
+                        value={siteInfo.timeZone || "Australia/Sydney"}
+                        onChange={handleFormChange}
                       />
                     </div>
                     {siteInfo.logoPath && !editLogo ? (
@@ -455,7 +483,6 @@ const SiteInfoPage = () => {
                         )}
                       </div>
                     )}
-
                     <div className="col-md-3 mt-3"></div>
                   </div>
                   <div className="row">
@@ -467,9 +494,7 @@ const SiteInfoPage = () => {
                         placeholder="Preferred Tax Disclaimer"
                         cols={2}
                         value={
-                          siteInfo?.preferredDisclaimer?.disclaimer
-                            ? siteInfo?.preferredDisclaimer?.disclaimer
-                            : ""
+                          siteInfo?.disclaimer || siteInfo?.preferredDisclaimer?.disclaimer || ""
                         }
                         onChange={handleFormChange}
                         required={requiredFields.indexOf("disclaimer") >= 0}

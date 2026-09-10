@@ -1,14 +1,20 @@
 import moment from "moment";
+import momentTimezone from "moment-timezone";
+export const formatDateFunc = (date, format = "DD-MM-YYYY") => {
+  if (!date) return null;
+  const timeZone = getActiveSiteTimeZone();
+  // Formats in site's local timezone
+  return momentTimezone(date).tz
+    ? momentTimezone(date).tz(timeZone).format(format)
+    : momentTimezone(date).format(format);
+};
 
-// Date format
-export const formatDateFunc = (date, format) => {
-  format = format || "DD-MM-YYYY";
-
-  if (!date) {
-    return null;
-  }
-  // return moment(date).format('YYYY-MM-DD');
-  return moment(date).format(format);
+export const formatDateTimeFunc = (date, format = "DD-MM-YYYY hh:mm A") => {
+  if (!date) return null;
+  const timeZone = getActiveSiteTimeZone();
+  return momentTimezone(date).tz
+    ? momentTimezone(date).tz(timeZone).format(format)
+    : momentTimezone(date).format(format);
 };
 
 export const convertSubstring = (word, limit = 15) => {
@@ -53,22 +59,7 @@ export const getQuery = () => {
 };
 
 export const removeAllStorage = () => {
-  let allStorage = window.localStorage;
-
-  for (let a in allStorage) {
-    window.localStorage.removeItem(a);
-  }
-  // window.localStorage.removeItem('metaData');
-  // window.localStorage.removeItem('roleList');
-  // window.localStorage.removeItem('rightList');
-  // window.localStorage.removeItem('countryList');
-  // window.localStorage.removeItem('postalList');
-  // window.localStorage.removeItem('userDetails');
-  // window.localStorage.removeItem('enumList');
-  // window.localStorage.removeItem('matterTabs');
-  // window.localStorage.removeItem('matterTypeList');
-  // window.localStorage.removeItem('matterContactRole');
-  // window.localStorage.removeItem('matterStatus');
+  window.localStorage.clear();
 };
 
 export const formatCurrency = (amount) => {
@@ -89,4 +80,68 @@ export const checkHasPermission = (key) => {
   }
 
   return false;
+};
+
+export const getActiveSiteTimeZone = () => {
+  try {
+    const userDetails = JSON.parse(localStorage.getItem("userDetails") || "{}");
+    const companyDetails = JSON.parse(
+      localStorage.getItem("companyInfo") || "{}",
+    );
+
+    const currentSiteId = userDetails.siteId;
+    const siteList = companyDetails.siteInfoList || userDetails.siteInfoList || [];
+
+    const currentSite = siteList.find(
+      (site) =>
+        Number(site.id) === Number(currentSiteId) ||
+        Number(site.siteId) === Number(currentSiteId),
+    );
+
+    return currentSite?.timeZone || userDetails?.timeZone || "Australia/Sydney";
+  } catch (error) {
+    return "Australia/Sydney";
+  }
+};
+
+export const updateLocalSiteInfo = (updatedSite) => {
+  try {
+    const siteId = updatedSite.siteId || updatedSite.id;
+    if (!siteId) return;
+
+    const companyInfoStr = localStorage.getItem("companyInfo");
+    if (companyInfoStr) {
+      const companyInfo = JSON.parse(companyInfoStr);
+      if (companyInfo.siteInfoList && Array.isArray(companyInfo.siteInfoList)) {
+        companyInfo.siteInfoList = companyInfo.siteInfoList.map((site) =>
+          Number(site.siteId) === Number(siteId) || Number(site.id) === Number(siteId)
+            ? { ...site, ...updatedSite, siteId: site.siteId || site.id }
+            : site
+        );
+        localStorage.setItem("companyInfo", JSON.stringify(companyInfo));
+      }
+    }
+
+    const userDetailsStr = localStorage.getItem("userDetails");
+    if (userDetailsStr) {
+      const userDetails = JSON.parse(userDetailsStr);
+      if (Number(userDetails.siteId) === Number(siteId) || Number(userDetails.id) === Number(siteId)) {
+        userDetails.timeZone = updatedSite.timeZone || userDetails.timeZone;
+        userDetails.siteName = updatedSite.siteName || userDetails.siteName;
+      }
+      if (userDetails.siteInfoList && Array.isArray(userDetails.siteInfoList)) {
+        userDetails.siteInfoList = userDetails.siteInfoList.map((site) =>
+          Number(site.siteId) === Number(siteId) || Number(site.id) === Number(siteId)
+            ? { ...site, ...updatedSite, siteId: site.siteId || site.id }
+            : site
+        );
+      }
+      localStorage.setItem("userDetails", JSON.stringify(userDetails));
+    }
+
+    window.dispatchEvent(new Event("siteChanged"));
+    window.dispatchEvent(new Event("storage"));
+  } catch (err) {
+    console.error("Error updating local site info:", err);
+  }
 };
