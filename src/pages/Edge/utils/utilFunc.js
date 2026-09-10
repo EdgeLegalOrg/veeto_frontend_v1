@@ -145,3 +145,34 @@ export const updateLocalSiteInfo = (updatedSite) => {
     console.error("Error updating local site info:", err);
   }
 };
+
+/**
+ * Pulls the server's error message out of a failed blob request.
+ *
+ * A request made with `responseType: "blob"` gets a Blob back even when the
+ * server answered with a JSON error, so `error.response.data.error.message`
+ * is undefined and the caller can only ever show a generic message. This
+ * reads the Blob and parses what is inside it.
+ *
+ * Returns null when there is nothing usable - no response at all, or a body
+ * that is not the JSON error shape (a proxy's HTML error page, say). Callers
+ * keep their own fallback text for that case rather than showing an empty
+ * toast.
+ */
+export const readBlobErrorMessage = async (error) => {
+  const data = error?.response?.data;
+
+  if (!data) {
+    return null;
+  }
+
+  try {
+    // Blob when the request asked for one; already-parsed object otherwise.
+    const body = typeof data.text === "function" ? await data.text() : data;
+    const parsed = typeof body === "string" ? JSON.parse(body) : body;
+
+    return parsed?.error?.message || null;
+  } catch (parseError) {
+    return null;
+  }
+};
