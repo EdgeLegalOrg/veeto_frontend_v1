@@ -12,6 +12,7 @@ import {
   SearchableState,
   SearchableCountry,
 } from "pages/Edge/components/InputField";
+import { AUSTRALIAN_TIMEZONES } from "pages/Edge/utils/Constant";
 
 const initialData = {
   siteName: "",
@@ -23,6 +24,7 @@ const initialData = {
   disclaimer: "",
   defaultTemplateId: "",
   siteCode: "",
+  timeZone: "",
 };
 
 const initAcc = {
@@ -74,7 +76,7 @@ const AddNewSite = (props) => {
         if (f.mandatory) {
           arr.push(f.fieldName);
         }
-      }
+      },
     );
     setRequiredFields(arr);
   };
@@ -84,7 +86,7 @@ const AddNewSite = (props) => {
     JSON.parse(window.localStorage.getItem("metaData"))?.site_info?.fields?.map(
       (f) => {
         allLengths = { ...allLengths, [f.fieldName.toLowerCase()]: f.dataSize };
-      }
+      },
     );
     setFieldLength(allLengths);
   };
@@ -192,7 +194,7 @@ const AddNewSite = (props) => {
     } else {
       if (fieldName === "country") {
         const selectedCountry = countryList.filter(
-          (country) => country.countryName === val
+          (country) => country.countryName === val,
         );
         setPreferredAddress({
           ...preferredAddress,
@@ -340,15 +342,19 @@ const AddNewSite = (props) => {
       preferredDisclaimer,
     };
 
-    let formData = new FormData();
+    let inputFormData = new FormData();
 
-    formData.append("siteInfoDetails", { requestId: uuidv1(), data: newData });
-    formData.append("siteLogo", logoImg.file);
+    inputFormData.append(
+      "siteInfoDetails",
+      JSON.stringify({ requestId: uuidv1(), data: newData })
+    );
+    inputFormData.append("siteLogo", logoImg.file);
 
     try {
       setLoading(true);
-      const { data } = await createNewSite(formData);
+      const { data } = await createNewSite(inputFormData);
       if (data.success) {
+        toast.success("Site added successfully");
         setShowAdd(false);
         refreshData();
       } else {
@@ -440,6 +446,18 @@ const AddNewSite = (props) => {
               maxLength={fieldLength["siteCode".toLowerCase()]}
             />
           </div>
+          <div className="col-md-3 mt-3">
+            <TextInputField
+              type="select"
+              label="Timezone"
+              name="timeZone"
+              placeholder="Select Timezone"
+              optionArray={AUSTRALIAN_TIMEZONES}
+              value={formData.timeZone || "Australia/Sydney"}
+              onChange={handleFormChange}
+            />
+          </div>
+
           <div className="col-md-4 mt-3">
             <TextInputField
               label="Phone"

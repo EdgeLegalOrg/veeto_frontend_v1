@@ -15,6 +15,8 @@ import {
   SearchableCountry,
 } from "pages/Edge/components/InputField";
 import { v1 as uuidv1 } from "uuid";
+import { AUSTRALIAN_TIMEZONES } from "pages/Edge/utils/Constant";
+import { updateLocalSiteInfo } from "pages/Edge/utils/utilFunc";
 
 const initialData = {
   siteName: "",
@@ -25,6 +27,7 @@ const initialData = {
   website: "",
   defaultTemplateId: "",
   siteCode: "",
+  timeZone: "",
 };
 
 const initAcc = {
@@ -83,7 +86,7 @@ const EditSiteInfo = (props) => {
         if (f.mandatory) {
           arr.push(f.fieldName);
         }
-      }
+      },
     );
     setRequiredFields(arr);
   };
@@ -93,7 +96,7 @@ const EditSiteInfo = (props) => {
     JSON.parse(window.localStorage.getItem("metaData"))?.site_info?.fields?.map(
       (f) => {
         allLengths = { ...allLengths, [f.fieldName.toLowerCase()]: f.dataSize };
-      }
+      },
     );
     setFieldLength(allLengths);
   };
@@ -223,7 +226,7 @@ const EditSiteInfo = (props) => {
     } else {
       if (fieldName === "country") {
         const selectedCountry = countryList.filter(
-          (country) => country.countryName === val
+          (country) => country.countryName === val,
         );
         setPreferredAddress({
           ...preferredAddress,
@@ -377,13 +380,15 @@ const EditSiteInfo = (props) => {
       JSON.stringify({
         requestId: uuidv1(),
         data: newData,
-      })
+      }),
     );
 
     try {
       setLoading(true);
       const { data } = await updateSiteInfo(formInfoData);
       if (data.success) {
+        updateLocalSiteInfo(newData);
+        toast.success("Site details updated successfully");
         setShowEdit(false);
         refreshData();
       } else {
@@ -447,6 +452,18 @@ const EditSiteInfo = (props) => {
               maxLength={fieldLength["siteCode".toLowerCase()]}
             />
           </div>
+          <div className="col-md-3 mt-3">
+            <TextInputField
+              type="select"
+              label="Timezone"
+              name="timeZone"
+              placeholder="Select Timezone"
+              optionArray={AUSTRALIAN_TIMEZONES}
+              value={formData.timeZone || "Australia/Sydney"}
+              onChange={handleFormChange}
+            />
+          </div>
+
           <div className="col-md-4 mt-3">
             <TextInputField
               label="Phone"
@@ -499,7 +516,6 @@ const EditSiteInfo = (props) => {
               maxLength={fieldLength["website".toLowerCase()]}
             />
           </div>
-
         </div>
 
         <div>
