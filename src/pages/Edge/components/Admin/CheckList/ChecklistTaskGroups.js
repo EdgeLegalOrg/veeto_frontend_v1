@@ -83,6 +83,58 @@ const ChecklistTaskGroups = (props) => {
   const tasksIn = (groupId) =>
     tasks.filter((task) => (task.taskGroupId ?? UNGROUPED) === groupId);
 
+  /**
+   * Renumbers every group from zero and hands the result to the parent.
+   *
+   * sortOrder is only meaningful within a group, and the server stores exactly
+   * what arrives, so it is normalised here on every change rather than only
+   * when the order is edited. That way a task typed into a group gets a
+   * position immediately, and a group can never end up with two tasks claiming
+   * the same one.
+   */
+  const commit = (nextTasks) => {
+    const nextPosition = {};
+
+    onChange(
+      nextTasks.map((task) => {
+        const key = task.taskGroupId ?? UNGROUPED;
+
+        nextPosition[key] = (nextPosition[key] ?? -1) + 1;
+
+        return { ...task, sortOrder: nextPosition[key] };
+      })
+    );
+  };
+
+  /**
+   * Moves a task one place up or down within its own group.
+   *
+   * Positions are swapped in the underlying array rather than by editing
+   * sortOrder directly, because the array is what the display order is read
+   * from - editing the numbers alone would leave the list looking unchanged
+   * until it was reloaded. commit then renumbers from the new arrangement.
+   */
+  const handleReorderTask = (task, direction) => {
+    const groupId = task.taskGroupId ?? UNGROUPED;
+    const siblings = tasksIn(groupId);
+    const at = siblings.findIndex((t) => sameTask(task, t));
+    const to = at + direction;
+
+    if (at < 0 || to < 0 || to >= siblings.length) {
+      return;
+    }
+
+    // The two rows to exchange, located in the full list.
+    const fromIndex = tasks.findIndex((t) => sameTask(siblings[at], t));
+    const toIndex = tasks.findIndex((t) => sameTask(siblings[to], t));
+
+    const next = [...tasks];
+    next[fromIndex] = tasks[toIndex];
+    next[toIndex] = tasks[fromIndex];
+
+    commit(next);
+  };
+
   const handleAddTask = (groupId) => {
     const title = (draft[groupId] || "").trim();
 
@@ -90,7 +142,7 @@ const ChecklistTaskGroups = (props) => {
       return;
     }
 
-    onChange([
+    commit([
       ...tasks,
       {
         // Local only, so React has a stable key before the server assigns ids.
@@ -122,21 +174,20 @@ const ChecklistTaskGroups = (props) => {
   };
 
   const handleRemoveTask = (task) => {
-    onChange(tasks.filter((t) => !sameTask(task, t)));
+    commit(tasks.filter((t) => !sameTask(task, t)));
   };
 
   const handleMoveTask = (task, nextGroupId) => {
-    onChange(
-      tasks.map((t) =>
-        sameTask(task, t)
-          ? {
-              ...t,
-              taskGroupId:
-                nextGroupId === UNGROUPED ? null : Number(nextGroupId),
-            }
-          : t
-      )
-    );
+    const moved = {
+      ...task,
+      taskGroupId: nextGroupId === UNGROUPED ? null : Number(nextGroupId),
+    };
+
+    // Appended rather than left where it was, so it lands at the bottom of the
+    // group it moves into. commit renumbers from array order, and dropping a
+    // task into the middle of a group nobody asked to reorder would be a
+    // surprise.
+    commit([...tasks.filter((t) => !sameTask(task, t)), moved]);
   };
 
   const handleAddGroup = () => {
@@ -226,11 +277,36 @@ const ChecklistTaskGroups = (props) => {
               <p className="text-muted fs-13 mb-2">No tasks in this group.</p>
             )}
 
-            {tasksIn(groupId).map((task, i) => (
+            {tasksIn(groupId).map((task, i, siblings) => (
               <div
                 className="d-flex align-items-center gap-2 mb-2"
                 key={task.localKey || `task-${task.taskId}-${i}`}
               >
+                {/* Reordering within the group. Buttons rather than drag and
+                    drop: the list is short, and a keyboard-reachable control
+                    beats a drag target that needs a library. */}
+                <div className="btn-group-vertical" role="group">
+                  <Button
+                    color="light"
+                    size="sm"
+                    className="py-0 px-1"
+                    onClick={() => handleReorderTask(task, -1)}
+                    disabled={i === 0}
+                    title="Move up"
+                  >
+                    <i className="ri-arrow-up-s-line" />
+                  </Button>
+                  <Button
+                    color="light"
+                    size="sm"
+                    className="py-0 px-1"
+                    onClick={() => handleReorderTask(task, 1)}
+                    disabled={i === siblings.length - 1}
+                    title="Move down"
+                  >
+                    <i className="ri-arrow-down-s-line" />
+                  </Button>
+                </div>
                 <span className="text-muted fs-13" style={{ width: "24px" }}>
                   {i + 1}.
                 </span>

@@ -283,11 +283,15 @@ const Navdata = () => {
           stateVariables: isChecklist,
           isChildItem: true,
           childItems: [
+            // Task List and Task Groups are hidden: tasks are now typed
+            // directly on the Check List screen and groups are managed from
+            // the popup there, so both screens are redundant. The routes are
+            // left in place so existing links still resolve.
             {
               id: 1,
               label: "Task List",
               link: "/admin-checklist-taskList",
-              show: true,
+              show: false,
               parentId: "admin",
             },
             {
@@ -301,7 +305,7 @@ const Navdata = () => {
               id: 1,
               label: "Task Groups",
               link: "/admin-checklist-taskGroups",
-              show: true,
+              show: false,
               parentId: "admin",
             },
             {

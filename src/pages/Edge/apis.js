@@ -1232,6 +1232,12 @@ export const fetchActiveSessions = () =>
 export const fetchSessionHistory = (limit = 200) =>
   API.get(`/api/session/history?limit=${limit}&requestId=${uuidv1()}`);
 
+// Ends every open session in the company except the caller's. The server checks
+// the LogoffAllUsers right as well as the UI hiding the button, so calling this
+// without it comes back unsuccessful rather than acting.
+export const forceLogoutAllUsers = () =>
+  API.post(`/api/session/force-logout?requestId=${uuidv1()}`);
+
 // Both sit under /api/auth so they work without a valid token - a timeout is
 // by definition reported once the token has already expired.
 export const recordSessionLogout = (sessionToken) =>
