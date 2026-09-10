@@ -21,7 +21,7 @@ import withRouter from "../../Components/Common/withRouter";
 import * as Yup from "yup";
 import { useFormik } from "formik";
 
-import { loginUser, userProfile } from "../Edge/apis";
+import { loginUser, userProfile, SESSION_TOKEN_KEY } from "../Edge/apis";
 import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -56,6 +56,14 @@ const Login = (props) => {
         .then((response) => {
           Cookies.set("userJWT", response.data.accessToken, { expires: 8 });
           Cookies.set("userId", response.data.userId);
+          // Handle for this login's session record, quoted back on logout or
+          // timeout so the history can tell the two apart.
+          if (response.data.sessionToken) {
+            window.localStorage.setItem(
+              SESSION_TOKEN_KEY,
+              response.data.sessionToken
+            );
+          }
           sessionStorage.removeItem("alreadyLoggedOut");
           setLoading(false);
           toast.success("Login successfully!");

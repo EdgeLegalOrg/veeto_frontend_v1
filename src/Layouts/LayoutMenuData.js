@@ -314,6 +314,13 @@ const Navdata = () => {
           ],
         },
         {
+          id: "loggedInUsers",
+          label: "Logged In Users",
+          link: "/admin-logged-in-users",
+          show: true,
+          parentId: "admin",
+        },
+        {
           id: "notifications",
           label: "Notifications",
           link: "/admin-notifications",
