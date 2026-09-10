@@ -4,6 +4,7 @@ import LoadingPage from "../../../utils/LoadingPage";
 import AddCheckList from "./AddCheckList";
 import "../../../stylesheets/CheckList.css";
 import EditCheckList from "./EditCheckList";
+import SyncChangesModal from "./SyncChangesModal";
 import { AlertPopup } from "../../customComponents/CustomComponents";
 import { toast } from "react-toastify";
 import {
@@ -28,6 +29,7 @@ const ListPage = () => {
   const [task, setTask] = useState([]);
   const [checkList, setCheckList] = useState([]);
   const [selectedTemplate, setSelectedTemplate] = useState(null);
+  const [syncOpen, setSyncOpen] = useState(false);
   const [selectedList, setSelectedList] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -112,6 +114,14 @@ const ListPage = () => {
       setEdit(true);
     } else {
       toast.warning("Please select one task");
+    }
+  };
+
+  const handleSyncChanges = () => {
+    if (selectedTemplate) {
+      setSyncOpen(true);
+    } else {
+      toast.warning("Please select one checklist to sync");
     }
   };
 
@@ -212,6 +222,14 @@ const ListPage = () => {
                   color="warning"
                 >
                   Edit
+                </Button>
+                <Button
+                  className="d-flex mx-1"
+                  onClick={handleSyncChanges}
+                  color="info"
+                  title="Push this checklist's tasks out to the matters using it"
+                >
+                  Sync Changes
                 </Button>
                 <Button
                   className="d-flex mx-1"
@@ -355,6 +373,12 @@ const ListPage = () => {
               </ModalBody>
             </Modal>
           )}
+          <SyncChangesModal
+            isOpen={syncOpen}
+            close={() => setSyncOpen(false)}
+            template={selectedTemplate}
+          />
+
           {loading && <LoadingPage />}
         </Card>
       </Container>

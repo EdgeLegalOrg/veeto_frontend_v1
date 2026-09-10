@@ -12,7 +12,27 @@ const API = axios.create({
   baseURL: API_BASE_URL,
 });
 
+export const SESSION_TOKEN_KEY = "veetoSessionToken";
+
 const cleaningFunc = () => {
+  // Tell the server the session timed out before clearing anything, otherwise
+  // the row stays open until the sweep closes it as merely expired and the
+  // history cannot tell a timeout from a closed browser.
+  //
+  // Sent with the bare axios instance: this runs from inside the request
+  // interceptor, and going back through API here would re-enter it.
+  const sessionToken = window.localStorage.getItem(SESSION_TOKEN_KEY);
+
+  if (sessionToken) {
+    axios
+      .post(
+        `${API_BASE_URL}/api/auth/session/timeout?sessionToken=${encodeURIComponent(sessionToken)}`
+      )
+      .catch(() => {
+        // Best effort. The sweep closes it either way.
+      });
+  }
+
   Cookies.remove("userJWT");
   window.localStorage.clear();
   window.location.href = "/";
@@ -1022,6 +1042,16 @@ export const editCheckList = (formData) =>
 export const getCheckList = () =>
   API.get(`/api/checklist/template?requestId=${uuidv1()}&name=&description=`);
 
+// Pushes a checklist's current tasks out to the matters using it.
+// scope: EXISTING_WORKFLOWS | ALL_LINKED_MATTERS
+//
+// One batch per call. The response carries totalMatters, nextOffset and
+// complete, so the caller can show real progress and keep going until done.
+export const syncCheckList = (templateId, scope, offset = 0, limit = 25) =>
+  API.post(
+    `/api/checklist/template/${templateId}/sync?scope=${scope}&offset=${offset}&limit=${limit}&requestId=${uuidv1()}`
+  );
+
 export const deleteCheckList = (ids) =>
   API.delete(
     `/api/checklist/template?requestId=${uuidv1()}&templateIds=${ids}`
@@ -1193,6 +1223,22 @@ export const saveChecklistTaskGroup = (groupData, iconFile) => {
 
 export const deleteChecklistTaskGroup = (groupId) =>
   API.delete(`/api/checklist/task-group/${groupId}?requestId=${uuidv1()}`);
+
+// User sessions ------------------------------------------------------------
+
+export const fetchActiveSessions = () =>
+  API.get(`/api/session/active?requestId=${uuidv1()}`);
+
+export const fetchSessionHistory = (limit = 200) =>
+  API.get(`/api/session/history?limit=${limit}&requestId=${uuidv1()}`);
+
+// Both sit under /api/auth so they work without a valid token - a timeout is
+// by definition reported once the token has already expired.
+export const recordSessionLogout = (sessionToken) =>
+  API.post(`/api/auth/session/logout?sessionToken=${encodeURIComponent(sessionToken)}`);
+
+export const recordSessionTimeout = (sessionToken) =>
+  API.post(`/api/auth/session/timeout?sessionToken=${encodeURIComponent(sessionToken)}`);
 
 // Global search -----------------------------------------------------------
 
