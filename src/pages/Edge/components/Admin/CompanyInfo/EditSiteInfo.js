@@ -499,32 +499,7 @@ const EditSiteInfo = (props) => {
               maxLength={fieldLength["website".toLowerCase()]}
             />
           </div>
-          <div className="col-md-4 mt-3">
-            <TextInputField
-              type="select"
-              name="defaultTemplateId"
-              label="Default Letter Head"
-              placeholder="Default Letter Head"
-              value={formData.defaultTemplateId}
-              optionArray={templateList.map((d) => ({
-                label: d.display,
-                value: d.value,
-              }))}
-              onChange={({ target }) => {
-                setFormData((prev) => ({
-                  ...prev,
-                  defaultTemplateId: target.value,
-                }));
-              }}
-              required={requiredFields.indexOf("defaultTemplateId") >= 0}
-              invalid={
-                submitted && requiredFields.indexOf("defaultTemplateId") >= 0
-                  ? true
-                  : false
-              }
-              invalidMessage={"Default Letter Head is required"}
-            />
-          </div>
+
         </div>
 
         <div>

@@ -44,6 +44,9 @@ import LoggedInUsers from '../pages/Edge/components/Admin/Sessions/LoggedInUsers
 import PreviewInvoiceTemplate from '../pages/Edge/components/Matters/InvoiceTab/PreviewInvoiceTemplate';
 import PaymentListPage from '../pages/Edge/components/AccountingSection/PaymentListing/PaymentListingPage';
 import StorageTypePage from 'pages/Edge/components/Admin/Settings/StorageTypePage';
+import { createRequire } from 'module';
+
+const require = createRequire(import.meta.url);
 
 const authProtectedRoutes = [
   //Edge Routes

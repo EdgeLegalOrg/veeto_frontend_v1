@@ -166,7 +166,7 @@ const AddNewUser = (props) => {
       const newDataList = dataList.filter((role) => role.roleId);
 
       const newData = {
-        defaultTemplateId: defaultTemplateId || 0,
+        defaultTemplateId: defaultTemplateId ? Number(defaultTemplateId) : null,
         userId: userDetail.id,
         siteRoleList: newDataList,
       };
@@ -272,10 +272,9 @@ const AddNewUser = (props) => {
                 selected={defaultTemplateId}
                 optionArray={[
                   {
-                    label: "Select",
+                    label: "Use Site Default",
                     value: "",
-                    disabled: true,
-                    selected: true,
+                    selected: !defaultTemplateId,
                   },
                   ...templateList.map((d) => ({
                     label: d.display,
