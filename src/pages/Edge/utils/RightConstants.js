@@ -22,3 +22,7 @@ export const EXPORTTOXERO = "ExportToXero";
 export const UNDOFINALINVOICE = "UndoFinalInvoice";
 export const OUTSTANDINGINVOICEREPORT = "OutstandingInvoiceReport";
 export const EDITARCHIVEDMATTER = "EditArchivedMatter";
+// Gates the Log All Users Off button on Admin -> Logged In Users. Must match the
+// rightName seeded by 2026-09-11-logoff-all-users-right.sql, and the constant
+// the server checks in UserSessionController.
+export const LOGOFFALLUSERS = "LogoffAllUsers";

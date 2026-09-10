@@ -6,6 +6,10 @@ import {
   CardHeader,
   Container,
   Input,
+  Modal,
+  ModalBody,
+  ModalFooter,
+  ModalHeader,
   Nav,
   NavItem,
   NavLink,
@@ -15,8 +19,13 @@ import classnames from "classnames";
 import { toast } from "react-toastify";
 import BreadCrumb from "../../../../../Components/Common/BreadCrumb";
 import LoadingPage from "../../../utils/LoadingPage";
-import { fetchActiveSessions, fetchSessionHistory } from "../../../apis";
-import { formatDateFunc } from "../../../utils/utilFunc";
+import {
+  fetchActiveSessions,
+  fetchSessionHistory,
+  forceLogoutAllUsers,
+} from "../../../apis";
+import { checkHasPermission, formatDateFunc } from "../../../utils/utilFunc";
+import { LOGOFFALLUSERS } from "../../../utils/RightConstants";
 
 // Long enough to be current without hammering the server.
 const REFRESH_MS = 60 * 1000;
@@ -25,6 +34,7 @@ const END_REASON = {
   LOGOUT: { label: "Logged out", badge: "bg-secondary-subtle text-secondary" },
   TIMEOUT: { label: "Timed out", badge: "bg-warning-subtle text-warning" },
   EXPIRED: { label: "Expired", badge: "bg-light text-muted" },
+  FORCED: { label: "Forced off", badge: "bg-danger-subtle text-danger" },
 };
 
 const formatDateTime = (value) =>
@@ -50,6 +60,12 @@ const LoggedInUsers = () => {
   const [activeCount, setActiveCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [filter, setFilter] = useState("");
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [forcing, setForcing] = useState(false);
+
+  // Hiding the button keeps it from being pressed by accident. The server
+  // checks the same right, because a hidden button is not a permission.
+  const canForceLogout = checkHasPermission(LOGOFFALLUSERS);
 
   const load = useCallback(
     async (which, quiet) => {
@@ -94,6 +110,36 @@ const LoggedInUsers = () => {
     return () => clearInterval(timer);
   }, [tab, load]);
 
+  const handleForceLogout = async () => {
+    setForcing(true);
+
+    try {
+      const { data } = await forceLogoutAllUsers();
+
+      if (data.success) {
+        const closed = data.data || 0;
+
+        toast.success(
+          closed === 0
+            ? "Nobody else was logged in."
+            : `Logged ${closed} ${closed === 1 ? "user" : "users"} off.`
+        );
+
+        setConfirmOpen(false);
+        load("active");
+      } else {
+        toast.error(
+          data.error?.message || "You do not have permission to do that."
+        );
+      }
+    } catch (error) {
+      console.error("error", error);
+      toast.warning("Something went wrong, please try later.");
+    } finally {
+      setForcing(false);
+    }
+  };
+
   const filtered = sessions.filter((s) => {
     if (!filter) {
       return true;
@@ -104,7 +150,8 @@ const LoggedInUsers = () => {
     return (
       s.username?.toLowerCase().includes(needle) ||
       s.staffName?.toLowerCase().includes(needle) ||
-      s.siteName?.toLowerCase().includes(needle)
+      s.siteName?.toLowerCase().includes(needle) ||
+      s.ipAddress?.toLowerCase().includes(needle)
     );
   });
 
@@ -129,10 +176,21 @@ const LoggedInUsers = () => {
                 <Input
                   type="text"
                   bsSize="sm"
-                  placeholder="Search user or site"
+                  placeholder="Search user, site or IP"
                   value={filter}
                   onChange={(e) => setFilter(e.target.value)}
                 />
+                {canForceLogout && (
+                  <Button
+                    color="danger"
+                    size="sm"
+                    className="text-nowrap"
+                    onClick={() => setConfirmOpen(true)}
+                  >
+                    <i className="ri-logout-box-r-line align-bottom me-1" />
+                    Log All Users Off
+                  </Button>
+                )}
                 <Button
                   color="light"
                   size="sm"
@@ -182,6 +240,9 @@ const LoggedInUsers = () => {
                     <th scope="col">User</th>
                     <th scope="col">Staff Member</th>
                     <th scope="col">Site</th>
+                    <th scope="col" style={{ width: "140px" }}>
+                      IP Address
+                    </th>
                     <th scope="col" style={{ width: "180px" }}>
                       Logged In
                     </th>
@@ -201,7 +262,7 @@ const LoggedInUsers = () => {
                 <tbody>
                   {filtered.length === 0 && (
                     <tr>
-                      <td colSpan={showingHistory ? 7 : 6} className="text-center py-4">
+                      <td colSpan={showingHistory ? 8 : 7} className="text-center py-4">
                         {showingHistory
                           ? "No sessions recorded yet."
                           : "Nobody is logged in."}
@@ -216,6 +277,9 @@ const LoggedInUsers = () => {
                         <td className="fw-medium">{session.username || "-"}</td>
                         <td>{session.staffName || "-"}</td>
                         <td>{session.siteName || "-"}</td>
+                        <td className="font-monospace fs-13">
+                          {session.ipAddress || "-"}
+                        </td>
                         <td>{formatDateTime(session.loginAt)}</td>
                         {showingHistory && (
                           <td>{formatDateTime(session.endedAt)}</td>
@@ -242,6 +306,38 @@ const LoggedInUsers = () => {
             </div>
           </CardBody>
         </Card>
+
+        <Modal isOpen={confirmOpen} toggle={() => setConfirmOpen(!confirmOpen)} centered>
+          <ModalHeader toggle={() => setConfirmOpen(false)}>
+            Log all users off
+          </ModalHeader>
+          <ModalBody>
+            <p className="mb-2">
+              This ends every open session in your company except your own.
+            </p>
+            <p className="text-muted fs-13 mb-2">
+              Anyone working at the time is returned to the login page and loses
+              anything they had not saved. They can sign back in straight away —
+              this does not disable any account.
+            </p>
+            <p className="text-muted fs-13 mb-0">
+              It takes up to 15 seconds to take effect, because the check is
+              cached rather than run against the database on every request.
+            </p>
+          </ModalBody>
+          <ModalFooter>
+            <Button
+              color="light"
+              onClick={() => setConfirmOpen(false)}
+              disabled={forcing}
+            >
+              Cancel
+            </Button>
+            <Button color="danger" onClick={handleForceLogout} disabled={forcing}>
+              {forcing ? "Logging off..." : "Log All Users Off"}
+            </Button>
+          </ModalFooter>
+        </Modal>
 
         {loading && <LoadingPage />}
       </Container>
