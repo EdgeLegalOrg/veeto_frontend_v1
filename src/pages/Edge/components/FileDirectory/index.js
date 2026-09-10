@@ -405,14 +405,19 @@ const FileDirectoryModal = ({
       try {
         const { data } = await generatePrecedentApi(obj);
         const downloadLink = document.createElement("a");
-        const blob = new Blob([data], {
-          type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        });
-        downloadLink.href = window.URL.createObjectURL(blob);
+        // The response is already a Blob carrying the content type the server
+        // declared. It used to be re-wrapped as a Word document regardless,
+        // which mistyped every PDF and spreadsheet - the extension on the
+        // download attribute was carrying it, and the blob type was a lie.
+        const objectUrl = window.URL.createObjectURL(data);
+        downloadLink.href = objectUrl;
         downloadLink.download = `${selectedFile.contentName}.${selectedFile.contentType}`;
         document.body.appendChild(downloadLink);
         downloadLink.click();
         document.body.removeChild(downloadLink);
+        // Object URLs are held until the document unloads, so each download
+        // otherwise kept its whole file in memory for the rest of the session.
+        window.URL.revokeObjectURL(objectUrl);
         toast.success("file downloaded successfully");
         onClosehandler();
         setLoading(false);
