@@ -14,6 +14,7 @@ import {
   userProfile,
 } from "../../apis";
 import LoadingPage from "./../../utils/LoadingPage";
+import { readBlobErrorMessage } from "./../../utils/utilFunc";
 import { toast } from "react-toastify";
 import { TextInputField } from "../InputField";
 
@@ -418,7 +419,11 @@ const FileDirectoryModal = ({
         setSubmitted(false);
       } catch (error) {
         console.error("error", error);
-        toast.error("An error occurred. Unable to download file.");
+        // The request asks for a blob, so a JSON error from the server arrives
+        // as a Blob and has to be read out of it rather than taken off
+        // error.response.data directly.
+        const message = await readBlobErrorMessage(error);
+        toast.error(message || "An error occurred. Unable to download file.");
         setLoading(false);
       }
     } else {
