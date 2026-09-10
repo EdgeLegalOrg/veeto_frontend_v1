@@ -4,9 +4,19 @@ import { jwtDecode } from "jwt-decode";
 import { toast } from "react-toastify";
 import { v1 as uuidv1 } from "uuid";
 
-export const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+// Empty string, not undefined, when the variable is unset - which is how the
+// production build is now configured. Every caller builds URLs as
+// `${API_BASE_URL}${path}` with a leading-slash path, so an empty base gives a
+// relative URL that resolves against whatever origin served the page, and
+// undefined would give the string "undefined/api/...".
+//
+// Calling its own origin is what makes one build work on both uat and prod,
+// and makes a mixed-content block structurally impossible: an HTTPS page
+// cannot produce an HTTP request this way. Each environment's web server
+// already proxies /api to the backend - that is how prod works today.
+export const API_BASE_URL = process.env.REACT_APP_API_BASE_URL ?? "";
 export const XERO_APP_CONNECTION_URL =
-  process.env.REACT_APP_XERO_APP_CONNECTION_URL;
+  process.env.REACT_APP_XERO_APP_CONNECTION_URL ?? "";
 
 const API = axios.create({
   baseURL: API_BASE_URL,
