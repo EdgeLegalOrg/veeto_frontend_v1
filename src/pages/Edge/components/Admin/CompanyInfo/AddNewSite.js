@@ -509,26 +509,7 @@ const AddNewSite = (props) => {
               maxLength={fieldLength["website".toLowerCase()]}
             />
           </div>
-          <div className="col-md-4 mt-3">
-            <SelectInputField
-              name="defaultTemplateId"
-              label="Default Letter Head"
-              placeholder="Default Letter Head"
-              value={formData.defaultTemplateId}
-              optionArray={templateList}
-              setDetails={setFormData}
-              details={formData}
-              onSelectFunc={(val) => handleSelect(val)}
-              selected={formData.defaultTemplateId}
-              fieldVal={formData.templateName}
-              maxLength={null}
-              required={requiredFields.indexOf("defaultTemplateId") >= 0}
-              invalid={
-                submitted && requiredFields.indexOf("defaultTemplateId") >= 0
-              }
-              invalidMessage="Default Letter Head is required"
-            />
-          </div>
+
           <div className="col-md-4 mt-3">
             <TextInputField
               label="Site Logo"

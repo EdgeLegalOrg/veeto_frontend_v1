@@ -145,6 +145,9 @@ export const updatePreferred = (formData) =>
       preferredDisclaimerId: formData.preferredDisclaimerId
         ? formData.preferredDisclaimerId
         : null,
+      defaultTemplateId: formData.defaultTemplateId
+        ? formData.defaultTemplateId
+        : null,
     },
   });
 
