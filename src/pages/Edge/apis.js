@@ -1021,9 +1021,12 @@ export const getCheckList = () =>
 
 // Pushes a checklist's current tasks out to the matters using it.
 // scope: EXISTING_WORKFLOWS | ALL_LINKED_MATTERS
-export const syncCheckList = (templateId, scope) =>
+//
+// One batch per call. The response carries totalMatters, nextOffset and
+// complete, so the caller can show real progress and keep going until done.
+export const syncCheckList = (templateId, scope, offset = 0, limit = 25) =>
   API.post(
-    `/api/checklist/template/${templateId}/sync?scope=${scope}&requestId=${uuidv1()}`
+    `/api/checklist/template/${templateId}/sync?scope=${scope}&offset=${offset}&limit=${limit}&requestId=${uuidv1()}`
   );
 
 export const deleteCheckList = (ids) =>

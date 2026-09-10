@@ -7,6 +7,7 @@ import {
   ModalBody,
   ModalFooter,
   ModalHeader,
+  Progress,
 } from "reactstrap";
 import { toast } from "react-toastify";
 import { syncCheckList } from "../../../apis";
@@ -37,31 +38,96 @@ const SyncChangesModal = (props) => {
   const [scope, setScope] = useState(SCOPES[0].value);
   const [syncing, setSyncing] = useState(false);
   const [result, setResult] = useState(null);
+  const [progress, setProgress] = useState(null);
 
   useEffect(() => {
     if (isOpen) {
       setScope(SCOPES[0].value);
       setResult(null);
+      setProgress(null);
     }
   }, [isOpen]);
 
+  // Summed across batches, since each response reports only its own slice.
+  const addCounts = (into, batch) => ({
+    checklistsCreated: into.checklistsCreated + (batch.checklistsCreated || 0),
+    mattersUpdated: into.mattersUpdated + (batch.mattersUpdated || 0),
+    tasksAdded: into.tasksAdded + (batch.tasksAdded || 0),
+    tasksRemoved: into.tasksRemoved + (batch.tasksRemoved || 0),
+    tasksMoved: into.tasksMoved + (batch.tasksMoved || 0),
+    tasksRenamed: into.tasksRenamed + (batch.tasksRenamed || 0),
+    tasksRetainedInProgress:
+      into.tasksRetainedInProgress + (batch.tasksRetainedInProgress || 0),
+    tasksAdopted: into.tasksAdopted + (batch.tasksAdopted || 0),
+    mattersConsidered: batch.nextOffset ?? into.mattersConsidered,
+    totalMatters: batch.totalMatters ?? into.totalMatters,
+  });
+
   const handleSync = async () => {
     setSyncing(true);
+    setProgress({ processed: 0, total: 0, percent: 0 });
+
+    let totals = {
+      checklistsCreated: 0,
+      mattersUpdated: 0,
+      tasksAdded: 0,
+      tasksRemoved: 0,
+      tasksMoved: 0,
+      tasksRenamed: 0,
+      tasksRetainedInProgress: 0,
+      tasksAdopted: 0,
+      mattersConsidered: 0,
+      totalMatters: 0,
+    };
+
+    let offset = 0;
 
     try {
-      const { data } = await syncCheckList(template.id, scope);
+      // Keeps going until the server says it is done. Each batch is its own
+      // request, so the bar reflects matters actually processed rather than a
+      // guess.
+      for (;;) {
+        const { data } = await syncCheckList(template.id, scope, offset);
 
-      if (data.success) {
-        setResult(data.data || {});
-        toast.success("Sync complete");
-      } else {
-        toast.error(
-          data?.error?.message || "Something went wrong, please try later."
-        );
+        if (!data.success) {
+          toast.error(
+            data?.error?.message || "Something went wrong, please try later."
+          );
+          setProgress(null);
+          return;
+        }
+
+        const batch = data.data || {};
+        totals = addCounts(totals, batch);
+
+        const total = batch.totalMatters || 0;
+        const processed = Math.min(batch.nextOffset || 0, total || Infinity);
+
+        setProgress({
+          processed,
+          total,
+          percent: total > 0 ? Math.round((processed / total) * 100) : 100,
+        });
+
+        if (batch.complete) {
+          break;
+        }
+
+        // Guard against a server that never reports complete, so this cannot
+        // spin forever.
+        if ((batch.nextOffset || 0) <= offset) {
+          break;
+        }
+
+        offset = batch.nextOffset;
       }
+
+      setResult(totals);
+      toast.success("Sync complete");
     } catch (error) {
       console.error("error", error);
       toast.error("Something went wrong, please try later.");
+      setProgress(null);
     } finally {
       setSyncing(false);
     }
@@ -86,8 +152,12 @@ const SyncChangesModal = (props) => {
     : [];
 
   return (
-    <Modal isOpen={isOpen} toggle={close} centered>
-      <ModalHeader toggle={close}>Sync Changes</ModalHeader>
+    // Not dismissable mid-run: the batches keep going regardless, and closing
+    // would leave the sync running with nothing reporting the outcome.
+    <Modal isOpen={isOpen} toggle={syncing ? undefined : close} centered>
+      <ModalHeader toggle={syncing ? undefined : close}>
+        Sync Changes
+      </ModalHeader>
       <ModalBody>
         {!result ? (
           <>
@@ -116,11 +186,33 @@ const SyncChangesModal = (props) => {
               </div>
             ))}
 
-            <div className="alert alert-warning mb-0" role="alert">
+            <div className="alert alert-warning" role="alert">
               A task that has been started is never removed from a matter, even
               if it has been taken out of the checklist. It can move to another
               group, but the work already recorded against it stays.
             </div>
+
+            {progress && (
+              <div className="mt-3">
+                <div className="d-flex justify-content-between mb-1">
+                  <span className="text-muted fs-13">
+                    {progress.total > 0
+                      ? `Syncing matter ${progress.processed} of ${progress.total}`
+                      : "Counting matters..."}
+                  </span>
+                  <span className="fw-semibold fs-13">{progress.percent}%</span>
+                </div>
+                <Progress
+                  value={progress.percent}
+                  className="sync-progress"
+                  barClassName={
+                    progress.percent >= 100 ? "bg-success" : "bg-info"
+                  }
+                >
+                  {progress.percent}%
+                </Progress>
+              </div>
+            )}
           </>
         ) : (
           <>
@@ -153,7 +245,7 @@ const SyncChangesModal = (props) => {
         )}
       </ModalBody>
       <ModalFooter>
-        <Button color="light" onClick={close}>
+        <Button color="light" onClick={close} disabled={syncing}>
           {result ? "Close" : "Cancel"}
         </Button>
         {!result && (
