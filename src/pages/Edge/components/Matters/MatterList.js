@@ -268,10 +268,25 @@ const MatterList = () => {
 
   const filterChange = (e) => {
     const { name, value } = e.target;
+    if (name === "matterNumber" || name === "archiveNumber") {
+      const numericVal = value.replace(/\D/g, "");
+      setFilterInput({ ...filterInput, [name]: numericVal });
+      return;
+    }
     setFilterInput({ ...filterInput, [name]: value });
   };
 
   const handleRefreshList = async (filters = filterInput) => {
+
+    if (
+      filters.matterNumber &&
+      filters.matterNumber.trim().length > 0 &&
+      filters.matterNumber.trim().length < 2
+    ) {
+      toast.warning("Please enter at least 2 digits to search by Matter Number.");
+      return;
+    }
+
     setLoading(true);
     try {
       setTotalRecords(0);
@@ -610,7 +625,7 @@ const MatterList = () => {
                           </div>
                         </div>
                         <Input
-                          type="text"
+                          type="number"
                           name="matterNumber"
                           placeholder="Matter Number"
                           value={filterInput.matterNumber}
