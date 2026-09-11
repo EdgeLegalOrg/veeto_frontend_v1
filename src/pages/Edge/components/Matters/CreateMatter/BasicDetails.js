@@ -176,7 +176,11 @@ const MatterBasicDetails = (props) => {
       try {
         const { data } = await addMatter(formData);
         if (!data.success) {
-          toast.warning("Internal server error");
+          // Show what the server actually said where it said something. A matter
+          // refused because its site's number series has no number left needs the
+          // administrator to widen the range, and "Internal server error" sends
+          // nobody there.
+          toast.warning(data?.error?.message || "Internal server error");
         } else {
           if (props.fetchMatterList) {
             props.fetchMatterList();
