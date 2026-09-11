@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { getFileIcon } from './helperFunction';
+import React, { useEffect, useState } from "react";
+import { getFileIcon } from "./helperFunction";
 
 function Files(props) {
   const { files, selectedFile, setSelectedFile } = props;
@@ -7,9 +7,10 @@ function Files(props) {
 
   useEffect(() => {
     if (files?.length) {
-      const sorted = sortFiles(files) || [];
-
+      const sorted = sortFiles([...files]) || [];
       setSortedFiles(sorted);
+    } else {
+      setSortedFiles([]);
     }
   }, [files]);
 
@@ -17,7 +18,6 @@ function Files(props) {
     arg.sort((a, b) => {
       return a?.contentName?.localeCompare(b?.contentName);
     });
-
     return arg;
   };
 
@@ -34,22 +34,32 @@ function Files(props) {
       {files?.length > 0 ? (
         sortedFiles?.map((item, idx) => (
           <div
-            key={idx}
-            className='file_directory_right-bar-files'
+            key={item.id ? `${item.id}_${idx}` : idx}
+            className="file_directory_right-bar-files"
             onClick={() => handleClick(item)}
           >
             <input
-              type='checkbox'
-              className='cp'
+              type="checkbox"
+              className="cp"
               checked={selectedFile?.id === item.id}
+              onChange={() => {}}
             />
-            <img src={getFileIcon(item?.contentType)} alt='word' />
-            {item.contentName}.{item?.contentType}
+            <img src={getFileIcon(item?.contentType)} alt="file" />
+            <div className="file_directory_file-info">
+              <span className="file_directory_file-name">
+                {item.contentName}.{item?.contentType}
+              </span>
+              {item.breadcrumb && (
+                <span className="file_directory_file-breadcrumb">
+                  {item.breadcrumb}
+                </span>
+              )}
+            </div>
           </div>
         ))
       ) : (
-        <div className='file_directory_no-file-found'>
-          <p>No File in this Folder</p>
+        <div className="file_directory_no-file-found">
+          <p>No File found</p>
         </div>
       )}
     </div>

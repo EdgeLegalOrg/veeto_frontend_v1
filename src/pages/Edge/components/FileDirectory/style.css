@@ -199,3 +199,19 @@
   font-weight: 400;
   font-size: 16px;
 }
+
+.file_directory_file-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.file_directory_file-name {
+  font-size: 14px;
+  color: #212529;
+}
+
+.file_directory_file-breadcrumb {
+  font-size: 12px;
+  color: #6c757d;
+}
