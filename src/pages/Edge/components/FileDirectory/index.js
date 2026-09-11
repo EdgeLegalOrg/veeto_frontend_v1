@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import "./style.css";
 import FolderItem from "./FolderItem";
 import closeIcon from "../../icons/fileDirectory/close.svg";
@@ -17,6 +17,7 @@ import LoadingPage from "./../../utils/LoadingPage";
 import { readBlobErrorMessage } from "./../../utils/utilFunc";
 import { toast } from "react-toastify";
 import { TextInputField } from "../InputField";
+import { convertTitleCase } from "./helperFunction";
 
 const FileDirectoryModal = ({
   modal,
@@ -33,11 +34,6 @@ const FileDirectoryModal = ({
   const [transformedData, setTransformedData] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [searchTermForMainContent, setSearchTermForMainContent] = useState("");
-  const [filteredFoldersForMainContent, setFilteredFoldersForMainContent] =
-    useState([]);
-  const [filteredFilesForMainContent, setFilteredFilesForMainContent] =
-    useState([]);
-  const [filesBySelection, setFilesBySelection] = useState([]);
   const [templateList, setTemplateList] = useState([]);
   const [defaultTemplateList, setDefaultTemplateList] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
@@ -72,7 +68,7 @@ const FileDirectoryModal = ({
     setSelectedFile(null);
   };
 
-  // function to tranform data from object to array
+  // function to transform data from object to array
   function generateRecursiveArray(data, parentID = null) {
     const result = [];
     for (const key in data) {
@@ -113,53 +109,101 @@ const FileDirectoryModal = ({
   const handleSearchChange = (event) => {
     setSearchTerm(event.target.value);
   };
+
   const handleSearchChangeForMainContent = (event) => {
-    if (!event.target.value && !selected) updateInitialFiles();
-    // else if (!event.target.value && selected) setIsFile(true);
-    if (isFile && event.target.value) setIsFile(false);
     setSearchTermForMainContent(event.target.value || "");
   };
 
-  // Seacrh function for left side search(to search through folders)
-  const filterData = (items, term, exact = false) => {
+  // Search function for left side search (to search through folders)
+  const filterData = (items, term) => {
     const _items = items?.filter((item) => !item.isFile);
     let result = [];
-    if (!exact) {
-      result = _items.filter((item) => {
-        // Ignore underscores in the search term and name property
-        const formattedSearchTerm = term.toLowerCase();
-        const formattedName = item?.name?.replace(/_/g, " ").toLowerCase();
-        if (formattedName?.includes(formattedSearchTerm)) {
-          return true;
-        }
-        if (item.children && item.children?.length > 0) {
-          const filteredChildren = filterData(item.children, term);
-          return filteredChildren?.length > 0;
-        }
-        return false;
-      });
-    } else {
-      _items.forEach((item) => {
-        // Ignore underscores in the search term and name property
-        const formattedSearchTerm = term?.toLowerCase();
-        const formattedName = item?.name?.replace(/_/g, " ")?.toLowerCase();
-        const type = ["letter", "form", "normal"];
-        if (
-          formattedName?.includes(formattedSearchTerm) &&
-          !type?.includes(formattedName)
-        ) {
-          result.push(item);
-        }
-        if (item.children && item.children?.length > 0) {
-          const filteredChildren = filterData(item.children, term, exact);
-          if (filteredChildren.length > 0) {
-            result = [...result, ...filteredChildren];
-          }
+    result = _items.filter((item) => {
+      const formattedSearchTerm = term.toLowerCase();
+      const formattedName = item?.name?.replace(/_/g, " ").toLowerCase();
+      if (formattedName?.includes(formattedSearchTerm)) {
+        return true;
+      }
+      if (item.children && item.children?.length > 0) {
+        const filteredChildren = filterData(item.children, term);
+        return filteredChildren?.length > 0;
+      }
+      return false;
+    });
+
+    return result;
+  };
+
+  const getAllFilesWithBreadcrumbs = (data, targetType, currentPath = []) => {
+    let results = [];
+    if (!data || typeof data !== "object") return results;
+
+    if (data[targetType] && typeof data[targetType] === "object") {
+      Object.values(data[targetType]).forEach((item) => {
+        if (item && item.isFile) {
+          const breadcrumb = currentPath.map(convertTitleCase).join(" / ");
+          results.push({
+            ...item,
+            breadcrumb,
+          });
         }
       });
     }
 
-    return result;
+    Object.keys(data).forEach((key) => {
+      if (["NORMAL", "FORM", "LETTER"].includes(key)) return;
+      const child = data[key];
+      if (child && typeof child === "object" && !Array.isArray(child)) {
+        results = results.concat(
+          getAllFilesWithBreadcrumbs(child, targetType, [...currentPath, key])
+        );
+      }
+    });
+
+    return results;
+  };
+
+  const filterFilesBySearchTerm = (filesList, term) => {
+    return filesList?.filter((item) => {
+      const formattedSearchTerm = term?.replace(/_/g, " ")?.toLowerCase();
+      const formattedName = item.contentName?.replace(/_/g, " ")?.toLowerCase();
+      const fileFormatType = item.contentType?.toLowerCase() || "";
+      const fileFormatTypeWithDot = "." + fileFormatType;
+      const fullName = formattedName + "." + fileFormatType;
+      return (
+        formattedName?.includes(formattedSearchTerm) ||
+        fileFormatType?.includes(formattedSearchTerm) ||
+        fileFormatTypeWithDot?.includes(formattedSearchTerm) ||
+        fullName?.includes(formattedSearchTerm)
+      );
+    });
+  };
+
+  const findFilesByName = (data, name) => {
+    const results = [];
+    const search = (node) => {
+      if (!node || typeof node !== "object") {
+        return;
+      }
+      if (node?.[name] && typeof node[name] === "object") {
+        Object.values(node[name]).forEach((item) => {
+          if (!item) return;
+
+          if (item.isFile === true) {
+            results.push(item);
+          } else {
+            search(item);
+          }
+        });
+      }
+      Object.values(node).forEach((child) => {
+        if (child && typeof child === "object" && !Array.isArray(child)) {
+          search(child);
+        }
+      });
+    };
+    search(data);
+    return results;
   };
 
   const updateInitialFiles = useCallback(() => {
@@ -177,16 +221,6 @@ const FileDirectoryModal = ({
     }
   }, [isOpen]);
 
-  useEffect(() => {
-    const data = selected ? files : transformedData;
-    if (searchTermForMainContent && !isFile && data && data?.length > 0) {
-      const _folders = filterData(data, searchTermForMainContent, true);
-      setFilteredFoldersForMainContent(_folders);
-    } else {
-      setFilteredFoldersForMainContent([]);
-    }
-  }, [searchTermForMainContent, isFile, files, transformedData, selected]);
-
   const initFunc = async () => {
     try {
       const userResp = await userProfile();
@@ -196,12 +230,6 @@ const FileDirectoryModal = ({
     } catch (error) {
       console.error(error);
     }
-  };
-
-  const getDefaultTemplateId = () => {
-    const userDetails = JSON.parse(window.localStorage.getItem("userDetails"));
-
-    setSelectedBaseTemplate(userDetails?.defaultTemplateId || null);
   };
 
   const fetchTemplate = async (userDefaultTemplateId = null) => {
@@ -247,81 +275,6 @@ const FileDirectoryModal = ({
     }
   };
 
-  /**
-   * function to seprate files for initiall popup load
-   *
-   * @param {data} data is data  folder api data
-   * @param {name} name is the folder name type liek for example 'FORM'
-   * it will return all the files  related to second parameter procided that is'FORM' 'NORMAL'
-   */
-
-  const filterFilesBySearchTerm = (files, term) => {
-    return files?.filter((item) => {
-      // Ignore underscores in the search term and name property
-      const formattedSearchTerm = term?.replace(/_/g, " ")?.toLowerCase();
-      const formattedName = item.contentName?.replace(/_/g, " ")?.toLowerCase();
-      const fileFormatType = item.contentType?.toLowerCase();
-      const fileFormatTypeWithDot = "." + fileFormatType;
-      const fullName = formattedName + "." + fileFormatType;
-      if (
-        formattedName?.includes(formattedSearchTerm) ||
-        fileFormatType?.includes(formattedSearchTerm) ||
-        fileFormatTypeWithDot?.includes(formattedSearchTerm) ||
-        fullName?.includes(formattedSearchTerm)
-      ) {
-        return true;
-      }
-      return false;
-    });
-  };
-
-  const findFilesByName = (data, name) => {
-    const results = [];
-    const search = (node) => {
-      // Stop if node is null or not an object
-      if (!node || typeof node !== "object") {
-        return;
-      }
-
-      // Process the requested folder type (NORMAL, FORM, LETTER)
-      if (node?.[name] && typeof node[name] === "object") {
-        Object.values(node[name]).forEach((item) => {
-          if (!item) return;
-
-          if (item.isFile === true) {
-            results.push(item);
-          } else {
-            search(item);
-          }
-        });
-      }
-
-      // Traverse all child objects
-      Object.values(node).forEach((child) => {
-        if (child && typeof child === "object" && !Array.isArray(child)) {
-          search(child);
-        }
-      });
-    };
-    search(data);
-    return results;
-  };
-
-  const findFiles = (f = [], type) => {
-    let result = [];
-    f.forEach((d) => {
-      if (d.name === type && d?.children?.length) {
-        result = [...result, ...d?.children];
-      } else if (d?.children && d.children.length) {
-        const _result = findFiles(d?.children, type);
-        result = [...result, ..._result];
-      } else if (d?.isFile && d?.isTypeExist) {
-        result = [...result, d];
-      }
-    });
-    return result;
-  };
-
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -357,34 +310,19 @@ const FileDirectoryModal = ({
     if (modal?.type) fetchData();
   }, [reset, modal?.type]);
 
-  useEffect(() => {
-    if (files.length) {
-      const _files = findFiles(files, modal.type);
-      setFilesBySelection(_files);
-    } else {
-      setFilesBySelection([]);
-    }
-  }, [modal?.type, files, selected]);
-
-  //useEffect to show all the files in right side initially
+  // useEffect to show all the files in right side initially
   useEffect(() => {
     updateInitialFiles();
   }, [modal?.type, updateInitialFiles, reset]);
 
-  useEffect(() => {
-    if (selected && searchTermForMainContent && filesBySelection?.length > 0) {
-      const _files = filterFilesBySearchTerm(
-        filesBySelection,
-        searchTermForMainContent,
-      );
-      setFilteredFilesForMainContent(_files);
-    } else if (!selected && files?.length > 0) {
-      const _files = filterFilesBySearchTerm(files, searchTermForMainContent);
-      setFilteredFilesForMainContent(_files);
-    } else {
-      setFilteredFilesForMainContent([]);
-    }
-  }, [filesBySelection, searchTermForMainContent, selected, files]);
+  // Global search across all folders when searchTermForMainContent length >= 2
+  const isGlobalSearch = searchTermForMainContent.trim().length >= 2;
+
+  const globalSearchResults = useMemo(() => {
+    if (!isGlobalSearch || !precedent) return [];
+    const allFiles = getAllFilesWithBreadcrumbs(precedent, modal?.type);
+    return filterFilesBySearchTerm(allFiles, searchTermForMainContent);
+  }, [isGlobalSearch, precedent, modal?.type, searchTermForMainContent]);
 
   const generatePrecedent = async () => {
     setLoading(true);
@@ -449,12 +387,23 @@ const FileDirectoryModal = ({
         <LoadingPage />
       ) : (
         <div className="file_directory_modal-content">
-          <div className="file_directory_modal-header">
+          <div className="file_directory_modal-header bg-light p-3 border-bottom">
             <p>
-              <img src={resetIcon} alt="close" onClick={handleReset} />
+              <img
+                src={resetIcon}
+                alt="reset"
+                onClick={handleReset}
+                title="Reset to root folder"
+                style={{ cursor: "pointer", width: "18px", height: "18px" }}
+              />
               {modal.name}
             </p>
-            <img src={closeIcon} alt="close" onClick={onClosehandler} />
+            <button
+              type="button"
+              className="btn-close"
+              aria-label="Close"
+              onClick={onClosehandler}
+            ></button>
           </div>
           <div className="file_directory_modal-file-folder-content">
             {modal.type === "NORMAL" && (
@@ -539,70 +488,58 @@ const FileDirectoryModal = ({
                   <input
                     className="file_directory_search-bar"
                     type="text"
-                    placeholder="Search in Main Content"
+                    placeholder="Search across all files..."
                     value={searchTermForMainContent}
                     onChange={handleSearchChangeForMainContent}
                   />
                 </div>
                 <div className="file_directory_folder-directory">
-                  {searchTermForMainContent &&
-                    !isFile &&
-                    filteredFoldersForMainContent?.length > 0 &&
-                    filteredFoldersForMainContent?.map((folder) => (
-                      <FileItem
-                        key={folder.id}
-                        type={modal.type}
-                        folder={folder}
-                        selected={selected}
-                        setSelected={handleSelectForFolders}
-                        setIsFile={setIsFile}
-                        setFiles={setFiles}
-                      />
-                    ))}
-                  {!searchTermForMainContent &&
-                    !isFile &&
-                    selected &&
-                    files?.length > 0 &&
-                    files?.map((folder) => (
-                      <FileItem
-                        key={folder.id}
-                        type={modal.type}
-                        folder={folder}
-                        selected={selected}
-                        setSelected={handleSelectForFolders}
-                        setIsFile={setIsFile}
-                        setFiles={setFiles}
-                      />
-                    ))}
-                  {searchTermForMainContent &&
-                    !isFile &&
-                    filteredFilesForMainContent?.length > 0 && (
-                      <Files
-                        files={filteredFilesForMainContent}
-                        selectedFile={selectedFile}
-                        setSelectedFile={setSelectedFile}
-                      />
-                    )}
-
-                  {isFile && (
+                  {isGlobalSearch ? (
                     <Files
-                      files={files}
+                      files={globalSearchResults}
                       selectedFile={selectedFile}
                       setSelectedFile={setSelectedFile}
                     />
+                  ) : (
+                    <>
+                      {!isFile &&
+                        selected &&
+                        files?.length > 0 &&
+                        files?.map((folder) => (
+                          <FileItem
+                            key={folder.id}
+                            type={modal.type}
+                            folder={folder}
+                            selected={selected}
+                            setSelected={handleSelectForFolders}
+                            setIsFile={setIsFile}
+                            setFiles={setFiles}
+                          />
+                        ))}
+
+                      {isFile && (
+                        <Files
+                          files={files}
+                          selectedFile={selectedFile}
+                          setSelectedFile={setSelectedFile}
+                        />
+                      )}
+                    </>
                   )}
                 </div>
               </div>
             </div>
-            <div className="file_directory_modal-btns">
+            <div className="file_directory_modal-btns mt-3">
               <button
-                className="file_directory_select-button"
+                type="button"
+                className="btn btn-primary px-4"
                 onClick={generatePrecedent}
               >
                 Generate
               </button>
               <button
-                className="file_directory_cancel-button"
+                type="button"
+                className="btn btn-light px-4"
                 onClick={onClosehandler}
               >
                 Cancel

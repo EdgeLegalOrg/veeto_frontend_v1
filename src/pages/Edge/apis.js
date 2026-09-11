@@ -166,7 +166,7 @@ export const getMattersList = (filters) =>
   API.get(
     `/api/matter?requestId=${uuidv1()}&page=${filters.pageNo || ""}&pageSize=${
       filters.pageSize || ""
-    }&number=${filters.matterNumber || ""}&archiveNumber=${
+    }&number=${filters.matterNumber && filters.matterNumber.trim().length >= 2 ? filters.matterNumber.trim() : ""}&archiveNumber=${
       filters.archived ? filters.archiveNumber || "" : ""
     }&status=${filters.status ? filters.status : ""}&type=${
       filters.type ? filters.type : ""
