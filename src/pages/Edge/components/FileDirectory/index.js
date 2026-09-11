@@ -377,12 +377,23 @@ const FileDirectoryModal = ({
         <LoadingPage />
       ) : (
         <div className="file_directory_modal-content">
-          <div className="file_directory_modal-header">
+          <div className="file_directory_modal-header bg-light p-3 border-bottom">
             <p>
-              <img src={resetIcon} alt="close" onClick={handleReset} />
+              <img
+                src={resetIcon}
+                alt="reset"
+                onClick={handleReset}
+                title="Reset to root folder"
+                style={{ cursor: "pointer", width: "18px", height: "18px" }}
+              />
               {modal.name}
             </p>
-            <img src={closeIcon} alt="close" onClick={onClosehandler} />
+            <button
+              type="button"
+              className="btn-close"
+              aria-label="Close"
+              onClick={onClosehandler}
+            ></button>
           </div>
           <div className="file_directory_modal-file-folder-content">
             {modal.type === "NORMAL" && (
@@ -508,15 +519,17 @@ const FileDirectoryModal = ({
                 </div>
               </div>
             </div>
-            <div className="file_directory_modal-btns">
+            <div className="file_directory_modal-btns mt-3">
               <button
-                className="file_directory_select-button"
+                type="button"
+                className="btn btn-primary px-4"
                 onClick={generatePrecedent}
               >
                 Generate
               </button>
               <button
-                className="file_directory_cancel-button"
+                type="button"
+                className="btn btn-light px-4"
                 onClick={onClosehandler}
               >
                 Cancel
