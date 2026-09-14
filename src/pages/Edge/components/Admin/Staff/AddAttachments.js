@@ -81,8 +81,24 @@ const AddAttachments = (props) => {
     }
   };
 
-  const handleUploadFile = (acceptedFile) => {
-    const file = acceptedFile?.[0];
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDropCloud = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const files = Array.from(e.dataTransfer?.files || []);
+    if (!files.length) return;
+    const file = files[0];
+    setUploadedFile(file);
+    const flname = file.name.split(".").slice(0, -1).join(".");
+    setFileName(flname);
+  };
+
+  const handleUploadFile = (acceptedFiles) => {
+    const file = acceptedFiles?.[0] || acceptedFiles;
     if (!file) return;
 
     setUploadedFile(file);
@@ -151,7 +167,9 @@ const AddAttachments = (props) => {
           <button
             type="button"
             onClick={() => setUploadSource("onedrive")}
-            disabled={getUploadModeFromStorage(globalStorageType) !== "onedrive"}
+            disabled={
+              getUploadModeFromStorage(globalStorageType) !== "onedrive"
+            }
             style={{
               flex: 1,
               padding: "12px 8px",
@@ -187,10 +205,10 @@ const AddAttachments = (props) => {
 
         {uploadSource === "device" ? (
           <div className="staff-attachDrop">
-            <Dropzone onDrop={handleUploadFile}>
+            <Dropzone onDrop={handleUploadFile} multiple={false}>
               {({ getRootProps, getInputProps }) => (
                 <div {...getRootProps({ className: "staff-dropzone" })}>
-                  <input {...getInputProps()} />
+                  <input {...getInputProps()} style={{ display: "none" }} />
                   <p style={{ paddingTop: "10px", marginBottom: "8px" }}>
                     Drag and drop to upload or browse for files
                   </p>
@@ -208,6 +226,8 @@ const AddAttachments = (props) => {
                 ? googleDriveInputRef.current?.click()
                 : oneDriveInputRef.current?.click()
             }
+            onDragOver={handleDragOver}
+            onDrop={handleDropCloud}
             style={{
               border: "2px dashed #dee2e6",
               borderRadius: "8px",
@@ -229,10 +249,17 @@ const AddAttachments = (props) => {
             ) : (
               <OneDriveIcon />
             )}
-            <p style={{ margin: 0, color: "#374151", fontSize: "14px", fontWeight: "500" }}>
+            <p
+              style={{
+                margin: 0,
+                color: "#374151",
+                fontSize: "14px",
+                fontWeight: "500",
+              }}
+            >
               {uploadSource === "google"
-                ? "Click here to upload to Google Drive"
-                : "Click here to upload to OneDrive"}
+                ? "Drag and drop or click here to upload to Google Drive"
+                : "Drag and drop or click here to upload to OneDrive"}
             </p>
             <span style={{ color: "#555", fontSize: "12px" }}>
               {uploadedFile ? uploadedFile.name : "No file selected"}
