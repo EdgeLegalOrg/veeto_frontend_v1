@@ -41,6 +41,8 @@ import NotificationList from '../pages/Edge/components/Admin/Notifications/Notif
 import TaskGroupList from '../pages/Edge/components/Admin/TaskGroups/TaskGroupList';
 import SearchResults from '../pages/Edge/components/Search/SearchResults';
 import LoggedInUsers from '../pages/Edge/components/Admin/Sessions/LoggedInUsers';
+import FeedbackReview from '../pages/Edge/components/Admin/Feedback/FeedbackReview';
+import GiveFeedback from '../pages/Edge/components/Feedback/GiveFeedback';
 import PreviewInvoiceTemplate from '../pages/Edge/components/Matters/InvoiceTab/PreviewInvoiceTemplate';
 import PaymentListPage from '../pages/Edge/components/AccountingSection/PaymentListing/PaymentListingPage';
 import StorageTypePage from 'pages/Edge/components/Admin/Settings/StorageTypePage';
@@ -88,6 +90,8 @@ const authProtectedRoutes = [
   { path: '/admin-notifications', component: <NotificationList /> },
   { path: '/admin-logged-in-users', component: <LoggedInUsers /> },
   { path: '/admin-checklist-taskGroups', component: <TaskGroupList /> },
+  { path: '/admin-feedback-review', component: <FeedbackReview /> },
+  { path: '/feedback', component: <GiveFeedback /> },
   { path: '/search', component: <SearchResults /> },
 
   // User Profile

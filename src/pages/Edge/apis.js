@@ -1278,3 +1278,21 @@ export const addTaskGroupComment = (formData) =>
     requestId: uuidv1(),
     data: formData,
   });
+
+// Feedback (post-migration review)
+// The respondent is taken from the JWT on the server, so nothing here sends a
+// username - and nothing here could change whose name a response carries.
+export const fetchFeedbackForm = () =>
+  API.get(`/api/feedback/form?requestId=${uuidv1()}`);
+
+export const submitFeedback = (formData) =>
+  API.post(`/api/feedback`, {
+    requestId: uuidv1(),
+    data: formData,
+  });
+
+export const fetchAllFeedback = () =>
+  API.get(`/api/feedback?requestId=${uuidv1()}`);
+
+export const fetchFeedbackSummary = () =>
+  API.get(`/api/feedback/summary?requestId=${uuidv1()}`);
