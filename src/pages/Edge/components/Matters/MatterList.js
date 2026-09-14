@@ -21,6 +21,7 @@ import {
   getInvoiceofMatter,
   getMatterDetail,
   getMattersList,
+  getCompanyMatterColors,
 } from "../../apis";
 import LoadingPage from "../../utils/LoadingPage";
 
@@ -76,6 +77,7 @@ const MatterList = () => {
     (state) => state.Layout,
   );
   const [matterList, setMatterList] = useState([]);
+  const [subtypeColors, setSubtypeColors] = useState({});
   const [subTypes, setSubTypes] = useState([]);
   const [filterST, setFilterST] = useState([]);
   const [types, setTypes] = useState([]);
@@ -138,10 +140,28 @@ const MatterList = () => {
     }
   };
 
+  const fetchSubtypeColors = async () => {
+    try {
+      const res = await getCompanyMatterColors();
+      if (res?.data?.success && Array.isArray(res?.data?.data)) {
+        const map = {};
+        res.data.data.forEach((item) => {
+          if (item.matterSubType && item.colorCode) {
+            map[item.matterSubType] = item.colorCode;
+          }
+        });
+        setSubtypeColors(map);
+      }
+    } catch (error) {
+      console.error("Failed to load matter sub-type colors:", error);
+    }
+  };
+
   const starter = () => {
     setLoading(true);
     fetchEnums();
     fetchMatterList();
+    fetchSubtypeColors();
     dispatch(fetchStorageType());
   };
 
@@ -876,11 +896,21 @@ const MatterList = () => {
                     </tr>
                   </thead>
                   <tbody className="mt-2">
-                    {matterList?.map((matter, i) => (
+                    {matterList?.map((matter, i) => {
+                      const rowColor = subtypeColors[matter.subType];
+                      return (
                       <tr
                         key={i}
                         onClick={() => fetchMatterDetail(matter.id)}
                         className="pe-cursor"
+                        style={
+                          rowColor
+                            ? {
+                                backgroundColor: `${rowColor}1A`,
+                                borderLeft: `4px solid ${rowColor}`,
+                              }
+                            : undefined
+                        }
                       >
                         {showArchived && (
                           <td>
@@ -913,15 +943,29 @@ const MatterList = () => {
                           ></TooltipWrapper>
                         </td>
                         <td>
-                          <TooltipWrapper
-                            id={`sub-type-${matter.id}`}
-                            placement="bottom"
-                            text={findDisplayname(subTypes, matter.subType)}
-                            content={convertSubstring(
-                              findDisplayname(subTypes, matter.subType),
-                              100,
+                          <div className="d-flex align-items-center">
+                            {rowColor && (
+                              <span
+                                className="me-2 flex-shrink-0"
+                                style={{
+                                  display: "inline-block",
+                                  width: "8px",
+                                  height: "8px",
+                                  borderRadius: "50%",
+                                  backgroundColor: rowColor,
+                                }}
+                              />
                             )}
-                          ></TooltipWrapper>
+                            <TooltipWrapper
+                              id={`sub-type-${matter.id}`}
+                              placement="bottom"
+                              text={findDisplayname(subTypes, matter.subType)}
+                              content={convertSubstring(
+                                findDisplayname(subTypes, matter.subType),
+                                100,
+                              )}
+                            ></TooltipWrapper>
+                          </div>
                         </td>
                         <td>
                           <p className="mb-0">
@@ -939,7 +983,8 @@ const MatterList = () => {
                         <td></td>
                         <td></td>
                       </tr>
-                    ))}
+                      );
+                    })}
                   </tbody>
                 </Table>
                 <div className="mx-2">

@@ -1062,6 +1062,15 @@ export const getCompanyInfo = () => API.get(`/api/companyinfo`);
 export const updateCompanyInfo = (formData) =>
   API.put(`/api/companyinfo`, formData);
 
+export const getCompanyMatterColors = () =>
+  API.get(`/api/companyinfo/matter-colors?requestId=${uuidv1()}`);
+
+export const updateCompanyMatterColors = (colorList) =>
+  API.put(`/api/companyinfo/matter-colors?requestId=${uuidv1()}`, {
+    requestId: uuidv1(),
+    data: colorList,
+  });
+
 // Site info
 
 export const getSiteInfo = () => API.get(`/api/siteinfo?requestId=${uuidv1()}`);

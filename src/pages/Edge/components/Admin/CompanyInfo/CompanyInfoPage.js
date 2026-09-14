@@ -16,6 +16,7 @@ import LoadingPage from "../../../utils/LoadingPage";
 import { API_BASE_URL, getCompanyInfo, updateCompanyInfo } from "../../../apis";
 import "../../../stylesheets/CompanyInfoPage.css";
 import CompanySites from "./CompanySites";
+import CompanyMatterColors from "./CompanyMatterColors";
 import { toast } from "react-toastify";
 import {
   TextInputField,
@@ -665,6 +666,10 @@ function CompanyInfoPage(props) {
                   siteList={siteList}
                   refreshData={fetchCompanyData}
                 />
+              </div>
+
+              <div>
+                <CompanyMatterColors />
               </div>
             </div>
             {showWarning && (
