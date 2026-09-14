@@ -99,8 +99,12 @@ const LinkContactPage = (props) => {
         }
       } else {
         if (d.firstName || d.lastName) {
+          const middle = d.middleName ? ` ${d.middleName} ` : " ";
+          const fullName = `${d.firstName || ""}${middle}${d.lastName || ""}`
+            .replace(/\s+/g, " ")
+            .trim();
           arr.push({
-            display: `${d.firstName ?? ""} ${d.lastName ?? ""}`,
+            display: fullName,
             value: d.contactId,
             type: d.contactType,
             valueKey: `${d.contactType}-${d.contactId}`,

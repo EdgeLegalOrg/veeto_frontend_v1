@@ -166,7 +166,7 @@ export const getMattersList = (filters) =>
   API.get(
     `/api/matter?requestId=${uuidv1()}&page=${filters.pageNo || ""}&pageSize=${
       filters.pageSize || ""
-    }&number=${filters.matterNumber || ""}&archiveNumber=${
+    }&number=${filters.matterNumber && filters.matterNumber.trim().length >= 2 ? filters.matterNumber.trim() : ""}&archiveNumber=${
       filters.archived ? filters.archiveNumber || "" : ""
     }&status=${filters.status ? filters.status : ""}&type=${
       filters.type ? filters.type : ""
@@ -1071,6 +1071,15 @@ export const deleteCheckList = (ids) =>
 export const getCompanyInfo = () => API.get(`/api/companyinfo`);
 export const updateCompanyInfo = (formData) =>
   API.put(`/api/companyinfo`, formData);
+
+export const getCompanyMatterColors = () =>
+  API.get(`/api/companyinfo/matter-colors?requestId=${uuidv1()}`);
+
+export const updateCompanyMatterColors = (colorList) =>
+  API.put(`/api/companyinfo/matter-colors?requestId=${uuidv1()}`, {
+    requestId: uuidv1(),
+    data: colorList,
+  });
 
 // Site info
 
