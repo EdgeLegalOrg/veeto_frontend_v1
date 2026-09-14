@@ -1,6 +1,7 @@
 import {
   VIEWACCOUNTINGTAB,
   VIEWADMINTAB,
+  VIEWFEEDBACKREVIEW,
   VIEWXEROADMINTAB,
 } from "pages/Edge/utils/RightConstants";
 import { checkHasPermission } from "pages/Edge/utils/utilFunc";
@@ -394,7 +395,31 @@ const Navdata = () => {
           show: true,
           parentId: "admin",
         },
+        {
+          id: "feedbackReview",
+          label: "Feedback Review",
+          link: "/admin-feedback-review",
+          // Responses carry the respondent's name, so this is gated on a right
+          // that has to be ticked deliberately in Manage Roles rather than
+          // shown to everyone who can open the Admin menu.
+          show: checkHasPermission(VIEWFEEDBACKREVIEW),
+          parentId: "admin",
+        },
       ],
+    },
+    // Last top-level entry, so it sits at the bottom of the left sidebar.
+    // Open to everyone: the point of a post-migration review is to hear from
+    // the people who were moved, not only from those with admin rights.
+    {
+      id: "giveFeedback",
+      label: "Give Feedback",
+      icon: "ri-feedback-line",
+      link: "/feedback",
+      show: true,
+      click: function (e) {
+        e.preventDefault();
+        setIscurrentState("GiveFeedback");
+      },
     },
   ];
   return <React.Fragment>{menuItems}</React.Fragment>;

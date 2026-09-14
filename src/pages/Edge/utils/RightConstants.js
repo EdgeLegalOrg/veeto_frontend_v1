@@ -26,3 +26,7 @@ export const EDITARCHIVEDMATTER = "EditArchivedMatter";
 // rightName seeded by 2026-09-11-logoff-all-users-right.sql, and the constant
 // the server checks in UserSessionController.
 export const LOGOFFALLUSERS = "LogoffAllUsers";
+// Gates Admin -> Feedback Review. Responses carry the respondent's name, so
+// this is not a right to hand out by default. Must match the rightName seeded
+// by 2026-09-14-user-feedback.sql and the constant FeedbackController checks.
+export const VIEWFEEDBACKREVIEW = "ViewFeedbackReview";
