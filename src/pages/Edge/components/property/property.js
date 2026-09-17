@@ -49,7 +49,12 @@ import {
   Modal,
   ModalBody,
   ModalHeader,
+  Nav,
+  NavItem,
+  NavLink,
 } from "reactstrap";
+import classnames from "classnames";
+import PropertyMatters from "./propertyMatters.js";
 import BreadCrumb from "../../../../Components/Common/BreadCrumb";
 import TableContainer from "../../../../Components/Common/TableContainer";
 import TooltipWrapper from "../../../../Components/Common/TooltipWrapper";
@@ -240,6 +245,7 @@ function RenderProperty() {
     isFormChanged: false,
     isShowModal: false,
   });
+  const [activeTab, setActiveTab] = useState("details");
 
   const handleClearFilter = () => {
     setFilterInput(filterFields);
@@ -308,6 +314,7 @@ function RenderProperty() {
 
   useEffect(() => {
     if (navigationEditForm.isEditMode) {
+      setActiveTab(navigationEditForm.currentFormValue?.tab || "details");
       fetchPropertyData(navigationEditForm.editFormValue.id);
     }
   }, [navigationEditForm]);
@@ -777,6 +784,7 @@ function RenderProperty() {
   }
 
   function backToSearch() {
+    setActiveTab("details");
     setSpecificProperty(undefined);
     setTempSpecificProperty(undefined);
     setTempSearchField(undefined);
@@ -1749,23 +1757,27 @@ function RenderProperty() {
                     <div className="bg-light d-flex align-items-center justify-content-between p-2">
                       <h5 className="mb-0">Property</h5>
                       <div className="d-flex">
-                        <Button
-                          disabled={disableButton}
-                          color="success"
-                          type="submit"
-                          className="mx-1"
-                        >
-                          Save
-                        </Button>
-                        <Button
-                          disabled={disableButton}
-                          color="danger"
-                          type="button"
-                          onClick={handleSingleDeleteClick}
-                          className="d-flex mx-1"
-                        >
-                          Delete
-                        </Button>
+                        {activeTab === "details" && (
+                          <>
+                            <Button
+                              disabled={disableButton}
+                              color="success"
+                              type="submit"
+                              className="mx-1"
+                            >
+                              Save
+                            </Button>
+                            <Button
+                              disabled={disableButton}
+                              color="danger"
+                              type="button"
+                              onClick={handleSingleDeleteClick}
+                              className="d-flex mx-1"
+                            >
+                              Delete
+                            </Button>
+                          </>
+                        )}
                         <Button
                           disabled={disableButton}
                           type="button"
@@ -1793,7 +1805,63 @@ function RenderProperty() {
                         </Button>
                       </div>
                     </div>
-                    <div className="mt-4">
+
+                    <div className="row py-2 px-3">
+                      <div className="col-md-12">
+                        <Nav
+                          tabs
+                          className="nav nav-tabs nav-tabs-custom nav-success"
+                        >
+                          <NavItem>
+                            <NavLink
+                              style={{ cursor: "pointer" }}
+                              className={classnames({
+                                active: activeTab === "details",
+                              })}
+                              onClick={() => {
+                                if (formStatus.isFormChanged) {
+                                  return dispatch(
+                                    updateFormStatusAction({
+                                      key: "isShowModal",
+                                      value: true,
+                                      callback: () => setActiveTab("details"),
+                                    })
+                                  );
+                                }
+                                setActiveTab("details");
+                              }}
+                            >
+                              Details
+                            </NavLink>
+                          </NavItem>
+                          <NavItem>
+                            <NavLink
+                              style={{ cursor: "pointer" }}
+                              className={classnames({
+                                active: activeTab === "matters",
+                              })}
+                              onClick={() => {
+                                if (formStatus.isFormChanged) {
+                                  return dispatch(
+                                    updateFormStatusAction({
+                                      key: "isShowModal",
+                                      value: true,
+                                      callback: () => setActiveTab("matters"),
+                                    })
+                                  );
+                                }
+                                setActiveTab("matters");
+                              }}
+                            >
+                              Matters
+                            </NavLink>
+                          </NavItem>
+                        </Nav>
+                      </div>
+                    </div>
+
+                    {activeTab === "details" && (
+                      <div className="mt-4">
                       <div className="row">
                         <div className="col-3">
                           <TextInputField
@@ -2011,8 +2079,11 @@ function RenderProperty() {
                         </div>
                       </div>
                     </div>
+                    )}
                   </form>
                 </div>
+                {activeTab === "details" && (
+                  <>
                 <div className="mt-4">
                   <div className="bg-light d-flex align-items-center justify-content-between p-2">
                     <h5 className="mb-0">Add/Edit Registered Lots</h5>
@@ -2656,6 +2727,8 @@ function RenderProperty() {
                     <tbody className="mt-2">{renderUnregisteredLots()}</tbody>
                   </Table>
                 </div>
+                  </>
+                )}
                 {/* <div className="4">
                       <div className="propertyPageHeadings">
                         <h6 className="propertyPageHeads">Related Matters</h6>
@@ -2725,6 +2798,14 @@ function RenderProperty() {
                         <div className="lotsScrollDiv"></div>
                       </div>
                     </div> */}
+                {activeTab === "matters" && (
+                  <div className="px-3 pb-3">
+                    <PropertyMatters
+                      propertyId={specificProperty?.id}
+                      propertyDetails={specificProperty}
+                    />
+                  </div>
+                )}
               </Card>
               {confirmAddress && (
                 <Modal

@@ -568,6 +568,9 @@ export const deletePropertyById = (id) =>
 export const checkPropertyLinkedToMatter = (ids) =>
   API.get(`/api/property/islinked/${ids}?requestId=${uuidv1()}`);
 
+export const getMatterListOfProperty = (propertyId) =>
+  API.get(`/api/property/linked-matters/${propertyId}?requestId=${uuidv1()}`);
+
 // Document Section
 export const getDocuments = (filterData) =>
   API.get(
