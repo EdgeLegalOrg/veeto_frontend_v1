@@ -13,7 +13,6 @@ import {
   Collapse,
 } from "reactstrap";
 import SimpleBar from "simplebar-react";
-import { v1 as uuidv1 } from "uuid";
 import { createSelector } from "reselect";
 import classnames from "classnames";
 import { toast } from "react-toastify";
@@ -31,7 +30,7 @@ import {
   preloaderTypes,
   sidebarVisibilitytypes,
 } from "../constants/layout";
-import { userProfile, siteChange } from "./../../pages/Edge/apis";
+import { userProfile } from "./../../pages/Edge/apis";
 //redux
 import {
   changeLayout,
@@ -54,7 +53,6 @@ import img01 from "../../assets/images/sidebar/img-1.jpg";
 import img02 from "../../assets/images/sidebar/img-2.jpg";
 import img03 from "../../assets/images/sidebar/img-3.jpg";
 import img04 from "../../assets/images/sidebar/img-4.jpg";
-import { removeAllStorage } from "pages/Edge/utils/utilFunc";
 
 const ProfileDropdown = () => {
   // const profiledropdownData = createSelector(
@@ -157,19 +155,6 @@ const ProfileDropdown = () => {
     setIsProfileDropdown(!isProfileDropdown);
   };
 
-  const handleSiteChange = async (e) => {
-    try {
-      await siteChange({
-        requestId: uuidv1(),
-        data: JSON.parse(e.target.value),
-      });
-      removeAllStorage();
-      window.location.href = "/home/matters";
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
   window.onscroll = function () {
     scrollFunction();
   };
@@ -261,32 +246,7 @@ const ProfileDropdown = () => {
               <span className="align-middle">Lock screen</span>
             </Link>
           </DropdownItem> */}
-          <DropdownItem className="p-0">
-            <div className="d-flex align-items-center dropdown-item">
-              <i className="mdi mdi-school text-muted fs-16 align-middle me-1"></i>{" "}
-              <Input
-                type="select"
-                name="siteId"
-                className="profile-siteInfo mx-1"
-                onClick={(e) => e.stopPropagation()}
-                onChange={handleSiteChange}
-                size="sm"
-              >
-                {user?.siteInfoList?.map((site) => (
-                  <option
-                    key={site.siteId}
-                    value={JSON.stringify({
-                      siteId: site.siteId,
-                      siteName: site.siteName,
-                    })}
-                    selected={site.siteId === user.siteId}
-                  >
-                    {site.siteName}
-                  </option>
-                ))}
-              </Input>
-            </div>
-          </DropdownItem>
+
           <DropdownItem className="p-0">
             <div
               className="dropdown-item"
