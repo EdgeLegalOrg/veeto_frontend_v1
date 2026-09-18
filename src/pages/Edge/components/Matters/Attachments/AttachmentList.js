@@ -51,8 +51,8 @@ const AttachmentList = (props) => {
   });
   const [deletePop, setDeletePop] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [sortOrder, setSortOrder] = useState("");
-  const [sortField, setSortField] = useState("");
+  const [sortOrder, setSortOrder] = useState("desc");
+  const [sortField, setSortField] = useState("uploadDate");
 
   const applySort = (list, field = sortField, order = sortOrder) => {
     if (!field || !list || list.length === 0) return [...(list || [])];
@@ -94,7 +94,12 @@ const AttachmentList = (props) => {
       const latestList = [...props.data.attachmentList];
       setAttachList(latestList);
 
-      const arr = applyFilterAndSort(filterInput, sortField, sortOrder, latestList);
+      const arr = applyFilterAndSort(
+        filterInput,
+        sortField || "uploadDate",
+        sortOrder || "desc",
+        latestList,
+      );
       setFilteredList(arr);
     } else {
       setAttachList([]);
