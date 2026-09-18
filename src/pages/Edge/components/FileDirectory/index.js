@@ -529,7 +529,7 @@ const FileDirectoryModal = ({
                 </div>
               </div>
             </div>
-            <div className="file_directory_modal-btns mt-3">
+            <div className="file_directory_modal-btns">
               <button
                 type="button"
                 className="btn btn-primary px-4"
