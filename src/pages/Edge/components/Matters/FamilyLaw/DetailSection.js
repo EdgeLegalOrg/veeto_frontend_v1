@@ -5,6 +5,7 @@ import EditFamilyForm from './UpdateFamilyLaw';
 import { formatDateFunc } from 'pages/Edge/utils/utilFunc';
 
 const initialState = {
+  courtFileNo: '',
   coHabitationDate: '',
   coHabitationMonth: '',
   coHabitationYear: '',
@@ -61,6 +62,10 @@ const DetailSection = (props) => {
     if (data) {
       return (
         <>
+          <div className='mf-contentDiv'>
+            <label className='mf-cont-lb'>Court File No:</label>
+            <p className='mf-cont-p'>{data?.courtFileNo || '-'}</p>
+          </div>
           <div className='mf-contentDiv'>
             <label className='mf-cont-lb'>Co-Habitation Date</label>
             <p className='mf-cont-p'>
