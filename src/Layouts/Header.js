@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Dropdown, DropdownMenu, DropdownToggle, Form } from "reactstrap";
+import { Dropdown, DropdownMenu, DropdownToggle, Form, Input } from "reactstrap";
+import { v1 as uuidv1 } from "uuid";
+import { siteChange } from "../pages/Edge/apis";
+import { removeAllStorage } from "../pages/Edge/utils/utilFunc";
 
 //import images
 import logoSm from "../assets/images/logo-sm.png";
@@ -28,7 +31,8 @@ const Header = ({ onChangeLayoutMode, layoutModeType, headerClass }) => {
   const sidebarVisibilitytype = useSelector(selectSidebarVisibility);
 
   const [search, setSearch] = useState(false);
-  const [activeSiteDisplay, setActiveSiteDisplay] = useState("");
+  const [siteList, setSiteList] = useState([]);
+  const [selectedSiteId, setSelectedSiteId] = useState("");
 
   const updateActiveSiteDisplay = () => {
     try {
@@ -36,16 +40,42 @@ const Header = ({ onChangeLayoutMode, layoutModeType, headerClass }) => {
       const companyInfo = JSON.parse(localStorage.getItem("companyInfo") || "{}");
 
       const currentSiteId = userDetails.siteId;
-      const siteList = companyInfo.siteInfoList || userDetails.siteInfoList || [];
+      const rawSiteList = userDetails.siteInfoList || companyInfo.siteInfoList || [];
 
-      const activeSite = siteList.find(
-        (s) => s.id === currentSiteId || s.siteId === currentSiteId
-      );
+      const normalizedSiteList = rawSiteList.map((site) => ({
+        siteId: site.siteId !== undefined ? site.siteId : site.id,
+        siteName: site.siteName || site.name || "",
+      }));
 
-      const siteName = activeSite?.siteName || activeSite?.name || userDetails.siteName || "";
-      setActiveSiteDisplay(siteName.trim());
+      setSiteList(normalizedSiteList);
+
+      if (currentSiteId) {
+        setSelectedSiteId(String(currentSiteId));
+      } else if (normalizedSiteList.length > 0) {
+        setSelectedSiteId(String(normalizedSiteList[0].siteId));
+      }
     } catch (err) {
       console.error("Error reading active site info:", err);
+    }
+  };
+
+  const handleHeaderSiteChange = async (e) => {
+    const newSiteId = parseInt(e.target.value, 10);
+    const targetSite = siteList.find((s) => s.siteId === newSiteId);
+    if (!targetSite) return;
+
+    try {
+      await siteChange({
+        requestId: uuidv1(),
+        data: {
+          siteId: targetSite.siteId,
+          siteName: targetSite.siteName,
+        },
+      });
+      removeAllStorage();
+      window.location.href = "/home/matters";
+    } catch (error) {
+      console.error("Error changing site:", error);
     }
   };
 
@@ -202,15 +232,26 @@ const Header = ({ onChangeLayoutMode, layoutModeType, headerClass }) => {
               {/* NotificationDropdown */}
               <NotificationDropdown />
 
-              {/* Active Site Badge */}
-              {activeSiteDisplay && (
-                <div className="active-site-badge d-flex align-items-center me-3 px-3 py-1 bg-light border rounded">
-                  <i className="ri-building-line text-primary me-2 fs-15"></i>
-                  <span className="fw-semibold text-primary fs-13">
-                    {activeSiteDisplay}
-                  </span>
+              {/* Active Site Selection Dropdown */}
+              {siteList && siteList.length > 0 ? (
+                <div className="active-site-badge d-flex align-items-center me-3 px-2 py-1 bg-light border rounded">
+                  <i className="ri-building-line text-primary me-1 fs-15"></i>
+                  <Input
+                    type="select"
+                    name="headerSiteSelect"
+                    className="form-select form-select-sm border-0 bg-transparent fw-semibold text-primary fs-13 cursor-pointer py-0 ps-1 pe-4"
+                    style={{ boxShadow: "none", width: "auto" }}
+                    value={selectedSiteId}
+                    onChange={handleHeaderSiteChange}
+                  >
+                    {siteList.map((site) => (
+                      <option key={site.siteId} value={site.siteId}>
+                        {site.siteName}
+                      </option>
+                    ))}
+                  </Input>
                 </div>
-              )}
+              ) : null}
 
               {/* ProfileDropdown */}
               <ProfileDropdown />

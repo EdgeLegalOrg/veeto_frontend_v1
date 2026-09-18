@@ -65,8 +65,10 @@ const AddCustodyForm = (props) => {
     setUploadedFiles((prev) => [...prev, ...files]);
     const fileNames = files.map((file) => file.name).join(", ");
     setFileName(fileNames);
+    const defaultDocName = files.length === 1 ? files[0].name : fileNames;
     setFormData((prevForm) => ({
       ...prevForm,
+      name: prevForm.name || defaultDocName,
       dateReceived: formatDateFunc(new Date()),
     }));
     e.target.value = "";
@@ -77,8 +79,10 @@ const AddCustodyForm = (props) => {
       setUploadedFiles((prev) => [...prev, ...acceptedFile]);
       const fileNames = acceptedFile.map((file) => file.name).join(", ");
       setFileName(fileNames);
+      const defaultDocName = acceptedFile.length === 1 ? acceptedFile[0].name : fileNames;
       setFormData((prevForm) => ({
         ...prevForm,
+        name: prevForm.name || defaultDocName,
         dateReceived: formatDateFunc(new Date()),
       }));
     }
@@ -107,8 +111,10 @@ const AddCustodyForm = (props) => {
     setUploadedFiles((prev) => [...prev, ...files]);
     const fileNames = files.map((file) => file.name).join(", ");
     setFileName(fileNames);
+    const defaultDocName = files.length === 1 ? files[0].name : fileNames;
     setFormData((prevForm) => ({
       ...prevForm,
+      name: prevForm.name || defaultDocName,
       dateReceived: formatDateFunc(new Date()),
     }));
   };
@@ -132,10 +138,15 @@ const AddCustodyForm = (props) => {
 
     const uploadPromises = uploadedFiles.map((file) => {
       const inputData = new FormData();
+      const docName =
+        uploadedFiles.length === 1
+          ? (formData.name?.trim() || file.name)
+          : (formData.name && formData.name !== fileName ? formData.name.trim() : file.name);
       const data = {
         requestId: uuidv1(),
         data: {
           ...formData,
+          name: docName,
           safeCustodyPacketId,
           ...(storageTypeValue ? { storageType: storageTypeValue } : {}),
         },
