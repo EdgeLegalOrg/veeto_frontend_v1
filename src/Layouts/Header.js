@@ -235,17 +235,24 @@ const Header = ({ onChangeLayoutMode, layoutModeType, headerClass }) => {
               {/* Active Site Selection Dropdown */}
               {siteList && siteList.length > 0 ? (
                 <div className="active-site-badge d-flex align-items-center me-3 px-2 py-1 bg-light border rounded">
-                  <i className="ri-building-line text-primary me-1 fs-15"></i>
+                  <i className="ri-building-line text-primary me-1 fs-15" style={{ flexShrink: 0 }}></i>
                   <Input
                     type="select"
                     name="headerSiteSelect"
-                    className="form-select form-select-sm border-0 bg-transparent fw-semibold text-primary fs-13 cursor-pointer py-0 ps-1 pe-4"
-                    style={{ boxShadow: "none", width: "auto" }}
+                    className="form-select form-select-sm border-0 bg-transparent fw-semibold text-primary fs-13 cursor-pointer py-0"
+                    style={{
+                      boxShadow: "none",
+                      width: "auto",
+                      minWidth: "120px",
+                      paddingLeft: "4px",
+                      paddingRight: "26px",
+                      backgroundPosition: "right 6px center",
+                    }}
                     value={selectedSiteId}
                     onChange={handleHeaderSiteChange}
                   >
                     {siteList.map((site) => (
-                      <option key={site.siteId} value={site.siteId}>
+                      <option key={site.siteId} value={site.siteId} style={{ color: "#333" }}>
                         {site.siteName}
                       </option>
                     ))}
