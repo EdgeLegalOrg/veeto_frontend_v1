@@ -25,6 +25,7 @@ import { convertSubstring, findDisplayname, updateLocalSiteInfo } from "../../..
 import AddressList from "./AddressList";
 import BankAccountList from "./BankAccountList";
 import DisclaimerList from "./DisclaimerList";
+import XeroSetting from "./XeroSetting";
 import { AUSTRALIAN_TIMEZONES } from "pages/Edge/utils/Constant";
 
 const initialData = {
@@ -527,6 +528,12 @@ const SiteInfoPage = () => {
               <div className="">
                 <DisclaimerList
                   disclaimerList={disclaimerList}
+                  siteInfo={siteInfo}
+                  refresh={() => fetchSiteInfo()}
+                />
+              </div>
+              <div className="">
+                <XeroSetting
                   siteInfo={siteInfo}
                   refresh={() => fetchSiteInfo()}
                 />

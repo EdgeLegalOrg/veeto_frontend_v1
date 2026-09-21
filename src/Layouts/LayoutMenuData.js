@@ -250,7 +250,7 @@ const Navdata = () => {
         },
         {
           id: "xeroAdmin",
-          label: "Xero Admin",
+          label: "Xero Connect",
           link: "/account-xero-admin",
           show: checkHasPermission(VIEWXEROADMINTAB),
           parentId: "account",
