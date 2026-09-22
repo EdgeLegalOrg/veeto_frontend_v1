@@ -66,6 +66,7 @@ const initialFilter = {
   pageSize: 25,
   archived: false,
   myMatters: false,
+  recentMatters: true,
 };
 
 const MatterList = () => {
@@ -98,11 +99,31 @@ const MatterList = () => {
   const [sortField, setSortField] = useState("");
   const [showArchived, setShowArchived] = useState(false);
   const [showMyMatter, setShowMyMatter] = useState(false);
+  const [showRecentMatters, setShowRecentMatters] = useState(true);
+
+  const hasActiveSearch = (filters) => {
+    return Boolean(
+      (filters.matterNumber && filters.matterNumber.trim().length > 0) ||
+      (filters.archiveNumber && String(filters.archiveNumber).trim().length > 0) ||
+      (filters.status && filters.status !== "") ||
+      (filters.type && filters.type !== "") ||
+      (filters.subType && filters.subType !== "") ||
+      (filters.letterSubject && filters.letterSubject.trim().length > 0) ||
+      (filters.contacts && filters.contacts.trim().length > 0) ||
+      filters.instructionDate ||
+      filters.completionDate
+    );
+  };
 
   const fetchMatterList = async (filters = filterInput) => {
     try {
       setLoading(true);
-      const { data } = await getMattersList(filters);
+      const effectiveFilters = {
+        ...filters,
+        recentMatters:
+          filters.recentMatters && !hasActiveSearch(filters) ? true : false,
+      };
+      const { data } = await getMattersList(effectiveFilters);
       if (data.success) {
         setMatterList(data?.data?.matterList);
         setTotalPages(data.metadata.page.totalPages);
@@ -310,7 +331,12 @@ const MatterList = () => {
     setLoading(true);
     try {
       setTotalRecords(0);
-      const { data } = await getMattersList(filters);
+      const effectiveFilters = {
+        ...filters,
+        recentMatters:
+          filters.recentMatters && !hasActiveSearch(filters) ? true : false,
+      };
+      const { data } = await getMattersList(effectiveFilters);
       if (data.success) {
         setMatterList(data?.data?.matterList);
         setTotalPages(data.metadata.page.totalPages);
@@ -328,7 +354,12 @@ const MatterList = () => {
   };
 
   const handleResetFilter = () => {
-    const resetFilter = { ...initialFilter, archived: showArchived, myMatters: showMyMatter };
+    const resetFilter = {
+      ...initialFilter,
+      archived: showArchived,
+      myMatters: showMyMatter,
+      recentMatters: showRecentMatters,
+    };
     setFilterInput(resetFilter);
     setLabelSort("");
     setSortOrder("");
@@ -418,6 +449,32 @@ const MatterList = () => {
     });
   };
 
+  const handleRecentMatters = () => {
+    if (showRecentMatters) {
+      setShowRecentMatters(false);
+      setFilterInput({ ...filterInput, recentMatters: false });
+      handleRefreshList({ ...filterInput, recentMatters: false });
+    } else {
+      setShowRecentMatters(true);
+      setShowArchived(false);
+      setShowMyMatter(false);
+      setFilterInput({
+        ...filterInput,
+        recentMatters: true,
+        archived: false,
+        myMatters: false,
+        sortOn: "",
+      });
+      handleRefreshList({
+        ...filterInput,
+        recentMatters: true,
+        archived: false,
+        myMatters: false,
+        sortOn: "",
+      });
+    }
+  };
+
   const handleArchived = () => {
     if (showArchived) {
       setShowArchived(false);
@@ -425,14 +482,20 @@ const MatterList = () => {
       handleRefreshList({ ...filterInput, archived: false, sortOn: "" });
     } else {
       setShowArchived(true);
+      setShowRecentMatters(false);
+      setShowMyMatter(false);
       setFilterInput({
         ...filterInput,
         archived: true,
+        recentMatters: false,
+        myMatters: false,
         sortOn: "archiveNumber",
       });
       handleRefreshList({
         ...filterInput,
         archived: true,
+        recentMatters: false,
+        myMatters: false,
         sortOn: "archiveNumber",
       });
     }
@@ -445,8 +508,20 @@ const MatterList = () => {
       handleRefreshList({ ...filterInput, myMatters: false });
     } else {
       setShowMyMatter(true);
-      setFilterInput({ ...filterInput, myMatters: true });
-      handleRefreshList({ ...filterInput, myMatters: true });
+      setShowRecentMatters(false);
+      setShowArchived(false);
+      setFilterInput({
+        ...filterInput,
+        myMatters: true,
+        recentMatters: false,
+        archived: false,
+      });
+      handleRefreshList({
+        ...filterInput,
+        myMatters: true,
+        recentMatters: false,
+        archived: false,
+      });
     }
   };
 
@@ -474,7 +549,13 @@ const MatterList = () => {
                   <div className="d-flex align-items-center">
                     <h5 className="card-title mb-md-0">
                       {`${
-                        showArchived ? `Archived Matters` : `Matters`
+                        showArchived
+                          ? `Archived Matters`
+                          : showRecentMatters
+                          ? `Recent Matters`
+                          : showMyMatter
+                          ? `My Matters`
+                          : `Matters`
                       } ${noOfRecords()}`}
                     </h5>
                     {!showArchived && (
@@ -490,6 +571,18 @@ const MatterList = () => {
                     )}
                   </div>
                   <div className="d-flex align-items-center">
+                    <div className="mx-1">
+                      <p className="mb-0">Recent Matters</p>
+                      <FormGroup switch>
+                        <Input
+                          type="switch"
+                          role="switch"
+                          checked={showRecentMatters}
+                          onClick={handleRecentMatters}
+                          size="md"
+                        />
+                      </FormGroup>
+                    </div>
                     <div className="mx-1">
                       <p className="mb-0">Archived Matters</p>
                       <FormGroup switch>
@@ -520,7 +613,13 @@ const MatterList = () => {
               <div className="topStrip-style" style={{ display: "none" }}>
                 <p className="topStrip-heading">
                   {`${
-                    showArchived ? `Archived Matters` : `Matters`
+                    showArchived
+                      ? `Archived Matters`
+                      : showRecentMatters
+                      ? `Recent Matters`
+                      : showMyMatter
+                      ? `My Matters`
+                      : `Matters`
                   } ${noOfRecords()}`}
                 </p>
                 {!showArchived && (
@@ -533,6 +632,15 @@ const MatterList = () => {
                   </button>
                 )}
                 <div className="mt-archived cp">
+                  <div className="flx mr-r10">
+                    <p className="topStrip-heading mr-r10">Recent Matters</p>
+                    <ToggleSwitch
+                      checked={showRecentMatters}
+                      handleFunc={handleRecentMatters}
+                      labelClick={false}
+                    />
+                  </div>
+                  <div className="vt-sep"></div>
                   <div className="flx mr-r10">
                     <p className="topStrip-heading mr-r10">Archived Matter</p>
                     <ToggleSwitch
