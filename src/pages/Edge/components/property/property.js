@@ -308,6 +308,12 @@ function RenderProperty() {
   useEffect(() => {
     if (currentRouterState) {
       backToSearch();
+      setFilterInput(filterFields);
+      setSortOrder("");
+      setSortField("");
+      setLabelSort("");
+      setPageNo(0);
+      handleFilterSubmit(filterFields);
       dispatch(resetCurrentRouterState());
     }
   }, [currentRouterState]);

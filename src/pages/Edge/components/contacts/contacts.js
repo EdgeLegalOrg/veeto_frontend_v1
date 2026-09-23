@@ -180,6 +180,15 @@ function Contacts(props) {
   useEffect(() => {
     if (currentRouterState) {
       setSelectedContact(contactDetails);
+      setFilterInput(filterFields);
+      setPageNo(0);
+      setSortOrder("");
+      setSortField("");
+      setLabelSort("");
+      setSelectedContactType([]);
+      setSelectedContactId([]);
+      setSelectedContactInd([]);
+      fetchContactListByPage(0, filterFields);
       dispatch(resetCurrentRouterState());
     }
   }, [currentRouterState]);

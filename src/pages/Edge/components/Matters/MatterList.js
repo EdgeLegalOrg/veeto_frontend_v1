@@ -192,8 +192,19 @@ const MatterList = () => {
 
   useEffect(() => {
     if (currentRouterState) {
-      // navigate({ search: "" });
+      navigate({ search: "" });
       setMatterDetail(null);
+      setShowAdd(false);
+      setShowArchived(false);
+      setShowMyMatter(false);
+      setShowRecentMatters(true);
+      setLabelSort("");
+      setSortOrder("");
+      setSortField("");
+      setFilterST([]);
+      setPageNo(0);
+      setFilterInput(initialFilter);
+      fetchMatterList(initialFilter);
       dispatch(resetCurrentRouterState());
     }
   }, [currentRouterState]);
