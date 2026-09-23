@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { v1 as uuidv1 } from "uuid";
 import Dropzone from "react-dropzone";
 import { toast } from "react-toastify";
@@ -21,8 +21,6 @@ const AddAttachments = (props) => {
   const [uploadSource, setUploadSource] = useState(
     getUploadModeFromStorage(globalStorageType)
   );
-  const googleDriveInputRef = useRef(null);
-  const oneDriveInputRef = useRef(null);
 
   useEffect(() => {
     setUploadSource(getUploadModeFromStorage(globalStorageType));
@@ -32,17 +30,6 @@ const AddAttachments = (props) => {
     if (props.close) {
       props.close();
     }
-  };
-
-  const handleCloudFileSelect = (e, storageTypeValue) => {
-    const files = Array.from(e.target.files || []);
-    if (!files.length) return;
-
-    const file = files[0];
-    setUploadedFile(file);
-    const flname = file.name.split(".").slice(0, -1).join(".");
-    setFileName(flname);
-    e.target.value = "";
   };
 
   const handleAdd = () => {
@@ -79,22 +66,6 @@ const AddAttachments = (props) => {
     if (props.add) {
       props.add(inputData);
     }
-  };
-
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
-
-  const handleDropCloud = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const files = Array.from(e.dataTransfer?.files || []);
-    if (!files.length) return;
-    const file = files[0];
-    setUploadedFile(file);
-    const flname = file.name.split(".").slice(0, -1).join(".");
-    setFileName(flname);
   };
 
   const handleUploadFile = (acceptedFiles) => {
@@ -190,82 +161,58 @@ const AddAttachments = (props) => {
           </button>
         </div>
 
-        <input
-          ref={googleDriveInputRef}
-          type="file"
-          style={{ display: "none" }}
-          onChange={(e) => handleCloudFileSelect(e, "GOOGLE_DRIVE")}
-        />
-        <input
-          ref={oneDriveInputRef}
-          type="file"
-          style={{ display: "none" }}
-          onChange={(e) => handleCloudFileSelect(e, "ONEDRIVE")}
-        />
-
-        {uploadSource === "device" ? (
-          <div className="staff-attachDrop">
-            <Dropzone onDrop={handleUploadFile} multiple={false}>
-              {({ getRootProps, getInputProps }) => (
-                <div {...getRootProps({ className: "staff-dropzone" })}>
-                  <input {...getInputProps()} style={{ display: "none" }} />
-                  <p style={{ paddingTop: "10px", marginBottom: "8px" }}>
-                    Drag and drop to upload or browse for files
-                  </p>
-                  <div style={{ color: "#555" }}>
-                    {uploadedFile ? uploadedFile.name : "No file selected"}
-                  </div>
-                </div>
-              )}
-            </Dropzone>
-          </div>
-        ) : (
-          <div
-            onClick={() =>
-              uploadSource === "google"
-                ? googleDriveInputRef.current?.click()
-                : oneDriveInputRef.current?.click()
-            }
-            onDragOver={handleDragOver}
-            onDrop={handleDropCloud}
-            style={{
-              border: "2px dashed #dee2e6",
-              borderRadius: "8px",
-              padding: "24px",
-              textAlign: "center",
-              cursor: "pointer",
-              background: "#f9fafb",
-              margin: "0 1.5rem 1rem",
-              minHeight: "120px",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "8px",
-            }}
-          >
-            {uploadSource === "google" ? (
-              <GoogleDriveColorIcon size={32} />
-            ) : (
-              <OneDriveIcon />
+        <div className="staff-attachDrop" style={{ margin: "0 1.5rem 1rem" }}>
+          <Dropzone onDrop={handleUploadFile} multiple={false}>
+            {({ getRootProps, getInputProps, isDragActive }) => (
+              <div
+                {...getRootProps({ className: "staff-dropzone" })}
+                style={{
+                  border: isDragActive ? "2px dashed #3b82f6" : "2px dashed #dee2e6",
+                  borderRadius: "8px",
+                  padding: "24px",
+                  textAlign: "center",
+                  cursor: "pointer",
+                  background: isDragActive ? "#eff6ff" : "#f9fafb",
+                  minHeight: "120px",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px",
+                  transition: "all 0.2s ease",
+                }}
+              >
+                <input {...getInputProps()} style={{ display: "none" }} />
+                {uploadSource === "google" ? (
+                  <GoogleDriveColorIcon size={32} />
+                ) : uploadSource === "onedrive" ? (
+                  <OneDriveIcon />
+                ) : (
+                  <DeviceUploadIcon />
+                )}
+                <p
+                  style={{
+                    margin: 0,
+                    color: "#374151",
+                    fontSize: "14px",
+                    fontWeight: "500",
+                  }}
+                >
+                  {isDragActive
+                    ? "Drop file here..."
+                    : uploadSource === "google"
+                    ? "Drag & drop or click to upload to Google Drive"
+                    : uploadSource === "onedrive"
+                    ? "Drag & drop or click to upload to OneDrive"
+                    : "Drag & drop or click to upload from Device"}
+                </p>
+                <span style={{ color: "#555", fontSize: "12px" }}>
+                  {uploadedFile ? uploadedFile.name : "No file selected"}
+                </span>
+              </div>
             )}
-            <p
-              style={{
-                margin: 0,
-                color: "#374151",
-                fontSize: "14px",
-                fontWeight: "500",
-              }}
-            >
-              {uploadSource === "google"
-                ? "Drag and drop or click here to upload to Google Drive"
-                : "Drag and drop or click here to upload to OneDrive"}
-            </p>
-            <span style={{ color: "#555", fontSize: "12px" }}>
-              {uploadedFile ? uploadedFile.name : "No file selected"}
-            </span>
-          </div>
-        )}
+          </Dropzone>
+        </div>
 
         {submitted && !uploadedFile && (
           <p className="mx-4 input-error">Please upload file</p>

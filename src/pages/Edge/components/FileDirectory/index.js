@@ -316,7 +316,7 @@ const FileDirectoryModal = ({
   }, [modal?.type, updateInitialFiles, reset]);
 
   // Global search across all folders when searchTermForMainContent length >= 2
-  const isGlobalSearch = searchTermForMainContent.trim().length >= 2;
+  const isGlobalSearch = searchTermForMainContent.trim().length >= 1;
 
   const globalSearchResults = useMemo(() => {
     if (!isGlobalSearch || !precedent) return [];
@@ -387,17 +387,28 @@ const FileDirectoryModal = ({
         <LoadingPage />
       ) : (
         <div className="file_directory_modal-content">
-          <div className="file_directory_modal-header bg-light p-3 border-bottom">
+          <div className="file_directory_modal-header">
             <p>
               <img
                 src={resetIcon}
                 alt="reset"
+                className="file_directory_home_icon"
                 onClick={handleReset}
                 title="Reset to root folder"
                 style={{ cursor: "pointer", width: "18px", height: "18px" }}
               />
               {modal.name}
             </p>
+            <div className="file_directory_header_search-box">
+              <img src={searchFile} alt="search" />
+              <input
+                className="file_directory_header_search-bar"
+                type="text"
+                placeholder="Search in Main Content"
+                value={searchTermForMainContent}
+                onChange={handleSearchChangeForMainContent}
+              />
+            </div>
             <button
               type="button"
               className="btn-close"
@@ -488,7 +499,7 @@ const FileDirectoryModal = ({
                   <input
                     className="file_directory_search-bar"
                     type="text"
-                    placeholder="Search across all files..."
+                    placeholder="Search in Main Content"
                     value={searchTermForMainContent}
                     onChange={handleSearchChangeForMainContent}
                   />
@@ -529,22 +540,22 @@ const FileDirectoryModal = ({
                 </div>
               </div>
             </div>
-            <div className="file_directory_modal-btns mt-3">
-              <button
-                type="button"
-                className="btn btn-primary px-4"
-                onClick={generatePrecedent}
-              >
-                Generate
-              </button>
-              <button
-                type="button"
-                className="btn btn-light px-4"
-                onClick={onClosehandler}
-              >
-                Cancel
-              </button>
-            </div>
+          </div>
+          <div className="file_directory_modal-btns">
+            <button
+              type="button"
+              className="btn btn-light px-4"
+              onClick={onClosehandler}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              className="btn btn-primary px-4"
+              onClick={generatePrecedent}
+            >
+              Generate
+            </button>
           </div>
         </div>
       )}

@@ -102,11 +102,11 @@ const Navdata = () => {
       document.body.classList.add("twocolumn-panel");
     }
     if (iscurrentState === "SafeCustody") {
-      history("/SafeCustody");
+      history("/safe-custody");
       document.body.classList.add("twocolumn-panel");
     }
     if (iscurrentState === "Property") {
-      history("/Property");
+      history("/property");
       document.body.classList.add("twocolumn-panel");
     }
   }, [
@@ -176,7 +176,7 @@ const Navdata = () => {
       },
     },
     {
-      id: "SafeCustody",
+      id: "safe-custody",
       label: "Safe Custody",
       icon: " ri-safe-line",
       link: "/safe-custody",
@@ -188,7 +188,7 @@ const Navdata = () => {
       },
     },
     {
-      id: "Property",
+      id: "property",
       label: "Property",
       icon: "ri-building-line",
       link: "/property",
@@ -250,7 +250,7 @@ const Navdata = () => {
         },
         {
           id: "xeroAdmin",
-          label: "Xero Admin",
+          label: "Xero Connect",
           link: "/account-xero-admin",
           show: checkHasPermission(VIEWXEROADMINTAB),
           parentId: "account",

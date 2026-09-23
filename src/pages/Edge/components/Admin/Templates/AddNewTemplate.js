@@ -39,6 +39,11 @@ const AddNewTemplate = (props) => {
   const [confirmScreen, setConfirmScreen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [lockDocType, setLockDocType] = useState(false);
+  const [lockMatterType, setLockMatterType] = useState(false);
+  const [lockedDocTypeVal, setLockedDocTypeVal] = useState("");
+  const [lockedMatterTypeVal, setLockedMatterTypeVal] = useState("");
+
   const globalStorageType = useSelector(selectStorageType);
   const [uploadSource, setUploadSource] = useState(
     getUploadModeFromStorage(globalStorageType),
@@ -71,13 +76,59 @@ const AddNewTemplate = (props) => {
     }
   };
 
+  const handleToggleLockDocType = (checked) => {
+    setLockDocType(checked);
+    if (checked && formData.length > 0) {
+      const activeDocType =
+        lockedDocTypeVal ||
+        formData.find((f) => f.documentType)?.documentType ||
+        formData[0]?.documentType ||
+        "";
+      if (activeDocType) {
+        setLockedDocTypeVal(activeDocType);
+        setFormData((prev) =>
+          prev.map((item) => ({ ...item, documentType: activeDocType })),
+        );
+      }
+    }
+  };
+
+  const handleToggleLockMatterType = (checked) => {
+    setLockMatterType(checked);
+    if (checked && formData.length > 0) {
+      const activeMatterType =
+        lockedMatterTypeVal ||
+        formData.find((f) => f.type)?.type ||
+        formData[0]?.type ||
+        "";
+      if (activeMatterType) {
+        setLockedMatterTypeVal(activeMatterType);
+        setFormData((prev) =>
+          prev.map((item) => ({ ...item, type: activeMatterType })),
+        );
+      }
+    }
+  };
+
   const handleSelectOption = (name, val, i) => {
-    let data = [...formData];
-    data[i] = {
-      ...formData[i],
-      [name]: val.value,
-    };
-    setFormData(data);
+    if (name === "documentType" && lockDocType) {
+      setLockedDocTypeVal(val.value);
+      setFormData((prev) =>
+        prev.map((item) => ({ ...item, documentType: val.value })),
+      );
+    } else if (name === "type" && lockMatterType) {
+      setLockedMatterTypeVal(val.value);
+      setFormData((prev) =>
+        prev.map((item) => ({ ...item, type: val.value })),
+      );
+    } else {
+      let data = [...formData];
+      data[i] = {
+        ...formData[i],
+        [name]: val.value,
+      };
+      setFormData(data);
+    }
   };
 
   const handleFormChange = (e, ind) => {
@@ -114,6 +165,8 @@ const AddNewTemplate = (props) => {
         updatedData.push({
           ...initialData,
           name: file.name.split(".").slice(0, -1).join("."),
+          documentType: lockDocType && lockedDocTypeVal ? lockedDocTypeVal : "",
+          type: lockMatterType && lockedMatterTypeVal ? lockedMatterTypeVal : "",
           ...(storageType ? { storageType } : {}),
         });
       });
@@ -238,6 +291,50 @@ const AddNewTemplate = (props) => {
     if (formData && formData?.length > 0) {
       return (
         <div className="tempForm-inputSection">
+          {formData.length > 1 && (
+            <div
+              className="d-flex align-items-center justify-content-between p-2 px-3 mb-3 bg-light border rounded"
+              style={{ margin: "10px 0" }}
+            >
+              <div className="d-flex align-items-center gap-2">
+                <i className="ri-lock-line text-primary fs-15"></i>
+                <span className="fw-semibold text-secondary fs-13">Bulk Sync:</span>
+              </div>
+              <div className="d-flex gap-4">
+                <div className="form-check form-check-inline mb-0 d-flex align-items-center">
+                  <input
+                    type="checkbox"
+                    id="lockDocType"
+                    className="form-check-input cursor-pointer me-1"
+                    checked={lockDocType}
+                    onChange={(e) => handleToggleLockDocType(e.target.checked)}
+                  />
+                  <label
+                    htmlFor="lockDocType"
+                    className="form-check-label fs-13 fw-medium cursor-pointer mb-0"
+                  >
+                    Lock Document Type for all
+                  </label>
+                </div>
+                <div className="form-check form-check-inline mb-0 d-flex align-items-center">
+                  <input
+                    type="checkbox"
+                    id="lockMatterType"
+                    className="form-check-input cursor-pointer me-1"
+                    checked={lockMatterType}
+                    onChange={(e) => handleToggleLockMatterType(e.target.checked)}
+                  />
+                  <label
+                    htmlFor="lockMatterType"
+                    className="form-check-label fs-13 fw-medium cursor-pointer mb-0"
+                  >
+                    Lock Matter Sub-type for all
+                  </label>
+                </div>
+              </div>
+            </div>
+          )}
+
           {formData.map((file, i) => (
             <div className="tempForm-inputContainer pe-cursor" key={i}>
               <span>{`${i + 1})`}</span>
@@ -251,7 +348,7 @@ const AddNewTemplate = (props) => {
 
               <div className="mb-3 position-relative">
                 <SelectInputField
-                  label="Document Type"
+                  label={lockDocType ? "Document Type 🔒" : "Document Type"}
                   name="documentType"
                   optionStyles={{ maxHeight: "365px", minWidth: "200px" }}
                   value={file.documentType}
@@ -267,7 +364,7 @@ const AddNewTemplate = (props) => {
 
               <div className="mb-3 position-relative">
                 <SelectInputField
-                  label="Matter Sub-type"
+                  label={lockMatterType ? "Matter Sub-type 🔒" : "Matter Sub-type"}
                   name="type"
                   optionStyles={{ maxHeight: "365px" }}
                   value={file.type}
@@ -497,4 +594,3 @@ const AddNewTemplate = (props) => {
 };
 
 export default AddNewTemplate;
-

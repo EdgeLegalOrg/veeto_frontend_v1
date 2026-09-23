@@ -10,6 +10,7 @@ import { updateFormStatusAction } from "slices/layouts/reducer";
 import { formatDateFunc } from "pages/Edge/utils/utilFunc";
 
 const initialState = {
+  courtFileNo: "",
   coHabitationDate: "",
   coHabitationMonth: "",
   coHabitationYear: "",
@@ -39,7 +40,7 @@ const EditFamilyForm = (props) => {
   };
 
   const fetchEnums = () => {
-    let req = getRequiredFields("matter_estate");
+    let req = getRequiredFields("matter_family_law");
 
     if (req && req.requiredFields && req.requiredFields.length > 0) {
       setRequiredFields(req.requiredFields);
@@ -150,6 +151,24 @@ const EditFamilyForm = (props) => {
             </Button>
           </div>
         </div> */}
+
+        <div className="row">
+          <div className="col-md-4 mb-3 text-start">
+            <TextInputField
+              label="Court File No:"
+              name="courtFileNo"
+              placeholder="Court File No"
+              value={formData.courtFileNo}
+              onChange={handleChange}
+              required={isRequired("courtFileNo")}
+              invalid={submitted && isRequired("courtFileNo")}
+              invalidMessage="Court File No is required"
+              containerClassName="text-start"
+            />
+          </div>
+          <div className="col-md-4 mb-3"></div>
+          <div className="col-md-4 mb-3"></div>
+        </div>
 
         <div className="row">
           <div className="col-md-4 mb-3">

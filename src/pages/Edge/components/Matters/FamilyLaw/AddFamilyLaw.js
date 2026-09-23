@@ -10,6 +10,7 @@ import { updateFormStatusAction } from "slices/layouts/reducer";
 import { formatDateFunc } from "pages/Edge/utils/utilFunc";
 
 const initialState = {
+  courtFileNo: "",
   coHabitationDate: "",
   coHabitationMonth: "",
   coHabitationYear: "",
@@ -145,6 +146,24 @@ const AddFamilyLaw = (props) => {
             </Button>
           </div>
         </div> */}
+
+        <div className="row">
+          <div className="col-md-4 mb-3 text-start">
+            <TextInputField
+              label="Court File No:"
+              name="courtFileNo"
+              placeholder="Court File No"
+              value={formData.courtFileNo}
+              onChange={handleChange}
+              required={isRequired("courtFileNo")}
+              invalid={submitted && isRequired("courtFileNo")}
+              invalidMessage="Court File No is required"
+              containerClassName="text-start"
+            />
+          </div>
+          <div className="col-md-4 mb-3"></div>
+          <div className="col-md-4 mb-3"></div>
+        </div>
 
         <div className="row">
           <div className="col-md-4 mb-3">
