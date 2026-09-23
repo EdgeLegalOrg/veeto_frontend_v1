@@ -192,22 +192,26 @@ const MatterList = () => {
 
   useEffect(() => {
     if (currentRouterState) {
-      navigate({ search: "" });
-      setMatterDetail(null);
-      setShowAdd(false);
-      setShowArchived(false);
-      setShowMyMatter(false);
-      setShowRecentMatters(true);
-      setLabelSort("");
-      setSortOrder("");
-      setSortField("");
-      setFilterST([]);
-      setPageNo(0);
-      setFilterInput(initialFilter);
-      fetchMatterList(initialFilter);
+      if (location.pathname === "/Matters") {
+        if (location.search) {
+          navigate("/Matters", { replace: true });
+        }
+        setMatterDetail(null);
+        setShowAdd(false);
+        setShowArchived(false);
+        setShowMyMatter(false);
+        setShowRecentMatters(true);
+        setLabelSort("");
+        setSortOrder("");
+        setSortField("");
+        setFilterST([]);
+        setPageNo(0);
+        setFilterInput(initialFilter);
+        fetchMatterList(initialFilter);
+      }
       dispatch(resetCurrentRouterState());
     }
-  }, [currentRouterState]);
+  }, [currentRouterState, location.pathname]);
 
   useEffect(() => {
     if (navigationEditForm.isEditMode) {

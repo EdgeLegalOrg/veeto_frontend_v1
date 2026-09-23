@@ -307,16 +307,18 @@ function RenderProperty() {
 
   useEffect(() => {
     if (currentRouterState) {
-      backToSearch();
-      setFilterInput(filterFields);
-      setSortOrder("");
-      setSortField("");
-      setLabelSort("");
-      setPageNo(0);
-      handleFilterSubmit(filterFields);
+      if (routerLocation.pathname === "/property") {
+        backToSearch();
+        setFilterInput(filterFields);
+        setSortOrder("");
+        setSortField("");
+        setLabelSort("");
+        setPageNo(0);
+        handleFilterSubmit(filterFields);
+      }
       dispatch(resetCurrentRouterState());
     }
-  }, [currentRouterState]);
+  }, [currentRouterState, routerLocation.pathname]);
 
   useEffect(() => {
     if (navigationEditForm.isEditMode) {
