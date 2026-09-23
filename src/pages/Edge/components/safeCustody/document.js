@@ -6,7 +6,7 @@ import { Input } from "reactstrap";
 import { downloadContentAttachment } from "../../apis";
 import "../../stylesheets/safeCustody.css";
 import { returnFileIcon } from "../../utils/Icons";
-import { convertSubstring, formatDateFunc } from "../../utils/utilFunc";
+import { convertSubstring, formatDateFunc, handleAttachmentDragStart } from "../../utils/utilFunc";
 import PreviewScreen from "./PreviewScreen";
 import TooltipWrapper from "../../../../Components/Common/TooltipWrapper";
 import ImageViewer from "../ImageViewer/ImageViewer";
@@ -146,7 +146,7 @@ const Document = (props) => {
           {attachList?.map((d) => {
             if (d.dateOut === null) {
               return (
-                <tr key={d.id}>
+                <tr key={d.id} className="pe-cursor" draggable={true} onDragStart={(e) => handleAttachmentDragStart(e, d, "/api/safecustody/attachment")}>
                   <td>
                     <Input
                       type="checkbox"

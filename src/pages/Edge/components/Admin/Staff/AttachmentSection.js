@@ -145,7 +145,7 @@ const AttachmentSection = (props) => {
         </thead>
         <tbody>
           {attachList.map((a) => (
-            <tr key={a.id} className="pe-cursor">
+            <tr key={a.id} className="pe-cursor" draggable={true} onDragStart={(e) => handleAttachmentDragStart(e, a, "/api/staff/attachment")}>
               <td onClick={(e) => e.stopPropagation()}>
                 <Input
                   type="checkbox"
