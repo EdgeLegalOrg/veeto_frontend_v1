@@ -38,6 +38,7 @@ const AddNewUser = (props) => {
       arr.push({
         display: `${d.firstName} ${d.lastName}`?.trim(),
         value: d.id,
+        email: d.emailId1 || d.emailId2 || d.email || "",
       });
     });
     setStaffList(arr);
@@ -63,11 +64,14 @@ const AddNewUser = (props) => {
   }, []);
 
   function handleSelect(val) {
-    setFormData({
-      ...formData,
+    const email = val?.email || "";
+    setFormData((prev) => ({
+      ...prev,
       staffId: val.value,
       staffName: val.display,
-    });
+      userName: !prev.userName?.trim() || prev.userName === prev._autoEmail ? email : prev.userName,
+      _autoEmail: email,
+    }));
   }
 
   const handleSelectRole = (val, i) => {
