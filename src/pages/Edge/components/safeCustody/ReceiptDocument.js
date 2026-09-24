@@ -13,7 +13,7 @@ import {
 } from "../../apis";
 import fileDownload from "js-file-download";
 import "../../stylesheets/safeCustody.css";
-import { convertSubstring, formatDateFunc } from "../../utils/utilFunc";
+import { convertSubstring, formatDateFunc, handleAttachmentDragStart } from "../../utils/utilFunc";
 import { toast } from "react-toastify";
 import { Button, Table } from "reactstrap";
 import TooltipWrapper from "../../../../Components/Common/TooltipWrapper";
@@ -203,6 +203,9 @@ const ReceiptDocument = (props) => {
                             padding: "10px 0",
                           }}
                           key={i}
+                          className="pe-cursor"
+                          draggable={true}
+                          onDragStart={(e) => handleAttachmentDragStart(e, attachment, "/api/safecustody/attachment")}
                         >
                           <td>
                             <div className="document-nameDiv">

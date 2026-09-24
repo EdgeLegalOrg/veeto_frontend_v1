@@ -210,10 +210,20 @@ function AllSafeCustody(props) {
 
   useEffect(() => {
     if (currentRouterState) {
-      setSelectedCustody("");
+      if (location.pathname === "/safe-custody") {
+        setSelectedCustody("");
+        setNewCustodyForm(false);
+        setFilterInput(filterFields);
+        setSortOrder("");
+        setSortField("");
+        setLabelSort("");
+        setSafeCustodyStatus("ALL");
+        setPageNo(0);
+        handleFilterSubmit(filterFields);
+      }
       dispatch(resetCurrentRouterState());
     }
-  }, [currentRouterState]);
+  }, [currentRouterState, location.pathname]);
 
   useEffect(() => {
     if (navigationEditForm.isEditMode) {

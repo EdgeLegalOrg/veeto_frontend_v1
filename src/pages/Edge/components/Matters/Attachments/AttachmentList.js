@@ -13,6 +13,7 @@ import {
   checkHasPermission,
   convertSubstring,
   formatDateFunc,
+  handleAttachmentDragStart,
 } from "../../../utils/utilFunc";
 import { returnFileIcon, filterFileType } from "../../../utils/Icons";
 import fileDownload from "js-file-download";
@@ -561,7 +562,7 @@ const AttachmentList = (props) => {
         </thead>
         <tbody>
           {filteredList?.map((attach) => (
-            <tr key={attach.id}>
+            <tr key={attach.id} draggable={true} onDragStart={(e) => handleAttachmentDragStart(e, attach, "/api/matter/attachment")}>
               {showCheckBox() && (
                 <td>
                   <Input
@@ -580,7 +581,7 @@ const AttachmentList = (props) => {
                   </div>
                 ) : (
                   <img
-                    src={returnFileIcon(attach.type)}
+                    src={returnFileIcon(attach.type)} draggable={false}
                     alt={attach.type}
                     width="30px"
                     height="30px"
@@ -652,7 +653,7 @@ const AttachmentList = (props) => {
                   </div>
                 ) : (
                   <div
-                    className="flx underline"
+                    className="flx underline" draggable={true} onDragStart={(e) => { e.stopPropagation(); handleAttachmentDragStart(e, attach, "/api/matter/attachment"); }}
                     onClick={(e) => {
                       e.stopPropagation();
                       handleDownload(attach);

@@ -1,3 +1,5 @@
+import Cookies from "js-cookie";
+import { API_BASE_URL } from "../apis";
 import moment from "moment";
 import momentTimezone from "moment-timezone";
 export const formatDateFunc = (date, format = "DD-MM-YYYY") => {
@@ -90,7 +92,8 @@ export const getActiveSiteTimeZone = () => {
     );
 
     const currentSiteId = userDetails.siteId;
-    const siteList = companyDetails.siteInfoList || userDetails.siteInfoList || [];
+    const siteList =
+      companyDetails.siteInfoList || userDetails.siteInfoList || [];
 
     const currentSite = siteList.find(
       (site) =>
@@ -114,9 +117,10 @@ export const updateLocalSiteInfo = (updatedSite) => {
       const companyInfo = JSON.parse(companyInfoStr);
       if (companyInfo.siteInfoList && Array.isArray(companyInfo.siteInfoList)) {
         companyInfo.siteInfoList = companyInfo.siteInfoList.map((site) =>
-          Number(site.siteId) === Number(siteId) || Number(site.id) === Number(siteId)
+          Number(site.siteId) === Number(siteId) ||
+          Number(site.id) === Number(siteId)
             ? { ...site, ...updatedSite, siteId: site.siteId || site.id }
-            : site
+            : site,
         );
         localStorage.setItem("companyInfo", JSON.stringify(companyInfo));
       }
@@ -175,4 +179,124 @@ export const readBlobErrorMessage = async (error) => {
   } catch (parseError) {
     return null;
   }
+};
+/**
+ * Maps file extension to standard MIME type for HTML5 drag-and-drop DownloadURL.
+ */
+export const getMimeType = (fileName = "", fileType = "") => {
+  let ext = "";
+
+  if (fileType) {
+    ext = fileType.toLowerCase().replace(/^\./, "");
+  } else if (fileName && fileName.includes(".")) {
+    ext = fileName.split(".").pop().toLowerCase();
+  }
+
+  const mimeMap = {
+    pdf: "application/pdf",
+    doc: "application/msword",
+    docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    xls: "application/vnd.ms-excel",
+    xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    ppt: "application/vnd.ms-powerpoint",
+    pptx: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+    png: "image/png",
+    jpg: "image/jpeg",
+    jpeg: "image/jpeg",
+    gif: "image/gif",
+    bmp: "image/bmp",
+    webp: "image/webp",
+    svg: "image/svg+xml",
+    txt: "text/plain",
+    csv: "text/csv",
+    rtf: "application/rtf",
+    zip: "application/zip",
+    msg: "application/vnd.ms-outlook",
+    eml: "message/rfc822",
+  };
+
+  return mimeMap[ext] || "application/octet-stream";
+};
+
+/**
+ * Builds an absolute download URL for native OS drag & drop.
+ */
+export const getAttachmentDragUrl = (
+  attachmentId,
+  endpointPath = "/api/matter/attachment",
+) => {
+  const token = Cookies.get("userJWT");
+
+  // Always use current origin (http://localhost:3000 in dev with proxy, https://domain in prod)
+  // to ensure same-origin referrer compliance with Chromium's strict security policy.
+  const baseUrl = window.location.origin;
+
+  const url = new URL(endpointPath, baseUrl);
+
+  url.searchParams.set("attachmentIds", attachmentId);
+
+  // Required because the native DownloadURL request does not
+  // automatically include your application's Authorization header.
+  if (token) {
+    url.searchParams.set("token", token);
+  }
+
+  return url.toString();
+};
+
+/**
+ * Enables native OS drag-out using Chromium's DownloadURL protocol.
+ *
+ * Supported targets include:
+ * - macOS Desktop
+ * - Finder folders
+ * - Email compose windows
+ */
+export const handleAttachmentDragStart = (
+  e,
+  attachment,
+  endpointPath = "/api/matter/attachment",
+) => {
+  if (!e?.dataTransfer || !attachment?.id) {
+    return;
+  }
+
+  const rawName = attachment.name || "attachment";
+  const fileType = attachment.type || "";
+
+  let ext = "";
+
+  if (fileType) {
+    ext = fileType.toLowerCase().replace(/^\./, "");
+  } else if (rawName.includes(".")) {
+    ext = rawName.split(".").pop().toLowerCase();
+  }
+
+  // Ensure the filename has the correct extension.
+  let finalFileName = rawName;
+
+  if (ext && !finalFileName.toLowerCase().endsWith(`.${ext}`)) {
+    finalFileName = `${finalFileName}.${ext}`;
+  }
+
+  // DownloadURL uses ":" as a separator, so sanitize
+  // characters that can interfere with the protocol.
+  finalFileName = finalFileName.replace(/[:\\/]/g, "_");
+
+  const mimeType = getMimeType(finalFileName, fileType);
+
+  const downloadUrl = getAttachmentDragUrl(attachment.id, endpointPath);
+
+  /*
+   * Chromium DownloadURL format:
+   *
+   * mimeType:fileName:url
+   */
+  const downloadUrlData = `${mimeType}:${finalFileName}:${downloadUrl}`;
+
+  // IMPORTANT:
+  // Only provide DownloadURL for native OS file drag-out.
+  e.dataTransfer.setData("DownloadURL", downloadUrlData);
+
+  e.dataTransfer.effectAllowed = "copy";
 };

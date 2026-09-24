@@ -16,7 +16,7 @@ import fileDownload from "js-file-download";
 import ContactPreviewScreen from "./ContactPreviewScreen";
 import { downloadContactAttachment, deleteContactAttachment } from "../../apis";
 import "../../stylesheets/attach.css";
-import { convertSubstring, formatDateFunc } from "../../utils/utilFunc";
+import { convertSubstring, formatDateFunc, handleAttachmentDragStart } from "../../utils/utilFunc";
 import { toast } from "react-toastify";
 import { createPortal } from "react-dom";
 
@@ -274,7 +274,7 @@ const Attachid = (props) => {
           <tbody>
             {attach?.map((data, index) => {
               return (
-                <tr key={index} className="pe-cursor">
+                <tr key={index} className="pe-cursor" draggable={true} onDragStart={(e) => handleAttachmentDragStart(e, data, "/api/contacts/attachment")}>
                   <td>
                     <Input
                       type="checkbox"
