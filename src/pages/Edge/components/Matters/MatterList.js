@@ -35,6 +35,7 @@ import downArrowColoured from "../../images/downArrowColoured.svg";
 import upArrowColoured from "../../images/upArrowColoured.svg";
 import { MdFilterAlt } from "react-icons/md";
 import { MdFilterAltOff } from "react-icons/md";
+import { FiExternalLink } from "react-icons/fi";
 import Pagination from "../Pagination";
 import ToggleSwitch from "../../utils/ToggleSwitch";
 import BreadCrumb from "../../../../Components/Common/BreadCrumb";
@@ -181,7 +182,10 @@ const MatterList = () => {
   const starter = () => {
     setLoading(true);
     fetchEnums();
-    fetchMatterList();
+    const params = new URLSearchParams(window.location.search);
+    if (!params.get("matterId")) {
+      fetchMatterList();
+    }
     fetchSubtypeColors();
     dispatch(fetchStorageType());
   };
@@ -192,10 +196,7 @@ const MatterList = () => {
 
   useEffect(() => {
     if (currentRouterState) {
-      if (location.pathname === "/Matters") {
-        if (location.search) {
-          navigate("/Matters", { replace: true });
-        }
+      if (location.pathname.toLowerCase() === "/matters") {
         setMatterDetail(null);
         setShowAdd(false);
         setShowArchived(false);
@@ -239,11 +240,13 @@ const MatterList = () => {
         currentValue: {
           matterId: Number(matterId),
           tab: params.get("tab") || "BASIC",
+          original: "Matters",
         },
         newValue: null,
       })
     );
-  }, [location.search, dispatch]);
+    fetchMatterDetail(Number(matterId));
+  }, [location.search]);
 
   const fetchMatterDetail = async (id) => {
     let rval = {};
@@ -252,15 +255,23 @@ const MatterList = () => {
 
       const [matterDetails, invoiceDetails] = await Promise.all([
         getMatterDetail(id),
-        getInvoiceofMatter(id),
+        getInvoiceofMatter(id).catch((err) => {
+          console.warn("Could not fetch invoices for matter:", err);
+          return { data: { data: { invoiceList: [] } } };
+        }),
       ]);
 
-      if (matterDetails.data.success) {
-        const res = await fetchStaffList();
-        if (res === "fail") {
-          toast.warning("There is some error occured. Please try later.");
-          return;
-        } else {
+      if (matterDetails?.data?.success) {
+        let res = staffList;
+        if (!res || res.length === 0) {
+          try {
+            res = await fetchStaffList();
+          } catch (e) {
+            console.error("Failed to load staff list:", e);
+            res = [];
+          }
+        }
+        if (res && res !== "fail" && Array.isArray(res)) {
           setStaffList(res);
         }
 
@@ -300,10 +311,9 @@ const MatterList = () => {
 
   const fetchStaffList = async () => {
     try {
-      setLoading(true);
       const { data } = await allStaffMemberAndAccountInfoStaff();
       let arr = [];
-      if (data.success) {
+      if (data?.success) {
         if (
           data?.data?.staffMemberList &&
           data?.data?.staffMemberList.length > 0
@@ -313,12 +323,10 @@ const MatterList = () => {
       } else {
         toast.warning("There is some error occured, please try later.");
       }
-      setLoading(false);
-      return new Promise((resolve, reject) => resolve(arr));
+      return arr;
     } catch (error) {
-      setLoading(false);
       console.error(error);
-      return new Promise((resolve, reject) => reject("fail"));
+      return [];
     }
   };
 
@@ -1041,7 +1049,18 @@ const MatterList = () => {
                           </td>
                         )}
                         <td>
-                          <p className="mb-0">{matter.matterNumber}</p>
+                          <a
+                            href={`/Matters?matterId=${matter.id}`}
+                            className="text-dark fw-semibold text-decoration-none"
+                            onClick={(e) => {
+                              if (!e.ctrlKey && !e.metaKey && e.button === 0) {
+                                e.preventDefault();
+                                fetchMatterDetail(matter.id);
+                              }
+                            }}
+                          >
+                            <p className="mb-0">{matter.matterNumber}</p>
+                          </a>
                         </td>
                         <td style={{ minWidth: "250px" }}>
                           <TooltipWrapper
@@ -1103,8 +1122,29 @@ const MatterList = () => {
                             content={convertSubstring(matter.contacts, 100)}
                           ></TooltipWrapper>
                         </td>
-                        <td></td>
-                        <td></td>
+                        <td>
+                          <div className="d-flex justify-content-end align-items-center">
+                            <TooltipWrapper
+                              id={`open-new-window-${matter.id}`}
+                              placement="bottom"
+                              text="Open in new window"
+                              content={
+                                <Button
+                                  type="button"
+                                  color="light"
+                                  size="sm"
+                                  className="btn-icon p-1 text-muted"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    window.open(`/Matters?matterId=${matter.id}`, "_blank");
+                                  }}
+                                >
+                                  <FiExternalLink size={16} />
+                                </Button>
+                              }
+                            />
+                          </div>
+                        </td>
                       </tr>
                       );
                     })}
@@ -1676,6 +1716,9 @@ const MatterList = () => {
   };
 
   const ui = () => {
+    const params = new URLSearchParams(location.search);
+    const hasMatterId = Boolean(params.get("matterId"));
+
     if (matterDetail) {
       return (
         <MatterDetail
@@ -1688,6 +1731,11 @@ const MatterList = () => {
         />
       );
     }
+
+    if (hasMatterId && loading) {
+      return null;
+    }
+
     return listPage();
   };
 

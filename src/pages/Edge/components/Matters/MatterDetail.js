@@ -462,10 +462,14 @@ const MatterDetail = (props) => {
 
               if (navigationEditForm.isEditMode) {
                 if (
+                  !navigationEditForm.currentFormValue?.original ||
                   navigationEditForm.currentFormValue?.original === "Matters"
                 ) {
                   dispatch(resetNavigationEditFormAction());
                   props.setMatterDetail(null);
+                  if (props.refreshListing) {
+                    props.refreshListing();
+                  }
                 } else {
                   back();
                 }
