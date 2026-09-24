@@ -294,9 +294,15 @@ export const handleAttachmentDragStart = (
    */
   const downloadUrlData = `${mimeType}:${finalFileName}:${downloadUrl}`;
 
-  // IMPORTANT:
-  // Only provide DownloadURL for native OS file drag-out.
-  e.dataTransfer.setData("DownloadURL", downloadUrlData);
+  // SECURITY & ATTACHMENT INTEGRITY:
+  // Strictly set ONLY "DownloadURL" for Chromium native OS file drag-out (Desktop, Finder, Outlook).
+  // Do NOT expose text/uri-list, text/plain, or text/html to prevent leaking authentication
+  // tokens to untrusted web pages, public dropzones, or clipboard targets.
+  try {
+    e.dataTransfer.setData("DownloadURL", downloadUrlData);
+  } catch (err) {
+    console.error("Error setting DownloadURL drag data", err);
+  }
 
   e.dataTransfer.effectAllowed = "copy";
 };
