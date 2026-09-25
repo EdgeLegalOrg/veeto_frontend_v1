@@ -74,7 +74,7 @@ const PreviewInvoiceTemplate = (props) => {
       return srv.map((d) => (
         <div className="pre-tm-tableRow pe-cursor" key={d.id}>
           <div className="table-colDiv lg">
-            <p>{d.serviceLineDesc}</p>
+            <p style={{ whiteSpace: "pre-line", wordBreak: "break-word" }}>{d.serviceLineDesc}</p>
           </div>
           <div className="table-colDiv sm">
             <p>{d.unit}</p>
