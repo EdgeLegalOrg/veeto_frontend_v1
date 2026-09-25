@@ -174,7 +174,7 @@ export const getMattersList = (filters) =>
       filters.instructionDate ? filters.instructionDate : ""
     }&completionDate=${
       filters.completionDate ? filters.completionDate : ""
-    }&archived=${filters.archived}&myMatters=${filters.myMatters}&recentMatters=${filters.recentMatters ? filters.recentMatters : false}&subType=${
+    }&archived=${filters.archived ? true : false}&myMatters=${filters.myMatters ? true : false}&recentMatters=${filters.recentMatters ? true : false}&subType=${
       filters.subType ? filters.subType : ""
     }&contacts=${filters.contacts ? filters.contacts : ""}&letterSubject=${
       filters.letterSubject ? filters.letterSubject : ""

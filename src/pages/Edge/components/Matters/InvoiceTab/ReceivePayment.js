@@ -146,18 +146,14 @@ const ReceivePayment = (props) => {
   const checkAmountValid = () => {
     let amtSum = 0;
     let amountReceived = formData.amount ? parseFloat(formData.amount) : 0;
-    let invList = formData.invoicePaymentList;
+    let invList = formData.invoicePaymentList || [];
 
     invList.forEach((inv) => {
-      amtSum += inv.amount;
+      amtSum += parseFloat(inv.amount || 0);
     });
 
     let dueValid = dueValidInList();
-    let totalValid = true;
-
-    if (amtSum != amountReceived) {
-      totalValid = false;
-    }
+    let totalValid = Math.round(amtSum * 100) === Math.round(amountReceived * 100);
 
     return dueValid && totalValid;
   };

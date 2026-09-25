@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import {
@@ -341,6 +341,55 @@ const AttachmentList = (props) => {
     return checkHasPermission(DELETEMATTERATTACHMENT);
   };
 
+
+  const groupedList = useMemo(() => {
+    if (!filteredList || filteredList.length === 0) return [];
+    const groups = [];
+    const emailMap = new Map();
+
+    filteredList.forEach((item) => {
+      const isEmail =
+        Boolean(item.emailSubject) ||
+        ["email", "eml", "msg"].includes(item.type?.toLowerCase()) ||
+        item.name?.toLowerCase().endsWith(".eml") ||
+        item.name?.toLowerCase().endsWith(".msg");
+
+      if (isEmail) {
+        const subjectKey = (
+          item.emailSubject ||
+          item.name?.replace(/\.(eml|msg)$/i, "") ||
+          "Email Message"
+        ).trim().toLowerCase();
+
+        if (emailMap.has(subjectKey)) {
+          emailMap.get(subjectKey).children.push(item);
+        } else {
+          const group = {
+            isGroup: true,
+            key: `email-group-${item.id}-${subjectKey}`,
+            subject: item.emailSubject || item.name?.replace(/\.(eml|msg)$/i, "") || "Email Message",
+            sender: item.sender || item.uploadedBy,
+            receivedDate: item.receivedDate || item.uploadDate,
+            uploadDate: item.uploadDate,
+            uploadedBy: item.uploadedBy || item.sender,
+            primaryItem: item,
+            children: [item],
+          };
+          emailMap.set(subjectKey, group);
+          groups.push(group);
+        }
+      } else {
+        groups.push({
+          isGroup: false,
+          key: `item-${item.id}`,
+          item,
+        });
+      }
+    });
+
+    return groups;
+  }, [filteredList]);
+
   const renderStorageBadge = (storageType) => {
     switch (storageType) {
       case "GOOGLE_DRIVE":
@@ -561,99 +610,212 @@ const AttachmentList = (props) => {
           </tr>
         </thead>
         <tbody>
-          {filteredList?.map((attach) => (
-            <tr key={attach.id} draggable={true} onDragStart={(e) => handleAttachmentDragStart(e, attach, "/api/matter/attachment")}>
-              {showCheckBox() && (
-                <td>
-                  <Input
-                    type="checkbox"
-                    checked={isSelected(attach.id)}
-                    onClick={(e) => e.stopPropagation()}
-                    onChange={() => handleSelect(attach.id)}
+          {groupedList?.map((entry) => {
+            if (entry.isGroup) {
+              const childIds = entry.children.map((c) => c.id);
+              const allSelected = childIds.every((id) => isSelected(id));
+              const someSelected = childIds.some((id) => isSelected(id));
+
+              const toggleGroupSelect = () => {
+                if (allSelected) {
+                  setSelectedList(selectedList.filter((id) => !childIds.includes(id)));
+                } else {
+                  setSelectedList([...new Set([...selectedList, ...childIds])]);
+                }
+              };
+
+              return (
+                <tr
+                  key={entry.key}
+                  draggable={true}
+                  onDragStart={(e) => handleAttachmentDragStart(e, entry.primaryItem, "/api/matter/attachment")}
+                >
+                  {showCheckBox() && (
+                    <td style={{ verticalAlign: "top", paddingTop: "12px" }}>
+                      <Input
+                        type="checkbox"
+                        checked={allSelected}
+                        ref={(el) => {
+                          if (el) el.indeterminate = someSelected && !allSelected;
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                        onChange={toggleGroupSelect}
+                        className="pe-cursor"
+                      />
+                    </td>
+                  )}
+                  <td className="pe-cursor" style={{ verticalAlign: "top", paddingTop: "12px" }}>
+                    <div onClick={() => handleEditRowDetail(entry.primaryItem)}>
+                      <EmailReceivedIcon />
+                    </div>
+                  </td>
+                  <td className="pe-cursor" style={{ verticalAlign: "top", paddingTop: "10px" }}>
+                    <div>
+                      {/* Email Subject Header */}
+                      <div
+                        className="fw-medium pe-cursor"
+                        style={{ color: "#1e40af", fontSize: "14px" }}
+                        onClick={() => handleEditRowDetail(entry.primaryItem)}
+                      >
+                        {entry.subject}
+                      </div>
+                      <div className="d-flex align-items-center mt-1">
+                        <span
+                          style={{
+                            backgroundColor: "#64748b",
+                            color: "#ffffff",
+                            fontSize: "10px",
+                            fontWeight: "700",
+                            padding: "1px 6px",
+                            borderRadius: "4px",
+                            letterSpacing: "0.5px",
+                            marginRight: "6px",
+                          }}
+                        >
+                          RECEIVED
+                        </span>
+                        <span style={{ fontSize: "12px", color: "#475569" }}>
+                          {entry.sender}
+                        </span>
+                      </div>
+
+                      {/* Tree Branch Children */}
+                      <div className="mt-2" style={{ paddingLeft: "8px" }}>
+                        {entry.children.map((child, idx) => {
+                          const isLast = idx === entry.children.length - 1;
+                          return (
+                            <div
+                              key={child.id}
+                              className="d-flex align-items-center my-1"
+                              style={{ paddingLeft: "18px", position: "relative" }}
+                              draggable={true}
+                              onDragStart={(e) => {
+                                e.stopPropagation();
+                                handleAttachmentDragStart(e, child, "/api/matter/attachment");
+                              }}
+                            >
+                              {/* Tree branch connector lines */}
+                              <div
+                                style={{
+                                  position: "absolute",
+                                  left: "2px",
+                                  top: "-10px",
+                                  height: isLast ? "22px" : "32px",
+                                  width: "12px",
+                                  borderLeft: "2px solid #cbd5e1",
+                                  borderBottom: "2px solid #cbd5e1",
+                                  borderBottomLeftRadius: "4px",
+                                }}
+                              />
+                              <span style={{ fontSize: "14px", marginRight: "6px", lineHeight: 1 }}>
+                                📎
+                              </span>
+                              <span
+                                className="pe-cursor underline"
+                                style={{ fontSize: "13px", color: "#1e293b", fontWeight: "500" }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDownload(child);
+                                }}
+                              >
+                                {child.name}
+                              </span>
+                              {child.type && (
+                                <span
+                                  className="badge bg-light text-secondary ms-2"
+                                  style={{ fontSize: "10px", border: "1px solid #e2e8f0" }}
+                                >
+                                  {child.type.toUpperCase()}
+                                </span>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </td>
+                  <td className="pe-cursor" style={{ verticalAlign: "top", paddingTop: "12px" }}>
+                    <p className="mb-0" onClick={() => handleEditRowDetail(entry.primaryItem)}>
+                      {entry.uploadDate ? formatDateFunc(entry.uploadDate) : ""}
+                    </p>
+                    {entry.receivedDate && (
+                      <div style={{ fontSize: "11px", color: "#6b7280" }}>
+                        Received: {formatDateFunc(entry.receivedDate)}
+                      </div>
+                    )}
+                  </td>
+                  <td
                     className="pe-cursor"
-                  />
-                </td>
-              )}
-              <td className="pe-cursor" style={{ verticalAlign: "top", paddingTop: "12px" }}>
-                {attach.emailSubject || ["email", "eml", "msg"].includes(attach.type?.toLowerCase()) ? (
-                  <div onClick={() => handleEditRowDetail(attach)}>
-                    <EmailReceivedIcon />
-                  </div>
-                ) : (
+                    style={{ verticalAlign: "top", paddingTop: "10px" }}
+                    onClick={() => handleEditRowDetail(entry.primaryItem)}
+                  >
+                    <div className="d-flex align-items-center gap-2">
+                      <span
+                        className="d-inline-flex align-items-center justify-content-center rounded-circle"
+                        style={{
+                          width: "28px",
+                          height: "28px",
+                          backgroundColor: "#e2e8f0",
+                          fontSize: "11px",
+                          fontWeight: "700",
+                          color: "#475569",
+                          flexShrink: 0,
+                        }}
+                      >
+                        {getInitials(entry.uploadedBy)}
+                      </span>
+                      <TooltipWrapper
+                        id={`uploadedBy-grp-${entry.primaryItem.id}`}
+                        placement="bottom"
+                        text={entry.uploadedBy ? entry.uploadedBy : ""}
+                        content={convertSubstring(entry.uploadedBy, 20)}
+                      ></TooltipWrapper>
+                    </div>
+                  </td>
+                  <td style={{ verticalAlign: "top", paddingTop: "12px" }}>
+                    {renderStorageBadge(entry.primaryItem.storageType)}
+                  </td>
+                </tr>
+              );
+            }
+
+            const attach = entry.item;
+            return (
+              <tr
+                key={attach.id}
+                draggable={true}
+                onDragStart={(e) => handleAttachmentDragStart(e, attach, "/api/matter/attachment")}
+              >
+                {showCheckBox() && (
+                  <td>
+                    <Input
+                      type="checkbox"
+                      checked={isSelected(attach.id)}
+                      onClick={(e) => e.stopPropagation()}
+                      onChange={() => handleSelect(attach.id)}
+                      className="pe-cursor"
+                    />
+                  </td>
+                )}
+                <td className="pe-cursor" style={{ verticalAlign: "top", paddingTop: "12px" }}>
                   <img
-                    src={returnFileIcon(attach.type)} draggable={false}
+                    src={returnFileIcon(attach.type)}
+                    draggable={false}
                     alt={attach.type}
                     width="30px"
                     height="30px"
                     className="mr-r16 pe-cursor"
                     onClick={() => handleEditRowDetail(attach)}
                   />
-                )}
-              </td>
-              <td className="pe-cursor" style={{ verticalAlign: "top", paddingTop: "10px" }}>
-                {attach.emailSubject ? (
-                  <div>
-                    <div
-                      className="fw-medium pe-cursor"
-                      style={{ color: "#1e40af", fontSize: "14px" }}
-                      onClick={() => handleEditRowDetail(attach)}
-                    >
-                      {attach.emailSubject}
-                    </div>
-                    <div className="d-flex align-items-center mt-1">
-                      <span
-                        style={{
-                          backgroundColor: "#64748b",
-                          color: "#ffffff",
-                          fontSize: "10px",
-                          fontWeight: "700",
-                          padding: "1px 6px",
-                          borderRadius: "4px",
-                          letterSpacing: "0.5px",
-                          marginRight: "6px",
-                        }}
-                      >
-                        RECEIVED
-                      </span>
-                      <span style={{ fontSize: "12px", color: "#475569" }}>
-                        {attach.sender || attach.uploadedBy}
-                      </span>
-                    </div>
-                    {/* Tree branch connector to attachment */}
-                    <div
-                      className="d-flex align-items-center mt-2"
-                      style={{ paddingLeft: "16px", position: "relative" }}
-                    >
-                      <div
-                        style={{
-                          position: "absolute",
-                          left: "2px",
-                          top: "-8px",
-                          bottom: "8px",
-                          width: "12px",
-                          borderLeft: "2px solid #cbd5e1",
-                          borderBottom: "2px solid #cbd5e1",
-                          borderBottomLeftRadius: "3px",
-                        }}
-                      />
-                      <span style={{ fontSize: "14px", marginRight: "6px", lineHeight: 1 }}>
-                        📎
-                      </span>
-                      <span
-                        className="pe-cursor underline"
-                        style={{ fontSize: "13px", color: "#1e293b", fontWeight: "500" }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDownload(attach);
-                        }}
-                      >
-                        {attach.name}
-                      </span>
-                    </div>
-                  </div>
-                ) : (
+                </td>
+                <td className="pe-cursor" style={{ verticalAlign: "top", paddingTop: "10px" }}>
                   <div
-                    className="flx underline" draggable={true} onDragStart={(e) => { e.stopPropagation(); handleAttachmentDragStart(e, attach, "/api/matter/attachment"); }}
+                    className="flx underline"
+                    draggable={true}
+                    onDragStart={(e) => {
+                      e.stopPropagation();
+                      handleAttachmentDragStart(e, attach, "/api/matter/attachment");
+                    }}
                     onClick={(e) => {
                       e.stopPropagation();
                       handleDownload(attach);
@@ -666,49 +828,44 @@ const AttachmentList = (props) => {
                       content={convertSubstring(attach.name, 40)}
                     ></TooltipWrapper>
                   </div>
-                )}
-              </td>
-              <td className="pe-cursor" style={{ verticalAlign: "top", paddingTop: "12px" }}>
-                <p className="mb-0" onClick={() => handleEditRowDetail(attach)}>
-                  {attach.uploadDate ? formatDateFunc(attach.uploadDate) : ""}
-                </p>
-                {attach.receivedDate && (
-                  <div style={{ fontSize: "11px", color: "#6b7280" }}>
-                    Received: {formatDateFunc(attach.receivedDate)}
+                </td>
+                <td className="pe-cursor" style={{ verticalAlign: "top", paddingTop: "12px" }}>
+                  <p className="mb-0" onClick={() => handleEditRowDetail(attach)}>
+                    {attach.uploadDate ? formatDateFunc(attach.uploadDate) : ""}
+                  </p>
+                </td>
+                <td
+                  className="pe-cursor"
+                  style={{ verticalAlign: "top", paddingTop: "10px" }}
+                  onClick={() => handleEditRowDetail(attach)}
+                >
+                  <div className="d-flex align-items-center gap-2">
+                    <span
+                      className="d-inline-flex align-items-center justify-content-center rounded-circle"
+                      style={{
+                        width: "28px",
+                        height: "28px",
+                        backgroundColor: "#e2e8f0",
+                        fontSize: "11px",
+                        fontWeight: "700",
+                        color: "#475569",
+                        flexShrink: 0,
+                      }}
+                    >
+                      {getInitials(attach.uploadedBy || attach.sender)}
+                    </span>
+                    <TooltipWrapper
+                      id={`uploadedBy-${attach.id}`}
+                      placement="bottom"
+                      text={attach.uploadedBy ? attach.uploadedBy : ""}
+                      content={convertSubstring(attach.uploadedBy || attach.sender, 20)}
+                    ></TooltipWrapper>
                   </div>
-                )}
-              </td>
-              <td
-                className="pe-cursor"
-                style={{ verticalAlign: "top", paddingTop: "10px" }}
-                onClick={() => handleEditRowDetail(attach)}
-              >
-                <div className="d-flex align-items-center gap-2">
-                  <span
-                    className="d-inline-flex align-items-center justify-content-center rounded-circle"
-                    style={{
-                      width: "28px",
-                      height: "28px",
-                      backgroundColor: "#e2e8f0",
-                      fontSize: "11px",
-                      fontWeight: "700",
-                      color: "#475569",
-                      flexShrink: 0,
-                    }}
-                  >
-                    {getInitials(attach.uploadedBy || attach.sender)}
-                  </span>
-                  <TooltipWrapper
-                    id={`uploadedBy-${attach.id}`}
-                    placement="bottom"
-                    text={attach.uploadedBy ? attach.uploadedBy : ""}
-                    content={convertSubstring(attach.uploadedBy || attach.sender, 20)}
-                  ></TooltipWrapper>
-                </div>
-              </td>
-              <td>{renderStorageBadge(attach.storageType)}</td>
-            </tr>
-          ))}
+                </td>
+                <td>{renderStorageBadge(attach.storageType)}</td>
+              </tr>
+            );
+          })}
         </tbody>
       </Table>
 
