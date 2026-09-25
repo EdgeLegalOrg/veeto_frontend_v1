@@ -102,6 +102,8 @@
 
 .table-colDiv.lg {
   width: 36%;
+  white-space: pre-line;
+  word-break: break-word;
 }
 
 .table-colDiv.sm {
@@ -156,4 +158,9 @@
 .pre-tm-tax.bgCyan > p {
   font-weight: bold;
   color: #fff;
+}
+
+.table-colDiv.lg p {
+  white-space: pre-line;
+  word-break: break-word;
 }

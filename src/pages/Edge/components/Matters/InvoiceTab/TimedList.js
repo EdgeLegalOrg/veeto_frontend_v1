@@ -19,8 +19,14 @@ const TimedList = (props) => {
   }, [props.formData, props.active]);
 
   const sortList = (arg) => {
-    let newArray = arg.sort(
-      (a, b) => new Date(a.billingDate) - new Date(b.billingDate)
+    if (!arg) {
+      setTimedList([]);
+      return;
+    }
+    let newArray = [...arg].sort(
+      (a, b) =>
+        new Date(a.billingDate || 0) - new Date(b.billingDate || 0) ||
+        ((a.id || 0) - (b.id || 0))
     );
 
     setTimedList(newArray);
@@ -46,7 +52,11 @@ const TimedList = (props) => {
     const checked = isSelected(val);
     let arr = [];
     if (!checked) {
-      arr = [...selected, val];
+      arr = [...selected, val].sort(
+        (a, b) =>
+          new Date(a.billingDate || 0) - new Date(b.billingDate || 0) ||
+          ((a.id || 0) - (b.id || 0))
+      );
     } else {
       arr = selected.filter((c) => val.id != c.id);
     }

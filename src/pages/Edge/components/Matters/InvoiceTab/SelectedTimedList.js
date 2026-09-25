@@ -8,7 +8,14 @@ const SelectedTimedList = (props) => {
 
   useEffect(() => {
     if (props.selectedList && props.selectedList.length) {
-      setList(props.selectedList);
+      const sorted = [...props.selectedList].sort(
+        (a, b) =>
+          new Date(a.billingDate || 0) - new Date(b.billingDate || 0) ||
+          ((a.id || 0) - (b.id || 0))
+      );
+      setList(sorted);
+    } else {
+      setList([]);
     }
   }, [props.selectedList]);
 
