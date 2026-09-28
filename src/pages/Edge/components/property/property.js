@@ -322,7 +322,9 @@ function RenderProperty() {
 
   useEffect(() => {
     if (navigationEditForm.isEditMode) {
-      setActiveTab(navigationEditForm.currentFormValue?.tab || "details");
+      const tab = navigationEditForm.currentFormValue?.tab;
+      const validTab = tab == "matters" ? "matters" : "details";
+      setActiveTab(validTab);
       fetchPropertyData(navigationEditForm.editFormValue.id);
     }
   }, [navigationEditForm]);
