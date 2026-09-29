@@ -67,7 +67,7 @@ const initialFilter = {
   pageSize: 25,
   archived: false,
   myMatters: false,
-  recentMatters: true,
+  recentMatters: false,
 };
 
 const MatterList = () => {
@@ -100,7 +100,7 @@ const MatterList = () => {
   const [sortField, setSortField] = useState("");
   const [showArchived, setShowArchived] = useState(false);
   const [showMyMatter, setShowMyMatter] = useState(false);
-  const [showRecentMatters, setShowRecentMatters] = useState(true);
+  const [showRecentMatters, setShowRecentMatters] = useState(false);
 
   const hasActiveSearch = (filters) => {
     return Boolean(
@@ -483,14 +483,14 @@ const MatterList = () => {
       setShowMyMatter(false);
       setFilterInput({
         ...filterInput,
-        recentMatters: true,
+        recentMatters: false,
         archived: false,
         myMatters: false,
         sortOn: "",
       });
       handleRefreshList({
         ...filterInput,
-        recentMatters: true,
+        recentMatters: false,
         archived: false,
         myMatters: false,
         sortOn: "",
@@ -1059,7 +1059,28 @@ const MatterList = () => {
                               }
                             }}
                           >
-                            <p className="mb-0">{matter.matterNumber}</p>
+                            <div className="d-flex align-items-center">
+                              <p className="mb-0">{matter.matterNumber}</p>
+                              {(matter.isRecent || matter.recent) && (
+                                <span
+                                  className="badge ms-2"
+                                  style={{
+                                    fontSize: "10px",
+                                    padding: "2px 8px",
+                                    fontWeight: 600,
+                                    borderRadius: "10px",
+                                    lineHeight: "1.3",
+                                    backgroundColor: "#e0f2fe",
+                                    color: "#0369a1",
+                                    border: "1px solid #bae6fd",
+                                    display: "inline-block",
+                                  }}
+                                  title="Recently accessed by you"
+                                >
+                                  Recent
+                                </span>
+                              )}
+                            </div>
                           </a>
                         </td>
                         <td style={{ minWidth: "250px" }}>

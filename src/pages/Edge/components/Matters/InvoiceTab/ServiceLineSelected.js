@@ -130,13 +130,14 @@ const ServiceLineSelected = (props) => {
         <div className="d-flex me-2 align-items-center" key={t.value}>
           <input
             type="radio"
+            name={`taxType_${index}`}
             checked={t.value === arg.taxType}
             onChange={() => changeTaxType(t.value, index)}
             disabled={props.disabled}
             className="form-check-input mb-1 pe-cursor"
-            id={t.value}
+            id={`${t.value}_${index}`}
           />
-          <label className="m-0 px-1 pe-cursor" for={t.value}>
+          <label className="m-0 px-1 pe-cursor" htmlFor={`${t.value}_${index}`}>
             {t.display}
           </label>
         </div>
