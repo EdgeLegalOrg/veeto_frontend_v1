@@ -19,7 +19,7 @@ const initialData = {
   rate: "",
   billingDate: new Date(),
   units: "",
-  taxDesc: "GST_INCLUDE",
+  taxDesc: "GST_EXCLUDE",
   description: "",
   matterId: "",
   timeInSecs: "",
