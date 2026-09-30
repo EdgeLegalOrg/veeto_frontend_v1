@@ -19,6 +19,7 @@ import {
   SearchableCompanyDropDown,
 } from "pages/Edge/components/InputField";
 import { updateFormStatusAction } from "slices/layouts/reducer";
+import ConflictCheckBadge from "../customComponents/ConflictCheckBadge";
 
 const initialData = {
   role: "",
@@ -708,6 +709,11 @@ function AddPerson(props) {
               maxLength={fieldLength["lastName".toLowerCase()]}
             />
           </div>
+        </div>
+        <div className="row px-3">
+          <ConflictCheckBadge name={`${personDetails.firstName || ""} ${personDetails.lastName || ""}`.trim()} />
+        </div>
+        <div className="row mt-3">
           <div className="col-md-3">
             <TextInputField
               label="Home Phone"

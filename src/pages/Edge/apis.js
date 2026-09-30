@@ -1308,3 +1308,11 @@ export const fetchAllFeedback = () =>
 
 export const fetchFeedbackSummary = () =>
   API.get(`/api/feedback/summary?requestId=${uuidv1()}`);
+
+// Conflict Check
+export const checkContactConflict = (name) =>
+  API.get(
+    `/api/conflict-check/contacts?requestId=${uuidv1()}&name=${encodeURIComponent(
+      name
+    )}`
+  );
