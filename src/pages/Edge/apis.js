@@ -807,7 +807,7 @@ export const editNumbering = (formData) =>
   });
 
 // Manage Staff
-export const allStaffMember = (filters) =>
+export const allStaffMember = (filters = {}) =>
   API.get(
     `/api/staff?requestId=${uuidv1()}&userName=${
       filters.userName ?? ""
@@ -815,8 +815,10 @@ export const allStaffMember = (filters) =>
       filters.lastName ?? ""
     }&emailId1=${filters.emailId1 ?? ""}&roleName=${
       filters.roleName ?? ""
-    }&phoneNumber1=${filters.phoneNumber1 ?? ""}&staffActive=${
-      filters.staffActive === false ? false : filters.staffActive
+    }&phoneNumber1=${filters.phoneNumber1 ?? ""}${
+      filters.staffActive !== undefined && filters.staffActive !== null && filters.staffActive !== ""
+        ? `&staffActive=${filters.staffActive}`
+        : ""
     }&sortOn=${filters.sortOn ?? ""}&sortType=${filters.sortType ?? ""}`
   );
 
@@ -1316,3 +1318,12 @@ export const checkContactConflict = (name) =>
       name
     )}`
   );
+
+// Reports (Task 5)
+export const postMattersOpenedReport = (filterData) =>
+  API.post(`/api/reports/matters-opened?requestId=${uuidv1()}`, filterData);
+
+export const postExportMattersOpenedCsv = (filterData) =>
+  API.post(`/api/reports/matters-opened/export-csv?requestId=${uuidv1()}`, filterData, {
+    responseType: "blob",
+  });
