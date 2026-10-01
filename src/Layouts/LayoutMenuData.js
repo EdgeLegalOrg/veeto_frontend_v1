@@ -105,6 +105,10 @@ const Navdata = () => {
       history("/safe-custody");
       document.body.classList.add("twocolumn-panel");
     }
+    if (iscurrentState === "Reports") {
+      history("/reports");
+      document.body.classList.add("twocolumn-panel");
+    }
     if (iscurrentState === "Property") {
       history("/property");
       document.body.classList.add("twocolumn-panel");
@@ -197,6 +201,17 @@ const Navdata = () => {
         e.preventDefault();
         // closeNavWithSubItems();
         setIscurrentState("Property");
+      },
+    },
+    {
+      id: "reports",
+      label: "Reports",
+      icon: "ri-file-chart-line",
+      link: "/reports",
+      show: true,
+      click: function (e) {
+        e.preventDefault();
+        setIscurrentState("Reports");
       },
     },
     {
