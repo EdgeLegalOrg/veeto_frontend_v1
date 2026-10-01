@@ -13,7 +13,7 @@ const initialData = {
   billingFrequency: "",
   amount: "",
   type: "",
-  taxType: "",
+  taxType: "GST_EXCLUDE",
   companyId: "",
 };
 

@@ -5,6 +5,7 @@ import {
   CustomToastWindow,
 } from "../../customComponents/CustomComponents";
 import LoadingPage from "../../../utils/LoadingPage";
+import ConflictCheckBadge from "../../customComponents/ConflictCheckBadge";
 import { createContact } from "../../../apis";
 import { v1 as uuidv1 } from "uuid";
 import { toast } from "react-toastify";
@@ -618,6 +619,9 @@ const AddNewOrg = (props) => {
             maxLength={fieldLength["title".toLowerCase()]}
           />
         </div>
+      </div>
+      <div className="row px-3">
+        <ConflictCheckBadge name={organizationDetails.legalName || organizationDetails.name || ""} />
       </div>
 
       <div className="row mt-3">

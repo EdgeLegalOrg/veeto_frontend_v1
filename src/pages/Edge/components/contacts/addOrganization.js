@@ -13,6 +13,7 @@ import {
   SearchableRepresentativeDropDown,
 } from "pages/Edge/components/InputField";
 import { updateFormStatusAction } from "slices/layouts/reducer";
+import ConflictCheckBadge from "../customComponents/ConflictCheckBadge";
 
 const initialData = {
   role: "Bussiness/Partnership",
@@ -652,6 +653,11 @@ function AddOrganization(props) {
               maxLength={fieldLength["title".toLowerCase()]}
             />
           </div>
+        </div>
+        <div className="row px-3">
+          <ConflictCheckBadge name={organizationDetails.legalName || organizationDetails.name || ""} />
+        </div>
+        <div className="row mt-2">
           <div className="col-md-3">
             <TextInputField
               label="Phone Number 1"

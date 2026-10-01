@@ -2,6 +2,7 @@ import React, { useState, useEffect, Fragment } from "react";
 import { Button, Input } from "reactstrap";
 import { fetchAllContactsFromDb, linkMatterContact, fetchMatterRole } from "../../../apis";
 import LoadingPage from "../../../utils/LoadingPage";
+import ConflictCheckBadge from "../../customComponents/ConflictCheckBadge";
 import { toast } from "react-toastify";
 import { CustomDropDown } from "../../InputField";
 
@@ -284,6 +285,9 @@ const LinkContactPage = (props) => {
           invalid={submitted && !formData.contactId}
           invalidMessage="Please select any contact"
         />
+      </div>
+      <div className="row px-1">
+        <ConflictCheckBadge name={findDisplayname(contactList, formData)} />
       </div>
       <div className="row mt-3">
         {roleList?.map((role) => (

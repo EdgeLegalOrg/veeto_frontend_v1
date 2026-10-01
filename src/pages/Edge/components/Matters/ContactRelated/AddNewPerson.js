@@ -7,6 +7,7 @@ import {
 import { v1 as uuidv1 } from "uuid";
 
 import LoadingPage from "../../../utils/LoadingPage";
+import ConflictCheckBadge from "../../customComponents/ConflictCheckBadge";
 import { checkPersonExist, createContact } from "../../../apis";
 import { toast } from "react-toastify";
 import {
@@ -720,6 +721,9 @@ function AddNewPerson(props) {
               maxLength={fieldLength["lastName".toLowerCase()]}
             />
           </div>
+        </div>
+        <div className="row px-3">
+          <ConflictCheckBadge name={`${personDetails.firstName || ""} ${personDetails.lastName || ""}`.trim()} />
         </div>
         <div className="row mt-3">
           <div className="col-md-4">
