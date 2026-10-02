@@ -26,6 +26,19 @@ import InvoiceListPage from '../pages/Edge/components/AccountingSection/InvoiceL
 import InvoiceTemplateList from '../pages/Edge/components/AccountingSection/InvoiceTemplate/InvoiceTemplateList';
 import XeroAdmin from '../pages/Edge/components/AccountingSection/XeroAdmin/XeroAdmin';
 import XeroListing from '../pages/Edge/components/AccountingSection/XeroAdmin/XeroConnected/ListingPage';
+
+// Trust Accounting. Every screen is gated on ViewTrustAccounting by the menu
+// and by the server; the routes themselves are inside AuthProtected like the
+// rest, so a user who typed a trust URL without the right would reach a screen
+// whose API calls all come back refused.
+import TrustAccountsPage from '../pages/Edge/components/Trust/TrustAccountsPage';
+import TrustLedgersPage from '../pages/Edge/components/Trust/TrustLedgersPage';
+import TrustAuthorisationsPage from '../pages/Edge/components/Trust/TrustAuthorisationsPage';
+import TrustReportsPage from '../pages/Edge/components/Trust/TrustReportsPage';
+import TrustReconciliationPage from '../pages/Edge/components/Trust/TrustReconciliationPage';
+import TrustMonthEndPage from '../pages/Edge/components/Trust/TrustMonthEndPage';
+import TrustStatementsPage from '../pages/Edge/components/Trust/TrustStatementsPage';
+import TrustCompliancePage from '../pages/Edge/components/Trust/TrustCompliancePage';
 import SettingPage from '../pages/Edge/components/Admin/Settings/SettingPage';
 import ManageStaffPage from '../pages/Edge/components/Admin/Staff/ManageStaffPage';
 import ManageRolePage from '../pages/Edge/components/Admin/Roles/ManageRolePage';
@@ -74,6 +87,15 @@ const authProtectedRoutes = [
   { path: '/account-xero-admin', component: <XeroAdmin /> },
 
   { path: '/account-xero-admin-connected', component: <XeroListing /> },
+
+  { path: '/trust-accounts', component: <TrustAccountsPage /> },
+  { path: '/trust-ledgers', component: <TrustLedgersPage /> },
+  { path: '/trust-authorisations', component: <TrustAuthorisationsPage /> },
+  { path: '/trust-reports', component: <TrustReportsPage /> },
+  { path: '/trust-reconciliation', component: <TrustReconciliationPage /> },
+  { path: '/trust-month-end', component: <TrustMonthEndPage /> },
+  { path: '/trust-statements', component: <TrustStatementsPage /> },
+  { path: '/trust-compliance', component: <TrustCompliancePage /> },
 
   { path: '/admin-system-numerals', component: <SettingPage /> },
   { path: '/admin-storage-type', component: <StorageTypePage /> },

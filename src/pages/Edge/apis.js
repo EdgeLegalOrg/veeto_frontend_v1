@@ -18,7 +18,12 @@ export const API_BASE_URL = process.env.REACT_APP_API_BASE_URL ?? "";
 export const XERO_APP_CONNECTION_URL =
   process.env.REACT_APP_XERO_APP_CONNECTION_URL ?? "";
 
-const API = axios.create({
+// Exported so trustApis.js can use the same instance. That matters: the
+// interceptors below attach the bearer token and handle session timeout, and a
+// second axios instance created elsewhere would have neither - trust calls
+// would go out unauthenticated and an expired session would never be cleaned
+// up.
+export const API = axios.create({
   baseURL: API_BASE_URL,
 });
 
