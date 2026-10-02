@@ -83,6 +83,26 @@ export const updateTrustLedger = (formData) =>
 export const closeTrustLedger = (id) =>
   API.put(`/api/trust/ledger/${id}/close?requestId=${uuidv1()}`);
 
+// Matters in the signed-in office, for the ledger form's matter-number picker.
+//
+// GET /api/matter takes the office from the session, so this is "the current
+// office" without having to pass a site. `number` is a partial match on the
+// matter number, which is what makes the picker a type-ahead rather than a
+// list of everything.
+//
+// archived and myMatters are sent explicitly as real booleans. The shared
+// getMattersList() helper interpolates them unguarded, so leaving either out
+// puts the literal "undefined" in the query string and the request 400s during
+// binding - the same failure that left the signatory dropdown empty.
+export const searchTrustMatters = (number) =>
+  API.get(
+    `/api/matter?requestId=${uuidv1()}&page=0&pageSize=20` +
+      `&number=${encodeURIComponent(number || "")}` +
+      `&archiveNumber=&status=&type=&subType=&letterSubject=&contacts=` +
+      `&archived=false&myMatters=false&recentMatters=false` +
+      `&sortOn=matterNumber&sortType=DESC`
+  );
+
 // --- receipts ---
 
 export const fetchTrustReceipts = (ledgerId) =>

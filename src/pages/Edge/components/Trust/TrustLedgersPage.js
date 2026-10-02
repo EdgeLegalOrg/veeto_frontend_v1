@@ -27,6 +27,7 @@ import {
   MANAGETRUSTACCOUNT,
   PREPARETRUSTPAYMENT,
 } from "../../utils/RightConstants";
+import { getMatterDetail } from "../../apis";
 import {
   authoriseTrustPayment,
   cancelTrustPayment,
@@ -40,6 +41,7 @@ import {
   markTrustChequeStale,
   openTrustLedger,
   prepareTrustPayment,
+  searchTrustMatters,
 } from "../../trustApis";
 import {
   Balance,
@@ -289,6 +291,36 @@ const TrustLedgersPage = () => {
   );
 };
 
+/**
+ * A contact's name as it should read on a trust ledger.
+ *
+ * An organisation is named by its organisation name; a person by their name.
+ * Rule 47 wants the ledger to identify the client, and "ACME Pty Ltd" is that
+ * identification where a first and last name would be blank.
+ */
+const contactName = (matterContact) => {
+  const contact = matterContact?.contactDetails;
+
+  if (!contact) {
+    return "";
+  }
+
+  if (contact.organisation && String(contact.contactType).toUpperCase() === "ORGANISATION") {
+    return contact.organisation.trim();
+  }
+
+  const person = [contact.firstName, contact.middleName, contact.lastName]
+    .filter(Boolean)
+    .join(" ")
+    .trim();
+
+  return person || (contact.organisation || "").trim();
+};
+
+/** The contact's address, as the matter already assembled it. */
+const addressOf = (matterContact) =>
+  (matterContact?.fullAddress || matterContact?.contactDetails?.fullAddress || "").trim();
+
 /** Opening a ledger - Rule 47. */
 const OpenLedgerForm = ({ trustAccountId, onClose, onSaved }) => {
   const [saving, setSaving] = useState(false);
@@ -299,13 +331,136 @@ const OpenLedgerForm = ({ trustAccountId, onClose, onSaved }) => {
     matterDescription: "",
   });
 
+  // The matter picker's own state, kept apart from the ledger fields: what was
+  // typed, what came back, and which matter was chosen.
+  const [matterQuery, setMatterQuery] = useState("");
+  const [matches, setMatches] = useState([]);
+  const [searching, setSearching] = useState(false);
+  const [chosen, setChosen] = useState(null);
+  const [loadingMatter, setLoadingMatter] = useState(false);
+  const [populateNote, setPopulateNote] = useState("");
+
   const set = (field, value) => setForm((prev) => ({ ...prev, [field]: value }));
+
+  // Search as the number is typed, scoped to the signed-in office by the
+  // server. Debounced so a five-digit matter number is one request, not five.
+  useEffect(() => {
+    const typed = matterQuery.trim();
+
+    if (chosen || typed.length < 2) {
+      setMatches([]);
+      return undefined;
+    }
+
+    let live = true;
+    const timer = window.setTimeout(async () => {
+      setSearching(true);
+
+      try {
+        const { data } = await searchTrustMatters(typed);
+
+        if (live && data.success) {
+          // MatterListing wraps the rows as `matterList`, not `matterDetailsList`.
+          setMatches(data.data?.matterList || []);
+        }
+      } catch (error) {
+        console.error(error);
+      } finally {
+        if (live) {
+          setSearching(false);
+        }
+      }
+    }, 300);
+
+    return () => {
+      live = false;
+      window.clearTimeout(timer);
+    };
+  }, [matterQuery, chosen]);
+
+  /**
+   * Fills the ledger fields from the matter.
+   *
+   * The list response carries contacts only as one joined string, so the matter
+   * is re-read to get them with their roles attached. Everything written here
+   * stays editable: these are a starting point, and the ledger is what the
+   * client is told, so the person opening it has the last word.
+   */
+  const choose = async (matter) => {
+    setChosen(matter);
+    setMatterQuery(String(matter.matterNumber ?? ""));
+    setMatches([]);
+    setLoadingMatter(true);
+    setPopulateNote("");
+
+    // Filled from the list straight away, so the form is never blank while the
+    // detail is on its way.
+    set("matterId", matter.id);
+    set("matterDescription", matter.letterSubject || "");
+
+    try {
+      const { data } = await getMatterDetail(matter.id);
+
+      if (!data.success) {
+        setPopulateNote(
+          "The matter's details could not be read, so the fields below are blank. Fill them in by hand."
+        );
+        return;
+      }
+
+      const detail = data.data || {};
+      // matterContact, not contact: the roles live on the matter-to-contact
+      // link, and `contact` means the ContactViewDetails inside it elsewhere in
+      // this file. One name for two types is how site.id happened.
+      const clients = (detail.matterContacts || []).filter((matterContact) =>
+        (matterContact.contactRoleList || []).some(
+          (role) => String(role).toLowerCase() === "client"
+        )
+      );
+
+      setForm((prev) => ({
+        ...prev,
+        matterId: detail.id ?? matter.id,
+        // The RE column on the matter.
+        matterDescription: detail.letterSubject || prev.matterDescription || "",
+        clientName: clients.map(contactName).filter(Boolean).join(" & "),
+        // One address, from the first client. Joining two addresses would
+        // produce something that is neither.
+        clientAddress: addressOf(clients[0]) || "",
+      }));
+
+      if (clients.length === 0) {
+        setPopulateNote(
+          "This matter has no contact with the role Client, so the name and address are blank. Type them in, or add the client to the matter first."
+        );
+      } else if (clients.length > 1) {
+        setPopulateNote(
+          `${clients.length} contacts on this matter have the role Client. All are named below and the address is the first one's — edit if that is not what the ledger should say.`
+        );
+      }
+    } catch (error) {
+      console.error(error);
+      setPopulateNote(
+        "The matter's details could not be read, so the fields below are blank. Fill them in by hand."
+      );
+    } finally {
+      setLoadingMatter(false);
+    }
+  };
+
+  const clearMatter = () => {
+    setChosen(null);
+    setMatterQuery("");
+    setMatches([]);
+    setPopulateNote("");
+    set("matterId", "");
+  };
 
   const submit = async (e) => {
     e.preventDefault();
 
     if (!form.matterId) {
-      toast.error("The ledger needs a matter.");
+      toast.error("Choose the matter this ledger is for.");
       return;
     }
 
@@ -344,23 +499,78 @@ const OpenLedgerForm = ({ trustAccountId, onClose, onSaved }) => {
       </ModalHeader>
       <ModalBody>
         <Form onSubmit={submit}>
-          <FormGroup>
-            <Label>Matter ID</Label>
-            <Input
-              type="number"
-              value={form.matterId}
-              onChange={(e) => set("matterId", e.target.value)}
-            />
+          <FormGroup className="position-relative">
+            <Label for="ledgerMatterNumber">Matter number</Label>
+            <div className="d-flex gap-2">
+              <Input
+                id="ledgerMatterNumber"
+                value={matterQuery}
+                onChange={(e) => {
+                  setChosen(null);
+                  setMatterQuery(e.target.value);
+                }}
+                placeholder="Start typing a matter number…"
+                autoComplete="off"
+              />
+              {chosen && (
+                <Button color="light" type="button" onClick={clearMatter}>
+                  Change
+                </Button>
+              )}
+            </div>
+
+            {!chosen && matterQuery.trim().length >= 2 && (
+              <div
+                className="border rounded mt-1 bg-body position-absolute w-100 shadow-sm"
+                style={{ zIndex: 5, maxHeight: "14rem", overflowY: "auto" }}
+              >
+                {searching && (
+                  <div className="px-3 py-2 small text-muted">Searching…</div>
+                )}
+                {!searching && matches.length === 0 && (
+                  <div className="px-3 py-2 small text-muted">
+                    No matter in this office has a number like that.
+                  </div>
+                )}
+                {matches.map((matter) => (
+                  <button
+                    key={matter.id}
+                    type="button"
+                    className="btn btn-link text-start text-decoration-none d-block w-100 px-3 py-2 border-0"
+                    onClick={() => choose(matter)}
+                  >
+                    <span className="fw-semibold">{matter.matterNumber}</span>
+                    {matter.letterSubject ? ` — ${matter.letterSubject}` : ""}
+                    {matter.contacts && (
+                      <div className="small text-muted text-truncate">
+                        {matter.contacts}
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
+
             <small className="text-muted">
-              The ledger can only be opened on an account the matter&apos;s
-              office is allowed to use.
+              Matters in the office you are signed in to. The ledger can only be
+              opened on an account that office is allowed to use.
             </small>
           </FormGroup>
+
+          {populateNote && (
+            <div className="alert alert-warning py-2 px-3 small">
+              {populateNote}
+            </div>
+          )}
+
           <FormGroup>
             <Label>Client name</Label>
             <Input
               value={form.clientName}
               onChange={(e) => set("clientName", e.target.value)}
+              placeholder={
+                loadingMatter ? "Reading the matter…" : "From the matter's Client contacts"
+              }
             />
           </FormGroup>
           <FormGroup>
