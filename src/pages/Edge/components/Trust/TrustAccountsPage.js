@@ -17,12 +17,13 @@ import { toast } from "react-toastify";
 import LoadingPage from "../../utils/LoadingPage";
 import { checkHasPermission } from "../../utils/utilFunc";
 import { MANAGETRUSTACCOUNT } from "../../utils/RightConstants";
-import { getAllUsers, getBankAccountList } from "../../apis";
+import { getBankAccountList } from "../../apis";
 import {
   addTrustSignatory,
   closeTrustAccount,
   createTrustAccount,
   fetchTrustAccounts,
+  fetchTrustUserCandidates,
   removeTrustSignatory,
   updateTrustAccount,
 } from "../../trustApis";
@@ -45,6 +46,19 @@ import {
  * where a ledger may be opened. Once a ledger exists it follows the account,
  * so the question never arises again.
  */
+/**
+ * How a user reads in the signatory dropdown.
+ *
+ * The username is always shown, not just the name: two people called J Smith
+ * are exactly the situation where picking the wrong one matters, and the
+ * username is what identifies the login that will authorise withdrawals.
+ */
+const labelFor = (person) => {
+  const name = `${person.firstName || ""} ${person.lastName || ""}`.trim();
+
+  return name ? `${name} (${person.userName})` : person.userName || "";
+};
+
 const TrustAccountsPage = () => {
   document.title = "Trust accounts | Veeto";
 
@@ -123,11 +137,24 @@ const TrustAccountsPage = () => {
         // Users, not staff. A signatory is recorded by USER id - it is who may
         // log in and authorise a withdrawal - and the staff list carries a
         // staff id, which is a different thing entirely.
-        const { data } = await getAllUsers({ pageNo: 0, pageSize: 500 });
+        const { data } = await fetchTrustUserCandidates();
 
-        setUsers(data?.data?.userLoginList || []);
+        if (data.success) {
+          // Sorted here rather than by the server: sorting on a name makes the
+          // endpoint sort through a staff join, and the list is small.
+          setUsers(
+            (data.data?.userLoginList || [])
+              .slice()
+              .sort((a, b) => labelFor(a).localeCompare(labelFor(b)))
+          );
+        } else {
+          toast.error(
+            errorMessage(data, "The list of users could not be loaded.")
+          );
+        }
       } catch (error) {
         console.error(error);
+        toast.error("The list of users could not be loaded.");
       }
     };
 
@@ -554,6 +581,17 @@ const SignatoryForm = ({ account, users, onClose, onSaved }) => {
     lawSocietyNotifiedDate: "",
   });
 
+  // Somebody already acting cannot be appointed again - the server refuses it -
+  // so offering them is an invitation to hit an error. A ceased signatory can
+  // be reappointed, so only current ones are withheld.
+  const currentUserIds = signatories
+    .filter((s) => !s.ceasedDate)
+    .map((s) => Number(s.userId));
+
+  const appointable = (users || []).filter(
+    (person) => !currentUserIds.includes(Number(person.id))
+  );
+
   const add = async (e) => {
     e.preventDefault();
 
@@ -702,14 +740,24 @@ const SignatoryForm = ({ account, users, onClose, onSaved }) => {
                   }
                 >
                   <option value="">Select a user...</option>
-                  {(users || []).map((person) => (
-                    <option key={person.id} value={person.id}>
-                      {person.firstName || person.lastName
-                        ? `${person.firstName || ""} ${person.lastName || ""}`.trim()
-                        : person.userName}
+                  {appointable.map((person) => (
+                    <option
+                      key={person.id}
+                      value={person.id}
+                      disabled={person.locked}
+                    >
+                      {labelFor(person)}
+                      {person.locked ? " - locked, cannot sign in" : ""}
                     </option>
                   ))}
                 </Input>
+                <small className="text-muted">
+                  {users.length === 0
+                    ? "No users were loaded. Without one, no signatory can be appointed and no payment can be authorised from this account."
+                    : appointable.length === 0
+                      ? "Everyone is already a current signatory on this account."
+                      : "Anyone who signs in to Veeto can be appointed. Who is eligible is the practice's decision under rule 37A - the system does not decide it. People already appointed are not listed."}
+                </small>
               </FormGroup>
             </Col>
             <Col md={3}>

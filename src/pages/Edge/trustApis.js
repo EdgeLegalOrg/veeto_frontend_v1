@@ -45,6 +45,25 @@ export const addTrustSignatory = (formData) =>
 export const removeTrustSignatory = (signatoryId) =>
   API.delete(`/api/trust/account/signatory/${signatoryId}?requestId=${uuidv1()}`);
 
+// Users who could be appointed as a signatory.
+//
+// /api/admin/user is the correct source even from a trust screen: a signatory
+// is recorded by USER id - who may log in and authorise a withdrawal - and the
+// staff list carries a staff id, which is a different thing. The endpoint has
+// no right check of its own and scopes to the caller's company.
+//
+// Every filter is sent explicitly, and empty. The shared getAllUsers() helper
+// interpolates whatever it is handed, so omitting `locked` produced
+// "&locked=undefined"; Spring cannot convert that to a Boolean, the request is
+// rejected with 400 before the controller runs, and the dropdown came back
+// empty with nothing on screen to say why. An empty value converts to null and
+// filters nothing, which is what this wants.
+export const fetchTrustUserCandidates = () =>
+  API.get(
+    `/api/admin/user?requestId=${uuidv1()}&page=0&pageSize=500` +
+      `&firstName=&lastName=&userName=&locked=&sortOn=&sortType=`
+  );
+
 // --- ledgers ---
 
 export const fetchTrustLedgers = (trustAccountId, includeClosed = false) =>
