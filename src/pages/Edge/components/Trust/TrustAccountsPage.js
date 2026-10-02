@@ -93,11 +93,22 @@ const TrustAccountsPage = () => {
   useEffect(() => {
     const loadLookups = async () => {
       try {
-        setSites(
-          JSON.parse(window.localStorage.getItem("companyInfo"))?.siteInfoList || []
+        // companyInfo is written at app start from getCompanyInfo(). Falls back
+        // to userDetails the way Header.js does: a session that started before
+        // this screen existed, or one where the company fetch failed, can have
+        // one and not the other, and an empty office list silently disables
+        // the whole account form.
+        const companyInfo = JSON.parse(
+          window.localStorage.getItem("companyInfo") || "{}"
         );
+        const userDetails = JSON.parse(
+          window.localStorage.getItem("userDetails") || "{}"
+        );
+
+        setSites(companyInfo?.siteInfoList || userDetails?.siteInfoList || []);
       } catch (error) {
         console.error(error);
+        setSites([]);
       }
 
       try {
@@ -449,27 +460,38 @@ const AccountForm = ({ account, bankAccounts, sites, onClose, onSaved }) => {
             <Label>Offices that may use this account</Label>
             <div className="border rounded p-2">
               {(sites || []).length === 0 && (
-                <small className="text-muted">No offices found.</small>
+                <small className="text-muted">
+                  No offices were found for your login. Sign out and in again to
+                  refresh them; if they are still missing, the account can be
+                  saved without offices and they can be ticked later — but no
+                  trust ledger can be opened until at least one is assigned.
+                </small>
               )}
               {(sites || []).map((site) => {
+                // siteId, not id. SiteInfoDetails has no `id` field at all, and
+                // reading one gave every checkbox the same undefined value:
+                // Number(undefined) === Number(undefined) is NaN === NaN, so
+                // `checked` could never become true, and every input shared the
+                // DOM id "site-undefined" so one label toggled them all. The
+                // offices listed but none could be selected.
                 const assigned = form.siteList.find(
-                  (s) => Number(s.siteId) === Number(site.id)
+                  (s) => Number(s.siteId) === Number(site.siteId)
                 );
 
                 return (
                   <div
-                    key={site.id}
+                    key={site.siteId}
                     className="d-flex align-items-center justify-content-between py-1"
                   >
                     <FormGroup check className="mb-0">
                       <Input
                         type="checkbox"
                         checked={!!assigned}
-                        onChange={() => toggleSite(site.id)}
-                        id={`site-${site.id}`}
+                        onChange={() => toggleSite(site.siteId)}
+                        id={`site-${site.siteId}`}
                       />
-                      <Label check for={`site-${site.id}`} className="mb-0">
-                        {site.siteName || site.name || `Office ${site.id}`}
+                      <Label check for={`site-${site.siteId}`} className="mb-0">
+                        {site.siteName || `Office ${site.siteId}`}
                       </Label>
                     </FormGroup>
                     {assigned && (
@@ -478,13 +500,13 @@ const AccountForm = ({ account, bankAccounts, sites, onClose, onSaved }) => {
                           type="checkbox"
                           checked={!!assigned.defaultForSite}
                           onChange={(e) =>
-                            setDefaultSite(site.id, e.target.checked)
+                            setDefaultSite(site.siteId, e.target.checked)
                           }
-                          id={`default-${site.id}`}
+                          id={`default-${site.siteId}`}
                         />
                         <Label
                           check
-                          for={`default-${site.id}`}
+                          for={`default-${site.siteId}`}
                           className="mb-0 small text-muted"
                         >
                           Default for this office
