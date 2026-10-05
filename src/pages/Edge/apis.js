@@ -1327,3 +1327,11 @@ export const postExportMattersOpenedCsv = (filterData) =>
   API.post(`/api/reports/matters-opened/export-csv?requestId=${uuidv1()}`, filterData, {
     responseType: "blob",
   });
+
+export const postSettlementsDueReport = (filterData) =>
+  API.post(`/api/reports/settlements-due?requestId=${uuidv1()}`, filterData);
+
+export const postExportSettlementsDueCsv = (filterData) =>
+  API.post(`/api/reports/settlements-due/export-csv?requestId=${uuidv1()}`, filterData, {
+    responseType: "blob",
+  });

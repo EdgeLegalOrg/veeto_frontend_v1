@@ -12,6 +12,11 @@ const DATE_PRESETS = [
   { label: "Custom", value: "CUSTOM" },
 ];
 
+const selectCustomStyles = {
+  menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+  menu: (base) => ({ ...base, zIndex: 9999 }),
+};
+
 const ReportHeader = ({
   title,
   sites,
@@ -64,6 +69,8 @@ const ReportHeader = ({
                 placeholder="Select Office..."
                 classNamePrefix="select2-selection"
                 isClearable={false}
+                menuPortalTarget={typeof document !== "undefined" ? document.body : null}
+                styles={selectCustomStyles}
               />
             </div>
 

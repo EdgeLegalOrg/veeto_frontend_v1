@@ -3,7 +3,14 @@ import { Container, Nav, NavItem, NavLink, TabContent, TabPane, Card, CardBody }
 import classnames from "classnames";
 import ReportHeader from "./components/ReportHeader";
 import MattersOpenedReportView from "./views/MattersOpenedReportView";
-import { postExportMattersOpenedCsv, getSiteInfo, getCompanyInfo, allStaffMember } from "../../apis";
+import SettlementsDueReportView from "./views/SettlementsDueReportView";
+import {
+  postExportMattersOpenedCsv,
+  postExportSettlementsDueCsv,
+  getSiteInfo,
+  getCompanyInfo,
+  allStaffMember,
+} from "../../apis";
 
 const getDatePresetRange = (preset) => {
   const now = new Date();
@@ -28,21 +35,27 @@ const getDatePresetRange = (preset) => {
     case "FY": {
       // Australian Financial Year: 1 July to 30 June
       const isPostJune = now.getMonth() >= 6;
-      start = new Date(isPostJune ? now.getFullYear() : now.getFullYear() - 1, 6, 1);
-      end = new Date(isPostJune ? now.getFullYear() + 1 : now.getFullYear(), 5, 30);
+      const fyStartYear = isPostJune ? now.getFullYear() : now.getFullYear() - 1;
+      start = new Date(fyStartYear, 6, 1);
+      end = new Date(fyStartYear + 1, 5, 30);
+      break;
+    }
+    case "LAST_FY": {
+      const isPostJune = now.getMonth() >= 6;
+      const fyStartYear = (isPostJune ? now.getFullYear() : now.getFullYear() - 1) - 1;
+      start = new Date(fyStartYear, 6, 1);
+      end = new Date(fyStartYear + 1, 5, 30);
       break;
     }
     default:
       start = new Date(now.getFullYear(), now.getMonth(), 1);
       end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-      break;
   }
+
   return [start, end];
 };
 
 const ReportDashboard = () => {
-  document.title = "Reports & Analytics | Veeto";
-
   const [activeTab, setActiveTab] = useState("matters-opened");
   const [selectedSite, setSelectedSite] = useState(null);
   const [activePreset, setActivePreset] = useState("THIS_MONTH");
@@ -134,17 +147,29 @@ const ReportDashboard = () => {
         siteId: selectedSite || null,
       };
 
-      const response = await postExportMattersOpenedCsv(payload);
-      const blob = new Blob([response.data], { type: "text/csv;charset=utf-8;" });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      const timestamp = new Date().toISOString().slice(0, 19).replace(/[-:T]/g, "_");
-      link.setAttribute("download", `matters_opened_${timestamp}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      link.parentNode.removeChild(link);
-      window.URL.revokeObjectURL(url);
+      let response;
+      let filenamePrefix = "report";
+
+      if (activeTab === "matters-opened") {
+        response = await postExportMattersOpenedCsv(payload);
+        filenamePrefix = "matters_opened";
+      } else if (activeTab === "settlements-due") {
+        response = await postExportSettlementsDueCsv(payload);
+        filenamePrefix = "settlements_due";
+      }
+
+      if (response && response.data) {
+        const blob = new Blob([response.data], { type: "text/csv;charset=utf-8;" });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        const timestamp = new Date().toISOString().slice(0, 19).replace(/[-:T]/g, "_");
+        link.setAttribute("download", `${filenamePrefix}_${timestamp}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        link.parentNode.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      }
     } catch (error) {
       console.error("Export CSV failed:", error);
     } finally {
@@ -182,7 +207,7 @@ const ReportDashboard = () => {
           </NavItem>
           <NavItem>
             <NavLink
-              className={classnames({ active: activeTab === "settlements-due" }, "fw-semibold text-muted")}
+              className={classnames({ active: activeTab === "settlements-due" }, "fw-semibold")}
               onClick={() => setActiveTab("settlements-due")}
               style={{ cursor: "pointer" }}
             >
@@ -220,13 +245,12 @@ const ReportDashboard = () => {
             />
           </TabPane>
           <TabPane tabId="settlements-due">
-            <Card className="border-0 shadow-sm text-center py-5">
-              <CardBody>
-                <i className="ri-calendar-todo-line fs-48 text-muted mb-3 d-block"></i>
-                <h5>Settlements Due Report</h5>
-                <p className="text-muted">Settlements Due reporting view will be available in Part 2.</p>
-              </CardBody>
-            </Card>
+            <SettlementsDueReportView
+              selectedSite={selectedSite}
+              dateRange={dateRange}
+              staffList={staffList}
+              refreshTrigger={refreshTrigger}
+            />
           </TabPane>
           <TabPane tabId="fees-billed">
             <Card className="border-0 shadow-sm text-center py-5">

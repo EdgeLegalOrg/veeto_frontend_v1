@@ -3,24 +3,21 @@ import { Row, Col, Card, CardBody, Button } from "reactstrap";
 import Select from "react-select";
 
 const STATUS_OPTIONS = [
-  { value: null, label: "All Statuses" },
-  { value: "INSTRUCTED", label: "Instructed" },
-  { value: "IN_PROGRESS", label: "In Progress" },
-  { value: "COOLING_OFF", label: "Cooling Off" },
-  { value: "EXCHANGED", label: "Exchanged" },
-  { value: "UNEXCHANGED", label: "Unexchanged" },
-  { value: "COMPLETE", label: "Complete" },
-  { value: "NOT_PROCEEDING", label: "Not Proceeding" },
+  { value: "ALL", label: "All Settlement Statuses" },
+  { value: "OVERDUE", label: "Overdue / Delayed" },
+  { value: "TODAY", label: "Due Today" },
+  { value: "UPCOMING", label: "Upcoming" },
+  { value: "SETTLED", label: "Settled / Complete" },
 ];
 
-const TYPE_OPTIONS = [
-  { value: null, label: "All Types" },
-  { value: "CONVEYANCING", label: "Conveyancing" },
-  { value: "FAMILY_LAW", label: "Family Law" },
-  { value: "ESTATE", label: "Estate" },
-  { value: "LEASES", label: "Leases" },
-  { value: "BUSINESS", label: "Business" },
-  { value: "GENERAL", label: "General" },
+const SUB_TYPE_OPTIONS = [
+  { value: null, label: "All Sub-Types" },
+  { value: "PURCHASE", label: "Purchase" },
+  { value: "SALE", label: "Sale" },
+  { value: "OFF_THE_PLAN", label: "Off The Plan" },
+  { value: "TRANSFER", label: "Transfer" },
+  { value: "REFINANCE", label: "Refinance" },
+  { value: "COMMERCIAL", label: "Commercial" },
 ];
 
 const selectCustomStyles = {
@@ -28,7 +25,7 @@ const selectCustomStyles = {
   menu: (base) => ({ ...base, zIndex: 9999 }),
 };
 
-const MattersOpenedFilterBar = ({
+const SettlementsDueFilterBar = ({
   filters,
   onFilterChange,
   onResetFilters,
@@ -48,12 +45,12 @@ const MattersOpenedFilterBar = ({
     <Card className="border-0 shadow-sm mb-3">
       <CardBody className="p-3 bg-light rounded">
         <Row className="g-2 align-items-center">
-          {/* Status Filter */}
+          {/* Settlement Status Filter */}
           <Col lg={3} md={6} sm={12}>
-            <label className="form-label fs-12 fw-medium text-muted mb-1">Matter Status</label>
+            <label className="form-label fs-12 fw-medium text-muted mb-1">Settlement Status</label>
             <Select
-              value={STATUS_OPTIONS.find((opt) => opt.value === filters.status) || STATUS_OPTIONS[0]}
-              onChange={(opt) => onFilterChange("status", opt ? opt.value : null)}
+              value={STATUS_OPTIONS.find((opt) => opt.value === filters.settlementStatus) || STATUS_OPTIONS[0]}
+              onChange={(opt) => onFilterChange("settlementStatus", opt ? opt.value : "ALL")}
               options={STATUS_OPTIONS}
               classNamePrefix="select2-selection"
               isClearable={false}
@@ -62,13 +59,13 @@ const MattersOpenedFilterBar = ({
             />
           </Col>
 
-          {/* Matter Type Filter */}
+          {/* Sub-Type Filter */}
           <Col lg={3} md={6} sm={12}>
-            <label className="form-label fs-12 fw-medium text-muted mb-1">Matter Type</label>
+            <label className="form-label fs-12 fw-medium text-muted mb-1">Conveyancing Sub-Type</label>
             <Select
-              value={TYPE_OPTIONS.find((opt) => opt.value === filters.type) || TYPE_OPTIONS[0]}
-              onChange={(opt) => onFilterChange("type", opt ? opt.value : null)}
-              options={TYPE_OPTIONS}
+              value={SUB_TYPE_OPTIONS.find((opt) => opt.value === filters.subType) || SUB_TYPE_OPTIONS[0]}
+              onChange={(opt) => onFilterChange("subType", opt ? opt.value : null)}
+              options={SUB_TYPE_OPTIONS}
               classNamePrefix="select2-selection"
               isClearable={false}
               menuPortalTarget={typeof document !== "undefined" ? document.body : null}
@@ -78,7 +75,7 @@ const MattersOpenedFilterBar = ({
 
           {/* Acting Person Filter */}
           <Col lg={3} md={6} sm={12}>
-            <label className="form-label fs-12 fw-medium text-muted mb-1">Acting Person</label>
+            <label className="form-label fs-12 fw-medium text-muted mb-1">Acting Staff</label>
             <Select
               value={staffOptions.find((opt) => opt.value === filters.actingPersonId) || staffOptions[0]}
               onChange={(opt) => onFilterChange("actingPersonId", opt ? opt.value : null)}
@@ -92,7 +89,7 @@ const MattersOpenedFilterBar = ({
 
           {/* Assisting Person Filter */}
           <Col lg={2} md={4} sm={10}>
-            <label className="form-label fs-12 fw-medium text-muted mb-1">Assisting Person</label>
+            <label className="form-label fs-12 fw-medium text-muted mb-1">Assisting Staff</label>
             <Select
               value={staffOptions.find((opt) => opt.value === filters.assistingPersonId) || staffOptions[0]}
               onChange={(opt) => onFilterChange("assistingPersonId", opt ? opt.value : null)}
@@ -124,4 +121,4 @@ const MattersOpenedFilterBar = ({
   );
 };
 
-export default MattersOpenedFilterBar;
+export default SettlementsDueFilterBar;
