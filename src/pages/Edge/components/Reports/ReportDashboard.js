@@ -4,9 +4,11 @@ import classnames from "classnames";
 import ReportHeader from "./components/ReportHeader";
 import MattersOpenedReportView from "./views/MattersOpenedReportView";
 import SettlementsDueReportView from "./views/SettlementsDueReportView";
+import FeesBilledReportView from "./views/FeesBilledReportView";
 import {
   postExportMattersOpenedCsv,
   postExportSettlementsDueCsv,
+  postExportFeesBilledCsv,
   getSiteInfo,
   getCompanyInfo,
   allStaffMember,
@@ -156,6 +158,9 @@ const ReportDashboard = () => {
       } else if (activeTab === "settlements-due") {
         response = await postExportSettlementsDueCsv(payload);
         filenamePrefix = "settlements_due";
+      } else if (activeTab === "fees-billed") {
+        response = await postExportFeesBilledCsv(payload);
+        filenamePrefix = "fees_billed";
       }
 
       if (response && response.data) {
@@ -216,7 +221,7 @@ const ReportDashboard = () => {
           </NavItem>
           <NavItem>
             <NavLink
-              className={classnames({ active: activeTab === "fees-billed" }, "fw-semibold text-muted")}
+              className={classnames({ active: activeTab === "fees-billed" }, "fw-semibold")}
               onClick={() => setActiveTab("fees-billed")}
               style={{ cursor: "pointer" }}
             >
@@ -253,13 +258,12 @@ const ReportDashboard = () => {
             />
           </TabPane>
           <TabPane tabId="fees-billed">
-            <Card className="border-0 shadow-sm text-center py-5">
-              <CardBody>
-                <i className="ri-money-dollar-box-line fs-48 text-muted mb-3 d-block"></i>
-                <h5>Fees Billed Report</h5>
-                <p className="text-muted">Fees Billed reporting view will be available in Part 3.</p>
-              </CardBody>
-            </Card>
+            <FeesBilledReportView
+              selectedSite={selectedSite}
+              dateRange={dateRange}
+              staffList={staffList}
+              refreshTrigger={refreshTrigger}
+            />
           </TabPane>
           <TabPane tabId="outstanding-invoices">
             <Card className="border-0 shadow-sm text-center py-5">
