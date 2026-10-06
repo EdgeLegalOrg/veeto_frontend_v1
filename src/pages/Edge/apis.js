@@ -1343,3 +1343,11 @@ export const postExportFeesBilledCsv = (filterData) =>
   API.post(`/api/reports/fees-billed/export-csv?requestId=${uuidv1()}`, filterData, {
     responseType: "blob",
   });
+
+export const postOutstandingInvoicesReport = (filterData) =>
+  API.post(`/api/reports/outstanding-invoices?requestId=${uuidv1()}`, filterData);
+
+export const postExportOutstandingInvoicesCsv = (filterData) =>
+  API.post(`/api/reports/outstanding-invoices/export-csv?requestId=${uuidv1()}`, filterData, {
+    responseType: "blob",
+  });

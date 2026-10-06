@@ -50,6 +50,10 @@ import StorageTypePage from 'pages/Edge/components/Admin/Settings/StorageTypePag
 
 const authProtectedRoutes = [
   { path: "/reports", component: <ReportDashboard /> },
+  { path: "/reports/matters-opened", component: <ReportDashboard /> },
+  { path: "/reports/settlements-due", component: <ReportDashboard /> },
+  { path: "/reports/fees-billed", component: <ReportDashboard /> },
+  { path: "/reports/outstanding-invoices", component: <ReportDashboard /> },
   //Edge Routes
   { path: '/Matters', component: <MatterList /> },
   { path: '/matters', component: <MatterList /> },

@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
-import SettlementsDueMetrics from "../components/SettlementsDueMetrics";
-import SettlementsDueFilterBar from "../components/SettlementsDueFilterBar";
-import SettlementsDueTable from "../components/SettlementsDueTable";
-import { postSettlementsDueReport } from "../../../apis";
+import OutstandingInvoicesMetrics from "../components/OutstandingInvoicesMetrics";
+import OutstandingInvoicesFilterBar from "../components/OutstandingInvoicesFilterBar";
+import OutstandingInvoicesTable from "../components/OutstandingInvoicesTable";
+import { postOutstandingInvoicesReport } from "../../../apis";
 
-const SettlementsDueReportView = ({
+const OutstandingInvoicesReportView = ({
   selectedSite,
   dateRange,
   staffList,
@@ -17,10 +17,9 @@ const SettlementsDueReportView = ({
   });
 
   const [filters, setFilters] = useState({
-    settlementStatus: "ALL",
-    subType: null,
-    actingPersonId: null,
-    assistingPersonId: null,
+    agingBucket: "ALL",
+    status: "ALL",
+    feeEarnerId: null,
   });
 
   const handleFilterChange = (key, value) => {
@@ -29,10 +28,9 @@ const SettlementsDueReportView = ({
 
   const handleResetFilters = () => {
     setFilters({
-      settlementStatus: "ALL",
-      subType: null,
-      actingPersonId: null,
-      assistingPersonId: null,
+      agingBucket: "ALL",
+      status: "ALL",
+      feeEarnerId: null,
     });
   };
 
@@ -54,13 +52,12 @@ const SettlementsDueReportView = ({
           startDate: dateRange && dateRange[0] ? formatDate(dateRange[0]) : null,
           endDate: dateRange && dateRange[1] ? formatDate(dateRange[1]) : null,
           siteId: selectedSite || null,
-          settlementStatus: filters.settlementStatus,
-          subType: filters.subType,
-          actingPersonId: filters.actingPersonId,
-          assistingPersonId: filters.assistingPersonId,
+          agingBucket: filters.agingBucket,
+          status: filters.status,
+          feeEarnerId: filters.feeEarnerId,
         };
 
-        const response = await postSettlementsDueReport(payload);
+        const response = await postOutstandingInvoicesReport(payload);
         if (isCurrent) {
           if (response?.data?.data) {
             setReportData(response.data.data);
@@ -72,7 +69,7 @@ const SettlementsDueReportView = ({
         }
       } catch (error) {
         if (isCurrent) {
-          console.error("Failed to load Settlements Due report:", error);
+          console.error("Failed to load Outstanding Invoices report:", error);
         }
       } finally {
         if (isCurrent) {
@@ -90,11 +87,11 @@ const SettlementsDueReportView = ({
 
   return (
     <div>
-      {/* Metric Cards */}
-      <SettlementsDueMetrics summary={reportData.summary} />
+      {/* 5 Aging Bucket Metric Cards */}
+      <OutstandingInvoicesMetrics summary={reportData.summary} />
 
       {/* Filter Bar */}
-      <SettlementsDueFilterBar
+      <OutstandingInvoicesFilterBar
         filters={filters}
         onFilterChange={handleFilterChange}
         onResetFilters={handleResetFilters}
@@ -102,9 +99,9 @@ const SettlementsDueReportView = ({
       />
 
       {/* Data Table */}
-      <SettlementsDueTable rows={reportData.rows} isLoading={isLoading} />
+      <OutstandingInvoicesTable rows={reportData.rows} isLoading={isLoading} />
     </div>
   );
 };
 
-export default SettlementsDueReportView;
+export default OutstandingInvoicesReportView;

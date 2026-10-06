@@ -1,67 +1,85 @@
-import React, { useState, useEffect } from "react";
-import { Container, Nav, NavItem, NavLink, TabContent, TabPane, Card, CardBody } from "reactstrap";
+import React, { useState, useEffect, useMemo } from "react";
+import { Container, Nav, NavItem, NavLink } from "reactstrap";
 import classnames from "classnames";
+import { useLocation, useNavigate } from "react-router-dom";
+
 import ReportHeader from "./components/ReportHeader";
 import MattersOpenedReportView from "./views/MattersOpenedReportView";
 import SettlementsDueReportView from "./views/SettlementsDueReportView";
 import FeesBilledReportView from "./views/FeesBilledReportView";
+import OutstandingInvoicesReportView from "./views/OutstandingInvoicesReportView";
+
 import {
   postExportMattersOpenedCsv,
   postExportSettlementsDueCsv,
   postExportFeesBilledCsv,
+  postExportOutstandingInvoicesCsv,
   getSiteInfo,
   getCompanyInfo,
   allStaffMember,
 } from "../../apis";
 
+// Date preset helper calculating standard fiscal / calendar periods
 const getDatePresetRange = (preset) => {
   const now = new Date();
-  let start = new Date();
-  let end = new Date();
+  const startOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0);
+  const endOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59);
 
   switch (preset) {
-    case "THIS_MONTH":
-      start = new Date(now.getFullYear(), now.getMonth(), 1);
-      end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-      break;
-    case "LAST_MONTH":
-      start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-      end = new Date(now.getFullYear(), now.getMonth(), 0);
-      break;
+    case "THIS_MONTH": {
+      const start = new Date(now.getFullYear(), now.getMonth(), 1);
+      const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      return [startOfDay(start), endOfDay(end)];
+    }
+    case "LAST_MONTH": {
+      const start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const end = new Date(now.getFullYear(), now.getMonth(), 0);
+      return [startOfDay(start), endOfDay(end)];
+    }
     case "THIS_QUARTER": {
-      const quarter = Math.floor(now.getMonth() / 3);
-      start = new Date(now.getFullYear(), quarter * 3, 1);
-      end = new Date(now.getFullYear(), (quarter + 1) * 3, 0);
-      break;
+      const qMonth = Math.floor(now.getMonth() / 3) * 3;
+      const start = new Date(now.getFullYear(), qMonth, 1);
+      const end = new Date(now.getFullYear(), qMonth + 3, 0);
+      return [startOfDay(start), endOfDay(end)];
     }
-    case "FY": {
+    case "FINANCIAL_YEAR": {
       // Australian Financial Year: 1 July to 30 June
-      const isPostJune = now.getMonth() >= 6;
-      const fyStartYear = isPostJune ? now.getFullYear() : now.getFullYear() - 1;
-      start = new Date(fyStartYear, 6, 1);
-      end = new Date(fyStartYear + 1, 5, 30);
-      break;
+      const currentYear = now.getFullYear();
+      const fyStartYear = now.getMonth() >= 6 ? currentYear : currentYear - 1;
+      const start = new Date(fyStartYear, 6, 1);
+      const end = new Date(fyStartYear + 1, 5, 30);
+      return [startOfDay(start), endOfDay(end)];
     }
-    case "LAST_FY": {
-      const isPostJune = now.getMonth() >= 6;
-      const fyStartYear = (isPostJune ? now.getFullYear() : now.getFullYear() - 1) - 1;
-      start = new Date(fyStartYear, 6, 1);
-      end = new Date(fyStartYear + 1, 5, 30);
-      break;
+    case "LAST_30_DAYS": {
+      const start = new Date();
+      start.setDate(start.getDate() - 30);
+      return [startOfDay(start), endOfDay(now)];
     }
+    case "ALL_TIME":
     default:
-      start = new Date(now.getFullYear(), now.getMonth(), 1);
-      end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      return [null, null];
   }
+};
 
-  return [start, end];
+const resolveTabFromPath = (pathname) => {
+  if (pathname.includes("settlements-due")) return "settlements-due";
+  if (pathname.includes("fees-billed")) return "fees-billed";
+  if (pathname.includes("outstanding-invoices")) return "outstanding-invoices";
+  return "matters-opened";
 };
 
 const ReportDashboard = () => {
-  const [activeTab, setActiveTab] = useState("matters-opened");
+  document.title = "Reports & Analytics | Veeto Legal";
+
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const activeTab = useMemo(() => resolveTabFromPath(location.pathname), [location.pathname]);
+
   const [selectedSite, setSelectedSite] = useState(null);
-  const [activePreset, setActivePreset] = useState("THIS_MONTH");
-  const [dateRange, setDateRange] = useState(getDatePresetRange("THIS_MONTH"));
+  const [dateRange, setDateRange] = useState(getDatePresetRange("FINANCIAL_YEAR"));
+  const [activePreset, setActivePreset] = useState("FINANCIAL_YEAR");
+
   const [sites, setSites] = useState([]);
   const [staffList, setStaffList] = useState([]);
   const [isExporting, setIsExporting] = useState(false);
@@ -120,7 +138,13 @@ const ReportDashboard = () => {
     loadMetadata();
   }, []);
 
+  const handleTabClick = (tabId) => {
+    if (tabId === activeTab) return;
+    navigate(`/reports/${tabId}`);
+  };
+
   const handlePresetSelect = (preset) => {
+    if (activePreset === preset && preset !== "CUSTOM") return;
     setActivePreset(preset);
     if (preset !== "CUSTOM") {
       setDateRange(getDatePresetRange(preset));
@@ -161,6 +185,9 @@ const ReportDashboard = () => {
       } else if (activeTab === "fees-billed") {
         response = await postExportFeesBilledCsv(payload);
         filenamePrefix = "fees_billed";
+      } else if (activeTab === "outstanding-invoices") {
+        response = await postExportOutstandingInvoicesCsv(payload);
+        filenamePrefix = "outstanding_invoices";
       }
 
       if (response && response.data) {
@@ -204,7 +231,7 @@ const ReportDashboard = () => {
           <NavItem>
             <NavLink
               className={classnames({ active: activeTab === "matters-opened" }, "fw-semibold")}
-              onClick={() => setActiveTab("matters-opened")}
+              onClick={() => handleTabClick("matters-opened")}
               style={{ cursor: "pointer" }}
             >
               <i className="ri-folder-open-line me-1 align-bottom"></i> 1. Matters Opened
@@ -213,7 +240,7 @@ const ReportDashboard = () => {
           <NavItem>
             <NavLink
               className={classnames({ active: activeTab === "settlements-due" }, "fw-semibold")}
-              onClick={() => setActiveTab("settlements-due")}
+              onClick={() => handleTabClick("settlements-due")}
               style={{ cursor: "pointer" }}
             >
               <i className="ri-calendar-event-line me-1 align-bottom"></i> 2. Settlements Due
@@ -222,7 +249,7 @@ const ReportDashboard = () => {
           <NavItem>
             <NavLink
               className={classnames({ active: activeTab === "fees-billed" }, "fw-semibold")}
-              onClick={() => setActiveTab("fees-billed")}
+              onClick={() => handleTabClick("fees-billed")}
               style={{ cursor: "pointer" }}
             >
               <i className="ri-money-dollar-circle-line me-1 align-bottom"></i> 3. Fees Billed
@@ -230,8 +257,8 @@ const ReportDashboard = () => {
           </NavItem>
           <NavItem>
             <NavLink
-              className={classnames({ active: activeTab === "outstanding-invoices" }, "fw-semibold text-muted")}
-              onClick={() => setActiveTab("outstanding-invoices")}
+              className={classnames({ active: activeTab === "outstanding-invoices" }, "fw-semibold")}
+              onClick={() => handleTabClick("outstanding-invoices")}
               style={{ cursor: "pointer" }}
             >
               <i className="ri-alarm-warning-line me-1 align-bottom"></i> 4. Outstanding Invoices
@@ -239,42 +266,44 @@ const ReportDashboard = () => {
           </NavItem>
         </Nav>
 
-        {/* Tab Contents */}
-        <TabContent activeTab={activeTab}>
-          <TabPane tabId="matters-opened">
+        {/* Isolated Active Report View - Mounts and loads ONLY the active report */}
+        <div className="report-content-wrapper">
+          {activeTab === "matters-opened" && (
             <MattersOpenedReportView
               selectedSite={selectedSite}
               dateRange={dateRange}
               staffList={staffList}
               refreshTrigger={refreshTrigger}
             />
-          </TabPane>
-          <TabPane tabId="settlements-due">
+          )}
+
+          {activeTab === "settlements-due" && (
             <SettlementsDueReportView
               selectedSite={selectedSite}
               dateRange={dateRange}
               staffList={staffList}
               refreshTrigger={refreshTrigger}
             />
-          </TabPane>
-          <TabPane tabId="fees-billed">
+          )}
+
+          {activeTab === "fees-billed" && (
             <FeesBilledReportView
               selectedSite={selectedSite}
               dateRange={dateRange}
               staffList={staffList}
               refreshTrigger={refreshTrigger}
             />
-          </TabPane>
-          <TabPane tabId="outstanding-invoices">
-            <Card className="border-0 shadow-sm text-center py-5">
-              <CardBody>
-                <i className="ri-time-line fs-48 text-muted mb-3 d-block"></i>
-                <h5>Outstanding Invoices Report</h5>
-                <p className="text-muted">Aged receivables reporting view will be available in Part 4.</p>
-              </CardBody>
-            </Card>
-          </TabPane>
-        </TabContent>
+          )}
+
+          {activeTab === "outstanding-invoices" && (
+            <OutstandingInvoicesReportView
+              selectedSite={selectedSite}
+              dateRange={dateRange}
+              staffList={staffList}
+              refreshTrigger={refreshTrigger}
+            />
+          )}
+        </div>
       </Container>
     </div>
   );

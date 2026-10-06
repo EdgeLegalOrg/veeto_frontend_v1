@@ -13,6 +13,7 @@ const Navdata = () => {
   //state data
   const [isDashboard, setIsDashboard] = useState(false);
   const [isAccount, setIsAccount] = useState(false);
+  const [isReports, setIsReports] = useState(false);
 
   const [isApps, setIsApps] = useState(false);
   const [isAuth, setIsAuth] = useState(false);
@@ -48,6 +49,9 @@ const Navdata = () => {
     document.body.classList.remove("twocolumn-panel");
     if (iscurrentState !== "Dashboard") {
       setIsDashboard(false);
+    }
+    if (iscurrentState !== "Reports") {
+      setIsReports(false);
     }
     if (iscurrentState !== "Apps") {
       setIsApps(false);
@@ -105,10 +109,7 @@ const Navdata = () => {
       history("/safe-custody");
       document.body.classList.add("twocolumn-panel");
     }
-    if (iscurrentState === "Reports") {
-      history("/reports");
-      document.body.classList.add("twocolumn-panel");
-    }
+
     if (iscurrentState === "Property") {
       history("/property");
       document.body.classList.add("twocolumn-panel");
@@ -134,6 +135,7 @@ const Navdata = () => {
 
   const closeNavWithSubItems = () => {
     setIsAccount(false);
+    setIsReports(false);
     setChecklist(false);
     setIsAdmin(false);
   };
@@ -207,12 +209,45 @@ const Navdata = () => {
       id: "reports",
       label: "Reports",
       icon: "ri-file-chart-line",
-      link: "/reports",
+      link: "/#",
       show: true,
+      stateVariables: isReports,
       click: function (e) {
         e.preventDefault();
+        setIsReports(!isReports);
         setIscurrentState("Reports");
+        updateIconSidebar(e);
       },
+      subItems: [
+        {
+          id: "mattersOpened",
+          label: "Matters Opened",
+          link: "/reports/matters-opened",
+          show: true,
+          parentId: "reports",
+        },
+        {
+          id: "settlementsDue",
+          label: "Settlements Due",
+          link: "/reports/settlements-due",
+          show: true,
+          parentId: "reports",
+        },
+        {
+          id: "feesBilled",
+          label: "Fees Billed",
+          link: "/reports/fees-billed",
+          show: true,
+          parentId: "reports",
+        },
+        {
+          id: "outstandingInvoices",
+          label: "Outstanding Invoices",
+          link: "/reports/outstanding-invoices",
+          show: true,
+          parentId: "reports",
+        },
+      ],
     },
     {
       id: "account",
