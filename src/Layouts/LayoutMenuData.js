@@ -1,7 +1,11 @@
 import {
+  AUTHORISETRUSTPAYMENT,
+  MANAGETRUSTACCOUNT,
+  PREPARETRUSTPAYMENT,
   VIEWACCOUNTINGTAB,
   VIEWADMINTAB,
   VIEWFEEDBACKREVIEW,
+  VIEWTRUSTACCOUNTING,
   VIEWXEROADMINTAB,
 } from "pages/Edge/utils/RightConstants";
 import { checkHasPermission } from "pages/Edge/utils/utilFunc";
@@ -28,6 +32,7 @@ const Navdata = () => {
   const [isMultiLevel, setIsMultiLevel] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isChecklist, setChecklist] = useState(false);
+  const [isTrust, setIsTrust] = useState(false);
 
   const [iscurrentState, setIscurrentState] = useState("Dashboard");
 
@@ -304,6 +309,83 @@ const Navdata = () => {
           link: "/account-xero-admin",
           show: checkHasPermission(VIEWXEROADMINTAB),
           parentId: "account",
+        },
+      ],
+    },
+    {
+      id: "trust",
+      label: "Trust Accounting",
+      icon: "ri-safe-2-line",
+      link: "/#",
+      show: checkHasPermission(VIEWTRUSTACCOUNTING),
+      stateVariables: isTrust,
+      click: function (e) {
+        e.preventDefault();
+        setIsTrust(!isTrust);
+        setIscurrentState("Trust");
+        updateIconSidebar(e);
+      },
+      subItems: [
+        {
+          id: "trustLedgers",
+          label: "Ledgers",
+          link: "/trust-ledgers",
+          show: true,
+          parentId: "trust",
+        },
+        {
+          id: "trustAuthorisations",
+          label: "Authorisations",
+          link: "/trust-authorisations",
+          // Shown to preparers as well as authorisers: a preparer needs to see
+          // that what they entered is still sitting unreleased, and hiding the
+          // queue from them produces duplicate entries, not security.
+          show:
+            checkHasPermission(AUTHORISETRUSTPAYMENT) ||
+            checkHasPermission(PREPARETRUSTPAYMENT),
+          parentId: "trust",
+        },
+        {
+          id: "trustReports",
+          label: "Reports",
+          link: "/trust-reports",
+          show: true,
+          parentId: "trust",
+        },
+        {
+          id: "trustReconciliation",
+          label: "Reconciliation",
+          link: "/trust-reconciliation",
+          show: true,
+          parentId: "trust",
+        },
+        {
+          id: "trustMonthEnd",
+          label: "Month End",
+          link: "/trust-month-end",
+          show: true,
+          parentId: "trust",
+        },
+        {
+          id: "trustStatements",
+          label: "Client Statements",
+          link: "/trust-statements",
+          show: true,
+          parentId: "trust",
+        },
+        {
+          id: "trustCompliance",
+          label: "Compliance",
+          link: "/trust-compliance",
+          show: true,
+          parentId: "trust",
+        },
+        {
+          id: "trustAccounts",
+          label: "Accounts & Signatories",
+          link: "/trust-accounts",
+          show: checkHasPermission(MANAGETRUSTACCOUNT),
+          parentId: "trust",
         },
       ],
     },
