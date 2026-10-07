@@ -1,3 +1,4 @@
+import ReportDashboard from "../pages/Edge/components/Reports/ReportDashboard";
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 
@@ -48,6 +49,11 @@ import PaymentListPage from '../pages/Edge/components/AccountingSection/PaymentL
 import StorageTypePage from 'pages/Edge/components/Admin/Settings/StorageTypePage';
 
 const authProtectedRoutes = [
+  { path: "/reports", component: <ReportDashboard /> },
+  { path: "/reports/matters-opened", component: <ReportDashboard /> },
+  { path: "/reports/settlements-due", component: <ReportDashboard /> },
+  { path: "/reports/fees-billed", component: <ReportDashboard /> },
+  { path: "/reports/outstanding-invoices", component: <ReportDashboard /> },
   //Edge Routes
   { path: '/Matters', component: <MatterList /> },
   { path: '/matters', component: <MatterList /> },
