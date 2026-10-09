@@ -14,6 +14,7 @@ import BreadCrumb from "../../../../../Components/Common/BreadCrumb";
 import {
   createRole,
   getRoles,
+  getRights,
   particularRole,
   updateRole,
   deleteRole,
@@ -75,7 +76,17 @@ const ManageRolePage = () => {
     }, 10);
   };
 
-  const fetchRightList = () => {
+  const fetchRightList = async () => {
+    try {
+      const { data } = await getRights();
+      if (data && data.success && data.data && data.data.applicationRightListing) {
+        setRightList(data.data.applicationRightListing);
+        window.localStorage.setItem("rightList", JSON.stringify(data.data.applicationRightListing));
+        return;
+      }
+    } catch (e) {
+      console.error("Error fetching rights from API, falling back to localStorage", e);
+    }
     let contentList = window.localStorage.getItem("rightList");
     if (contentList) {
       setRightList(JSON.parse(contentList));
