@@ -41,14 +41,19 @@ const MattersOpenedMetrics = ({
   selectedStatus = null,
   selectedType = null,
   onSelectFilter,
+  showBreakdown = false,
+  onToggleBreakdown,
 }) => {
   const formatType = (type) => {
     if (!type) return "N/A";
     return type.replace(/_/g, " ");
   };
 
+  const typeCount = summary?.countByType ? Object.keys(summary.countByType).length : 0;
+
   const metrics = [
     {
+      id: "total",
       title: "Total Matters Opened",
       value: summary?.totalMatters || 0,
       icon: "ri-folder-open-line",
@@ -60,6 +65,7 @@ const MattersOpenedMetrics = ({
       isTotal: true,
     },
     {
+      id: "active",
       title: "Active / In-Progress",
       value: summary?.openCount || 0,
       icon: "ri-time-line",
@@ -70,6 +76,7 @@ const MattersOpenedMetrics = ({
       filterValue: "IN_PROGRESS",
     },
     {
+      id: "completed",
       title: "Completed / Settled",
       value: summary?.closedCount || 0,
       icon: "ri-checkbox-circle-line",
@@ -80,22 +87,27 @@ const MattersOpenedMetrics = ({
       filterValue: "COMPLETE",
     },
     {
-      title: "Top Practice Area",
-      value: formatType(summary?.topMatterType),
+      id: "by_type",
+      title: "Matters by Type",
+      value: typeCount > 0 ? `${typeCount} Practice Areas` : formatType(summary?.topMatterType),
       icon: "ri-pie-chart-2-line",
       color: "info",
-      subText:
-        summary?.countByType && summary?.topMatterType
-          ? `${summary.countByType[summary.topMatterType] || 0} matters`
-          : "No data",
-      subIcon: "ri-bar-chart-fill",
-      filterKey: "type",
-      filterValue: summary?.topMatterType || null,
+      subText: showBreakdown ? "Click to hide breakdown" : "Click to view breakdown list",
+      subIcon: "ri-list-check-2",
+      isBreakdownToggle: true,
     },
   ];
 
   const handleCardClick = (m) => {
+    if (m.isBreakdownToggle) {
+      if (onToggleBreakdown) {
+        onToggleBreakdown();
+      }
+      return;
+    }
+
     if (!onSelectFilter) return;
+
     if (m.isTotal) {
       onSelectFilter("status", null);
     } else if (m.filterKey === "status") {
@@ -104,12 +116,6 @@ const MattersOpenedMetrics = ({
       } else {
         onSelectFilter("status", m.filterValue);
       }
-    } else if (m.filterKey === "type" && m.filterValue) {
-      if (selectedType === m.filterValue) {
-        onSelectFilter("type", null); // Toggle off
-      } else {
-        onSelectFilter("type", m.filterValue);
-      }
     }
   };
 
@@ -117,12 +123,12 @@ const MattersOpenedMetrics = ({
     <Row className="mb-3 g-3">
       {metrics.map((m, idx) => {
         let isSelected = false;
-        if (m.isTotal) {
-          isSelected = !selectedStatus && !selectedType;
+        if (m.isBreakdownToggle) {
+          isSelected = Boolean(showBreakdown);
+        } else if (m.isTotal) {
+          isSelected = !selectedStatus && !selectedType && !showBreakdown;
         } else if (m.filterKey === "status") {
-          isSelected = selectedStatus === m.filterValue;
-        } else if (m.filterKey === "type") {
-          isSelected = selectedType === m.filterValue && Boolean(m.filterValue);
+          isSelected = selectedStatus === m.filterValue && !showBreakdown;
         }
 
         const theme = METRICS_THEMES[m.color] || METRICS_THEMES.primary;
@@ -133,7 +139,9 @@ const MattersOpenedMetrics = ({
               className="card-animate overflow-hidden h-100 mb-0"
               onClick={() => handleCardClick(m)}
               title={
-                m.isTotal
+                m.isBreakdownToggle
+                  ? "Click to display practice area breakdown list"
+                  : m.isTotal
                   ? "Click to show all matters"
                   : `Click to filter by ${m.title}`
               }
@@ -155,13 +163,13 @@ const MattersOpenedMetrics = ({
                       <p className="text-uppercase fw-medium text-muted text-truncate mb-0 fs-12">
                         {m.title}
                       </p>
-                      {isSelected && !m.isTotal && (
+                      {isSelected && (
                         <Badge color={m.color} className="ms-2 fs-10 px-1 py-0">
-                          Active
+                          {m.isBreakdownToggle ? "Showing" : "Active"}
                         </Badge>
                       )}
                     </div>
-                    <h4 className="fs-22 fw-semibold ff-secondary mb-0 text-dark">
+                    <h4 className="fs-20 fw-semibold ff-secondary mb-0 text-dark">
                       {m.value}
                     </h4>
                     <div className="mt-2 text-truncate text-muted fs-12 d-flex align-items-center">

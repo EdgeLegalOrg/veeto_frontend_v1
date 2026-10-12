@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import MattersOpenedMetrics from "../components/MattersOpenedMetrics";
+import MattersByTypeBreakdown from "../components/MattersByTypeBreakdown";
 import MattersOpenedFilterBar from "../components/MattersOpenedFilterBar";
 import MattersOpenedTable from "../components/MattersOpenedTable";
 import { postMattersOpenedReport } from "../../../apis";
@@ -15,6 +16,7 @@ const MattersOpenedReportView = ({
     summary: null,
     rows: [],
   });
+  const [showBreakdown, setShowBreakdown] = useState(false);
 
   const [filters, setFilters] = useState({
     status: null,
@@ -99,7 +101,21 @@ const MattersOpenedReportView = ({
         selectedStatus={filters.status}
         selectedType={filters.type}
         onSelectFilter={handleFilterChange}
+        showBreakdown={showBreakdown}
+        onToggleBreakdown={() => setShowBreakdown((prev) => !prev)}
       />
+
+      {/* Matters by Type Breakdown (Vertical List for Single Site, Multi-Column Comparison for All Sites) */}
+      {showBreakdown && (
+        <MattersByTypeBreakdown
+          rows={reportData.rows}
+          summary={reportData.summary}
+          selectedSite={selectedSite}
+          selectedType={filters.type}
+          onSelectType={(type) => handleFilterChange("type", type)}
+          onClose={() => setShowBreakdown(false)}
+        />
+      )}
 
       {/* Filter Bar */}
       <MattersOpenedFilterBar

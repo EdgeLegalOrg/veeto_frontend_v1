@@ -3,6 +3,7 @@ import { Row, Col, Button, ButtonGroup } from "reactstrap";
 import Select from "react-select";
 import Flatpickr from "react-flatpickr";
 import "flatpickr/dist/themes/material_blue.css";
+import { checkHasPermission } from "../../../utils/utilFunc";
 
 const DATE_PRESETS = [
   { label: "This Month", value: "THIS_MONTH" },
@@ -29,18 +30,22 @@ const ReportHeader = ({
   onExportCsv,
   isExporting,
 }) => {
+  const canAccessAllSites = checkHasPermission("AccessAllSites");
   const safeSites = Array.isArray(sites) ? sites : (sites ? [sites] : []);
 
-  const siteOptions = [
-    { value: null, label: "All Offices (Company Level)" },
-    ...safeSites.map((s) => {
-      const siteVal = s.siteId !== undefined ? s.siteId : s.id;
-      return {
-        value: siteVal,
-        label: s.siteName || s.name || `Site #${siteVal}`,
-      };
-    }),
-  ];
+  const siteListOptions = safeSites.map((s) => {
+    const siteVal = s.siteId !== undefined ? s.siteId : s.id;
+    return {
+      value: siteVal,
+      label: s.siteName || s.name || `Site #${siteVal}`,
+    };
+  });
+
+  const siteOptions = canAccessAllSites
+    ? [{ value: null, label: "All Offices (Company Level)" }, ...siteListOptions]
+    : siteListOptions;
+
+  const currentOption = siteOptions.find((opt) => opt.value === selectedSite) || siteOptions[0];
 
   return (
     <div className="report-header mb-4">
@@ -63,7 +68,7 @@ const ReportHeader = ({
             {/* Site / Office Selector */}
             <div style={{ minWidth: "220px" }}>
               <Select
-                value={siteOptions.find((opt) => opt.value === selectedSite) || siteOptions[0]}
+                value={currentOption}
                 onChange={(opt) => onSiteChange(opt ? opt.value : null)}
                 options={siteOptions}
                 placeholder="Select Office..."

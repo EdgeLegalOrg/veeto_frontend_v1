@@ -3,6 +3,7 @@ import { Container, Nav, NavItem, NavLink } from "reactstrap";
 import classnames from "classnames";
 import { useLocation, useNavigate } from "react-router-dom";
 
+import { checkHasPermission } from "../../utils/utilFunc";
 import ReportHeader from "./components/ReportHeader";
 import MattersOpenedReportView from "./views/MattersOpenedReportView";
 import SettlementsDueReportView from "./views/SettlementsDueReportView";
@@ -76,7 +77,15 @@ const ReportDashboard = () => {
 
   const activeTab = useMemo(() => resolveTabFromPath(location.pathname), [location.pathname]);
 
-  const [selectedSite, setSelectedSite] = useState(null);
+  const canAccessAllSites = checkHasPermission("AccessAllSites");
+  const [selectedSite, setSelectedSite] = useState(() => {
+    try {
+      const u = JSON.parse(localStorage.getItem("userDetails") || "{}");
+      return checkHasPermission("AccessAllSites") ? null : (u.siteId || null);
+    } catch {
+      return null;
+    }
+  });
   const [dateRange, setDateRange] = useState(getDatePresetRange("FINANCIAL_YEAR"));
   const [activePreset, setActivePreset] = useState("FINANCIAL_YEAR");
 
@@ -102,19 +111,30 @@ const ReportDashboard = () => {
     // 2. Fetch fresh sites and staff metadata
     const loadMetadata = async () => {
       try {
-        // Fetch company info for full site list
-        try {
-          const compRes = await getCompanyInfo();
-          if (compRes?.data?.data?.siteInfoList && Array.isArray(compRes.data.data.siteInfoList)) {
-            setSites(compRes.data.data.siteInfoList);
-          } else if (compRes?.data?.siteInfoList && Array.isArray(compRes.data.siteInfoList)) {
-            setSites(compRes.data.siteInfoList);
+        // If user cannot access all sites, only show assigned sites
+        if (!canAccessAllSites) {
+          const userDetails = JSON.parse(localStorage.getItem("userDetails") || "{}");
+          const userSites = userDetails.siteInfoList || [];
+          if (userSites.length > 0) {
+            setSites(userSites);
+          } else if (userDetails.siteId) {
+            setSites([{ id: userDetails.siteId, siteName: userDetails.siteName || "Current Office" }]);
           }
-        } catch (compErr) {
-          console.warn("Could not fetch company sites, falling back to siteinfo:", compErr);
-          const sitesRes = await getSiteInfo();
-          if (sitesRes?.data?.data) {
-            setSites(Array.isArray(sitesRes.data.data) ? sitesRes.data.data : [sitesRes.data.data]);
+        } else {
+          // Fetch company info for full site list
+          try {
+            const compRes = await getCompanyInfo();
+            if (compRes?.data?.data?.siteInfoList && Array.isArray(compRes.data.data.siteInfoList)) {
+              setSites(compRes.data.data.siteInfoList);
+            } else if (compRes?.data?.siteInfoList && Array.isArray(compRes.data.siteInfoList)) {
+              setSites(compRes.data.siteInfoList);
+            }
+          } catch (compErr) {
+            console.warn("Could not fetch company sites, falling back to siteinfo:", compErr);
+            const sitesRes = await getSiteInfo();
+            if (sitesRes?.data?.data) {
+              setSites(Array.isArray(sitesRes.data.data) ? sitesRes.data.data : [sitesRes.data.data]);
+            }
           }
         }
 
