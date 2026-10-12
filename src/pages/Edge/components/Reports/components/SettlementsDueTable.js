@@ -11,6 +11,21 @@ import {
   Spinner,
 } from "reactstrap";
 import { Link } from "react-router-dom";
+import moment from "moment";
+
+const formatDate = (dateStr) => {
+  if (!dateStr) return "-";
+  const cleanStr = String(dateStr).trim().slice(0, 10);
+  const parts = cleanStr.split("-");
+  if (parts.length === 3 && parts[0].length === 4) {
+    return `${parts[2]}-${parts[1]}-${parts[0]}`;
+  }
+  const m = moment(dateStr);
+  if (m.isValid()) {
+    return m.format("DD-MM-YYYY");
+  }
+  return dateStr;
+};
 
 const getSettlementStatusBadge = (status) => {
   switch (status) {
@@ -59,6 +74,7 @@ const SettlementsDueTable = ({ rows, isLoading }) => {
     return (rows || []).filter(
       (r) =>
         (r.matterNumber && String(r.matterNumber).includes(term)) ||
+        (r.letterSubject && r.letterSubject.toLowerCase().includes(term)) ||
         (r.clientNames && r.clientNames.toLowerCase().includes(term)) ||
         (r.propertyAddress && r.propertyAddress.toLowerCase().includes(term)) ||
         (r.titleOrReference && r.titleOrReference.toLowerCase().includes(term)) ||
@@ -86,7 +102,7 @@ const SettlementsDueTable = ({ rows, isLoading }) => {
             <Input
               type="text"
               className="form-control form-control-sm ps-4"
-              placeholder="Search by Matter #, Client, Address, Staff..."
+              placeholder="Search by Matter, RE, Client, Address, Staff..."
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value);
@@ -120,36 +136,22 @@ const SettlementsDueTable = ({ rows, isLoading }) => {
         <Table hover className="align-middle table-nowrap mb-0">
           <thead className="table-light text-muted fs-12">
             <tr>
-              <th
-                scope="col"
-                style={{
-                  position: "sticky",
-                  left: 0,
-                  zIndex: 2,
-                  backgroundColor: "#f3f6f9",
-                  minWidth: "120px",
-                }}
-              >
-                Matter #
-              </th>
-              <th scope="col">Client Name(s)</th>
-              <th scope="col">Property Address</th>
-              <th scope="col">Sub-Type</th>
+              <th scope="col" style={{ minWidth: "130px" }}>Settlement Date</th>
               <th scope="col">Settlement Status</th>
-              <th scope="col">Settlement Date & Time</th>
-              <th scope="col">Venue</th>
-              <th scope="col">Exchange Date</th>
-              <th scope="col">Cooling Off Expiry</th>
-              <th scope="col">Auction Date</th>
+              <th scope="col" style={{ minWidth: "220px" }}>Matter</th>
+              <th scope="col">Matter #</th>
               <th scope="col">Acting Staff</th>
               <th scope="col">Assisting Staff</th>
+              <th scope="col">Sub-Type</th>
+              <th scope="col">Exchange Date</th>
+              <th scope="col">Cooling Off Expiry</th>
               <th scope="col">Office / Branch</th>
             </tr>
           </thead>
           <tbody>
             {isLoading ? (
               <tr>
-                <td colSpan="13" className="text-center py-5">
+                <td colSpan="10" className="text-center py-5">
                   <Spinner color="primary" size="sm" className="me-2" />
                   <span className="text-muted fs-14">Loading Settlements Due report...</span>
                 </td>
@@ -157,16 +159,34 @@ const SettlementsDueTable = ({ rows, isLoading }) => {
             ) : paginatedRows.length > 0 ? (
               paginatedRows.map((row) => (
                 <tr key={row.matterId}>
-                  <td
-                    style={{
-                      position: "sticky",
-                      left: 0,
-                      zIndex: 1,
-                      backgroundColor: "#fff",
-                      minWidth: "120px",
-                      boxShadow: "2px 0 5px -2px rgba(0,0,0,0.12)",
-                    }}
-                  >
+                  <td>
+                    <div className="d-flex flex-column">
+                      <span className="fw-medium text-dark fs-13">
+                        {formatDate(row.settlementDate)}
+                      </span>
+                      {row.settlementTime && (
+                        <span className="text-muted fs-11">
+                          <i className="ri-time-line me-1 align-middle"></i>
+                          {row.settlementTime}
+                        </span>
+                      )}
+                    </div>
+                  </td>
+                  <td>{getSettlementStatusBadge(row.settlementDisplayStatus)}</td>
+                  <td>
+                    <span
+                      className="fw-medium text-dark fs-13 text-truncate d-inline-block"
+                      style={{ maxWidth: "280px" }}
+                      title={
+                        row.letterSubject
+                          ? `${row.letterSubject}${row.propertyAddress ? ` - ${row.propertyAddress}` : ""}`
+                          : (row.titleOrReference || "-")
+                      }
+                    >
+                      {row.letterSubject || row.titleOrReference || "-"}
+                    </span>
+                  </td>
+                  <td>
                     <Link
                       to={`/Matters?matterId=${row.matterId}`}
                       className="fw-bold text-primary text-decoration-none"
@@ -180,16 +200,10 @@ const SettlementsDueTable = ({ rows, isLoading }) => {
                     )}
                   </td>
                   <td>
-                    <span className="fw-medium text-dark">{row.clientNames || "-"}</span>
+                    <span className="fs-13 text-dark">{row.actingPersonName || "-"}</span>
                   </td>
                   <td>
-                    <span
-                      className="text-muted fs-13 text-truncate d-inline-block"
-                      style={{ maxWidth: "240px" }}
-                      title={row.propertyAddress}
-                    >
-                      {row.propertyAddress || "-"}
-                    </span>
+                    <span className="fs-13 text-muted">{row.assistingPersonName || "-"}</span>
                   </td>
                   <td>
                     {row.subType ? (
@@ -200,43 +214,15 @@ const SettlementsDueTable = ({ rows, isLoading }) => {
                       "-"
                     )}
                   </td>
-                  <td>{getSettlementStatusBadge(row.settlementDisplayStatus)}</td>
-                  <td>
-                    <div className="d-flex flex-column">
-                      <span className="fw-medium text-dark fs-13">
-                        {row.settlementDate ? row.settlementDate.slice(0, 10) : "-"}
-                      </span>
-                      {row.settlementTime && (
-                        <span className="text-muted fs-11">
-                          <i className="ri-time-line me-1 align-middle"></i>
-                          {row.settlementTime}
-                        </span>
-                      )}
-                    </div>
-                  </td>
-                  <td>
-                    <span className="text-muted fs-13">{row.settlementVenue || "-"}</span>
-                  </td>
                   <td>
                     <span className="text-muted fs-13">
-                      {row.exchangeDate ? row.exchangeDate.slice(0, 10) : "-"}
+                      {formatDate(row.exchangeDate)}
                     </span>
                   </td>
                   <td>
                     <span className="text-muted fs-13">
-                      {row.coolingOffDate ? row.coolingOffDate.slice(0, 10) : "-"}
+                      {formatDate(row.coolingOffDate)}
                     </span>
-                  </td>
-                  <td>
-                    <span className="text-muted fs-13">
-                      {row.auctionDate ? row.auctionDate.slice(0, 10) : "-"}
-                    </span>
-                  </td>
-                  <td>
-                    <span className="fs-13 text-dark">{row.actingPersonName || "-"}</span>
-                  </td>
-                  <td>
-                    <span className="fs-13 text-muted">{row.assistingPersonName || "-"}</span>
                   </td>
                   <td>
                     <span className="badge bg-light text-body border">{row.siteName || "-"}</span>
@@ -245,7 +231,7 @@ const SettlementsDueTable = ({ rows, isLoading }) => {
               ))
             ) : (
               <tr>
-                <td colSpan="13" className="text-center py-5">
+                <td colSpan="10" className="text-center py-5">
                   <i className="ri-calendar-close-line fs-36 text-muted mb-2 d-block"></i>
                   <p className="text-muted mb-0 fs-14">
                     No settlements found matching the selected filter criteria.
