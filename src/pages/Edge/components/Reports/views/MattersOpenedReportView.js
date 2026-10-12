@@ -93,8 +93,13 @@ const MattersOpenedReportView = ({
 
   return (
     <div>
-      {/* Metric Cards */}
-      <MattersOpenedMetrics summary={reportData.summary} />
+      {/* Metric Cards - Interactive & Selectable */}
+      <MattersOpenedMetrics
+        summary={reportData.summary}
+        selectedStatus={filters.status}
+        selectedType={filters.type}
+        onSelectFilter={handleFilterChange}
+      />
 
       {/* Filter Bar */}
       <MattersOpenedFilterBar

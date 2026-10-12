@@ -87,8 +87,12 @@ const FeesBilledReportView = ({
 
   return (
     <div>
-      {/* Metric Cards */}
-      <FeesBilledMetrics summary={reportData.summary} />
+      {/* Metric Cards & Interactive Practice Area Filters */}
+      <FeesBilledMetrics
+        summary={reportData.summary}
+        selectedMatterType={filters.matterType}
+        onSelectMatterType={(type) => handleFilterChange("matterType", type)}
+      />
 
       {/* Filter Bar */}
       <FeesBilledFilterBar

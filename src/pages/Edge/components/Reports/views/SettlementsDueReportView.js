@@ -90,8 +90,12 @@ const SettlementsDueReportView = ({
 
   return (
     <div>
-      {/* Metric Cards */}
-      <SettlementsDueMetrics summary={reportData.summary} />
+      {/* Metric Cards - Interactive & Selectable */}
+      <SettlementsDueMetrics
+        summary={reportData.summary}
+        selectedStatus={filters.settlementStatus}
+        onSelectStatus={(status) => handleFilterChange("settlementStatus", status)}
+      />
 
       {/* Filter Bar */}
       <SettlementsDueFilterBar
