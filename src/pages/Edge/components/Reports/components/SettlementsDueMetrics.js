@@ -10,14 +10,6 @@ const METRICS_THEMES = {
     activeAvatarBg: "#405189",
     activeIconColor: "#ffffff",
   },
-  success: {
-    border: "#0ab39c",
-    cardBg: "rgba(10, 179, 156, 0.05)",
-    avatarBg: "rgba(10, 179, 156, 0.12)",
-    iconColor: "#0ab39c",
-    activeAvatarBg: "#0ab39c",
-    activeIconColor: "#ffffff",
-  },
   warning: {
     border: "#f7b84b",
     cardBg: "rgba(247, 184, 75, 0.05)",
@@ -50,15 +42,6 @@ const SettlementsDueMetrics = ({
       subText: "In selected period",
       subIcon: "ri-calendar-line",
       statusKey: "ALL",
-    },
-    {
-      title: "Settled / Complete",
-      value: summary?.settledCount || 0,
-      icon: "ri-checkbox-circle-line",
-      color: "success",
-      subText: "Completed files",
-      subIcon: "ri-check-double-line",
-      statusKey: "SETTLED",
     },
     {
       title: "Pending / Upcoming",
@@ -105,7 +88,7 @@ const SettlementsDueMetrics = ({
           const theme = METRICS_THEMES[m.color] || METRICS_THEMES.primary;
 
           return (
-            <Col xl={3} md={6} sm={12} key={idx}>
+            <Col xl={4} md={4} sm={12} key={idx}>
               <Card
                 className="card-animate overflow-hidden h-100 mb-0"
                 onClick={() => handleCardClick(m.statusKey)}
