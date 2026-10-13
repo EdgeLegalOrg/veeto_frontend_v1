@@ -169,6 +169,14 @@ const ReportChartModal = ({
       },
       dataLabels: {
         enabled: true,
+        dropShadow: {
+          enabled: true,
+          top: 1,
+          left: 1,
+          blur: 2,
+          color: "#000000",
+          opacity: 0.85,
+        },
         formatter: (val, opts) => {
           return opts.w.globals.series[opts.seriesIndex] ? `${val.toFixed(1)}%` : "";
         },
@@ -188,11 +196,30 @@ const ReportChartModal = ({
         pie: {
           donut: {
             size: "68%",
+            background: "rgba(33, 37, 41, 0.75)",
             labels: {
               show: true,
+              name: {
+                show: true,
+                fontSize: "15px",
+                fontWeight: 600,
+                color: "#ffffff",
+                offsetY: -8,
+              },
+              value: {
+                show: true,
+                fontSize: "19px",
+                fontWeight: 700,
+                color: "#ffffff",
+                offsetY: 8,
+                formatter: (val) => (isFees ? formatCurrency(val) : `${val}`),
+              },
               total: {
                 show: true,
                 label: isFees ? "Total Fees" : "Total Matters",
+                color: "#ffffff",
+                fontSize: "13px",
+                fontWeight: 600,
                 formatter: () => (isFees ? formatCurrency(total) : `${total}`),
               },
             },
@@ -359,6 +386,16 @@ const ReportChartModal = ({
         </span>
       </ModalHeader>
       <ModalBody className="p-4 bg-light">
+        <style>{`
+          .apexcharts-datalabel-label {
+            filter: drop-shadow(0px 1px 3px rgba(0, 0, 0, 0.9));
+            font-weight: 700 !important;
+          }
+          .apexcharts-datalabel-value {
+            filter: drop-shadow(0px 1px 3px rgba(0, 0, 0, 0.9));
+            font-weight: 700 !important;
+          }
+        `}</style>
         <Row className="g-3">
           {/* Donut Chart: Overall Practice Area Breakdown */}
           <Col lg={6} md={12}>
