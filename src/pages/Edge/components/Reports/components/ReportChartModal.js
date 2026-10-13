@@ -387,12 +387,18 @@ const ReportChartModal = ({
       </ModalHeader>
       <ModalBody className="p-4 bg-light">
         <style>{`
+          .apexcharts-datalabels-group text {
+            paint-order: stroke fill;
+            stroke: rgba(33, 37, 41, 0.85);
+            stroke-width: 3.5px;
+            stroke-linejoin: round;
+            stroke-linecap: round;
+            filter: drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.7));
+          }
           .apexcharts-datalabel-label {
-            filter: drop-shadow(0px 1px 3px rgba(0, 0, 0, 0.9));
             font-weight: 700 !important;
           }
           .apexcharts-datalabel-value {
-            filter: drop-shadow(0px 1px 3px rgba(0, 0, 0, 0.9));
             font-weight: 700 !important;
           }
         `}</style>
