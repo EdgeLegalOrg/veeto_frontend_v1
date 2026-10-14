@@ -1324,6 +1324,12 @@ export const checkContactConflict = (name) =>
     )}`
   );
 
+export const getMatterConflictReport = (matterId) =>
+  API.get(`/api/conflict-check/matter/${matterId}?requestId=${uuidv1()}`);
+
+export const signOffMatterConflictReport = (matterId, data) =>
+  API.post(`/api/conflict-check/matter/${matterId}/sign-off?requestId=${uuidv1()}`, data);
+
 // Reports (Task 5)
 export const postMattersOpenedReport = (filterData) =>
   API.post(`/api/reports/matters-opened?requestId=${uuidv1()}`, filterData);

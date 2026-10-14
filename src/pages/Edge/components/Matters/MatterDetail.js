@@ -45,6 +45,7 @@ import {
 } from "slices/layouts/reducer";
 import ChecklistTab from "./CheckListTab";
 import ArchiveModal from "./ArchiveModal";
+import ConflictReportModal from "./ConflictReport/ConflictReportModal";
 import { checkHasPermission } from "pages/Edge/utils/utilFunc";
 import {
   ARCHIVEUNARCHIVEMATTER,
@@ -65,6 +66,7 @@ const MatterDetail = (props) => {
   const [displayTab, setDisplayTab] = useState([]);
   const [loading, setLoading] = useState(false);
   const [extraButtons, setExtraButtons] = useState(null);
+  const [showConflictModal, setShowConflictModal] = useState(false);
   const { formStatus, navigationEditForm } = useSelector(
     (state) => state.Layout
   );
@@ -219,6 +221,7 @@ const MatterDetail = (props) => {
             refresh={handleRefresh}
             setExtraButtons={setExtraButtons}
             isArchived={isArchivedReadOnly}
+            openConflictReport={() => setShowConflictModal(true)}
           />
         );
       case "INVOICES":
@@ -429,6 +432,14 @@ const MatterDetail = (props) => {
               {item.name}
             </Button>
           ))}
+          <Button
+            color="primary"
+            className="mx-2 d-flex align-items-center"
+            onClick={() => setShowConflictModal(true)}
+          >
+            <i className="ri-shield-check-line me-1 font-size-15 align-middle"></i>
+            Generate Conflict Report
+          </Button>
           {/* <Button color='success' className='mx-2' disabled>
             Export
           </Button> */}
@@ -548,7 +559,7 @@ const MatterDetail = (props) => {
         <Card>
           <div className="d-flex align-items-center m-2">
             <div className="">
-              <FaFileSignature className="matter-icon" />
+              <FaFileSignature className="matter-icon me-2" />
             </div>
             <h5 className="mb-0">{matterNum()}</h5>
           </div>
@@ -596,6 +607,14 @@ const MatterDetail = (props) => {
         refresh={handleRefresh}
         data={props.data}
       />
+      {showConflictModal && (
+        <ConflictReportModal
+          isOpen={showConflictModal}
+          toggle={() => setShowConflictModal(false)}
+          matter={data}
+          onSuccess={() => handleRefresh()}
+        />
+      )}
     </div>
   );
 };
