@@ -2,10 +2,10 @@ import React, { useState, useMemo } from "react";
 import { Card, CardBody, Table, Button, Badge } from "reactstrap";
 import ReportChartModal from "./ReportChartModal";
 
-const formatTypeLabel = (type, subType) => {
-  if (!type && !subType) return "Other";
+const formatTypeLabel = (type, isStrata) => {
+  if (!type) return "Other";
   const cleanType = (type || "").replace(/_/g, " ");
-  if (subType && subType.toLowerCase().includes("strata") && !cleanType.toLowerCase().includes("strata")) {
+  if (isStrata) {
     return `${cleanType} Strata`;
   }
   return cleanType;
@@ -16,6 +16,7 @@ const MattersByTypeBreakdown = ({
   summary = null,
   selectedSite = null,
   selectedType = null,
+  selectedIsStrata = null,
   onSelectType,
   onClose,
 }) => {
@@ -29,20 +30,28 @@ const MattersByTypeBreakdown = ({
 
     (rows || []).forEach((r) => {
       const siteName = r.siteName || "Head Office";
-      const typeLabel = formatTypeLabel(r.type, r.subType);
+      const isStrata = Boolean(r.subType && r.subType.toLowerCase().includes("strata"));
+      const rawType = r.type || "GENERAL";
+      const key = isStrata ? `${rawType}__STRATA` : rawType;
+      const label = formatTypeLabel(rawType, isStrata);
 
       if (!sitesMap[siteName]) {
         sitesMap[siteName] = {};
       }
-      sitesMap[siteName][typeLabel] = (sitesMap[siteName][typeLabel] || 0) + 1;
-      aggMap[typeLabel] = (aggMap[typeLabel] || 0) + 1;
+      if (!sitesMap[siteName][key]) {
+        sitesMap[siteName][key] = { key, label, rawType, isStrata, count: 0 };
+      }
+      sitesMap[siteName][key].count += 1;
+
+      if (!aggMap[key]) {
+        aggMap[key] = { key, label, rawType, isStrata, count: 0 };
+      }
+      aggMap[key].count += 1;
     });
 
-    const siteBreakdowns = Object.entries(sitesMap).map(([siteName, typesMap]) => {
-      const items = Object.entries(typesMap)
-        .map(([type, count]) => ({ type, value: count }))
-        .sort((a, b) => b.value - a.value);
-      const total = items.reduce((acc, curr) => acc + curr.value, 0);
+    const siteBreakdowns = Object.entries(sitesMap).map(([siteName, mapObj]) => {
+      const items = Object.values(mapObj).sort((a, b) => b.count - a.count);
+      const total = items.reduce((acc, curr) => acc + curr.count, 0);
       return { siteName, items, total };
     });
 
@@ -54,21 +63,31 @@ const MattersByTypeBreakdown = ({
   }, [rows, selectedSite]);
 
   const singleSiteItems = useMemo(() => {
-    return Object.entries(aggregatedTypes)
-      .map(([type, count]) => ({ type, count }))
-      .sort((a, b) => b.count - a.count);
+    return Object.values(aggregatedTypes).sort((a, b) => b.count - a.count);
   }, [aggregatedTypes]);
 
   const singleSiteTotal = useMemo(() => {
     return singleSiteItems.reduce((acc, curr) => acc + curr.count, 0);
   }, [singleSiteItems]);
 
-  const handleRowClick = (type) => {
+  const chartAggregatedMap = useMemo(() => {
+    const m = {};
+    Object.values(aggregatedTypes).forEach((item) => {
+      m[item.label] = item.count;
+    });
+    return m;
+  }, [aggregatedTypes]);
+
+  const handleRowClick = (rawType, isStrata) => {
     if (!onSelectType) return;
-    if (selectedType === type) {
-      onSelectType(null); // toggle off
+    const isCurrentlySelected =
+      selectedType === rawType &&
+      (selectedIsStrata === isStrata || (!selectedIsStrata && !isStrata));
+
+    if (isCurrentlySelected) {
+      onSelectType(null, null); // toggle off
     } else {
-      onSelectType(type);
+      onSelectType(rawType, isStrata);
     }
   };
 
@@ -134,21 +153,23 @@ const MattersByTypeBreakdown = ({
                   </tr>
                 </thead>
                 <tbody className="fs-13">
-                  {singleSiteItems.map(({ type, count }) => {
-                    const isSelected = selectedType === type;
+                  {singleSiteItems.map(({ key, label, rawType, isStrata, count }) => {
+                    const isSelected =
+                      selectedType === rawType &&
+                      (selectedIsStrata === isStrata || (!selectedIsStrata && !isStrata));
                     return (
                       <tr
-                        key={type}
-                        onClick={() => handleRowClick(type)}
+                        key={key}
+                        onClick={() => handleRowClick(rawType, isStrata)}
                         style={{
                           cursor: "pointer",
                           backgroundColor: isSelected ? "rgba(64, 81, 137, 0.08)" : "transparent",
                           fontWeight: isSelected ? "600" : "normal",
                         }}
-                        title={`Click to filter list by ${type}`}
+                        title={`Click to filter list by ${label}`}
                       >
                         <td className="text-dark py-2">
-                          {type}
+                          {label}
                           {isSelected && (
                             <Badge color="primary" className="ms-2 fs-10">Filtered</Badge>
                           )}
@@ -166,7 +187,7 @@ const MattersByTypeBreakdown = ({
               </Table>
             </div>
           ) : (
-            /* Multi-Site View: Side-by-Side Columns Comparison matching Frank mockup */
+            /* Multi-Site View: Side-by-Side Columns Comparison */
             <div className="table-responsive">
               <div className="d-flex flex-nowrap gap-3 pb-2" style={{ overflowX: "auto" }}>
                 {siteGroups.map((group) => (
@@ -183,24 +204,26 @@ const MattersByTypeBreakdown = ({
                     </div>
                     <Table size="sm" borderless className="mb-0 fs-12">
                       <tbody>
-                        {group.items.map(({ type, value }) => {
-                          const isSelected = selectedType === type;
+                        {group.items.map(({ key, label, rawType, isStrata, count }) => {
+                          const isSelected =
+                            selectedType === rawType &&
+                            (selectedIsStrata === isStrata || (!selectedIsStrata && !isStrata));
                           return (
                             <tr
-                              key={type}
-                              onClick={() => handleRowClick(type)}
+                              key={key}
+                              onClick={() => handleRowClick(rawType, isStrata)}
                               style={{
                                 cursor: "pointer",
                                 backgroundColor: isSelected ? "rgba(64, 81, 137, 0.12)" : "transparent",
                                 borderRadius: "4px",
                               }}
-                              title={`Click to filter list by ${type}`}
+                              title={`Click to filter list by ${label}`}
                             >
                               <td className="py-1 text-muted text-truncate" style={{ maxWidth: "180px" }}>
-                                {type}
+                                {label}
                               </td>
                               <td className="text-end fw-semibold text-dark py-1" style={{ width: "50px" }}>
-                                {value}
+                                {count}
                               </td>
                             </tr>
                           );
@@ -227,11 +250,11 @@ const MattersByTypeBreakdown = ({
         title="Matters Opened - Practice Area Analytics"
         reportType="MATTERS"
         siteBreakdowns={siteGroups}
-        aggregatedTypes={aggregatedTypes}
+        aggregatedTypes={chartAggregatedMap}
         isMultiSite={isMultiSite}
       />
     </>
   );
 };
 
-export default MattersByTypeBreakdown;
+export default React.memo(MattersByTypeBreakdown);

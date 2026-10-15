@@ -1,8 +1,20 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import OutstandingInvoicesMetrics from "../components/OutstandingInvoicesMetrics";
 import OutstandingInvoicesFilterBar from "../components/OutstandingInvoicesFilterBar";
 import OutstandingInvoicesTable from "../components/OutstandingInvoicesTable";
 import { postOutstandingInvoicesReport } from "../../../apis";
+
+const formatDate = (d) => {
+  if (!d) return null;
+  if (typeof d === "string") return d.slice(0, 10);
+  if (typeof d.getFullYear === "function") {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  }
+  return null;
+};
 
 const OutstandingInvoicesReportView = ({
   selectedSite,
@@ -22,6 +34,15 @@ const OutstandingInvoicesReportView = ({
     feeEarnerId: null,
   });
 
+  const startDateStr = useMemo(
+    () => (dateRange && dateRange[0] ? formatDate(dateRange[0]) : null),
+    [dateRange]
+  );
+  const endDateStr = useMemo(
+    () => (dateRange && dateRange[1] ? formatDate(dateRange[1]) : null),
+    [dateRange]
+  );
+
   const handleFilterChange = (key, value) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
   };
@@ -40,17 +61,9 @@ const OutstandingInvoicesReportView = ({
     const fetchReport = async () => {
       setIsLoading(true);
       try {
-        const formatDate = (d) => {
-          if (!d) return null;
-          const year = d.getFullYear();
-          const month = String(d.getMonth() + 1).padStart(2, "0");
-          const day = String(d.getDate()).padStart(2, "0");
-          return `${year}-${month}-${day}`;
-        };
-
         const payload = {
-          startDate: dateRange && dateRange[0] ? formatDate(dateRange[0]) : null,
-          endDate: dateRange && dateRange[1] ? formatDate(dateRange[1]) : null,
+          startDate: startDateStr,
+          endDate: endDateStr,
           siteId: selectedSite || null,
           agingBucket: filters.agingBucket,
           status: filters.status,
@@ -83,7 +96,13 @@ const OutstandingInvoicesReportView = ({
     return () => {
       isCurrent = false;
     };
-  }, [dateRange, selectedSite, filters, refreshTrigger]);
+  }, [
+    startDateStr,
+    endDateStr,
+    selectedSite,
+    filters,
+    refreshTrigger,
+  ]);
 
   return (
     <div>
