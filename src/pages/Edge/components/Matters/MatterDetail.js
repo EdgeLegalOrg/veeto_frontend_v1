@@ -432,14 +432,6 @@ const MatterDetail = (props) => {
               {item.name}
             </Button>
           ))}
-          <Button
-            color="primary"
-            className="mx-2 d-flex align-items-center"
-            onClick={() => setShowConflictModal(true)}
-          >
-            <i className="ri-shield-check-line me-1 font-size-15 align-middle"></i>
-            Generate Conflict Report
-          </Button>
           {/* <Button color='success' className='mx-2' disabled>
             Export
           </Button> */}
