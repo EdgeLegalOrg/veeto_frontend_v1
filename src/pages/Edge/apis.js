@@ -363,6 +363,17 @@ export const deleteMatterAttach = (ids) =>
     config
   );
 
+export const fetchMatterBinderSequence = (matterId, sortOrder = "ASC") =>
+  API.get(`/api/matter/${matterId}/binder/sequence?requestId=${uuidv1()}&sortOrder=${sortOrder}`);
+
+export const fetchAttachmentInlinePreview = (attachmentId) =>
+  API.get(`/api/matter/attachment/${attachmentId}/preview?requestId=${uuidv1()}`, {
+    responseType: "blob",
+  });
+
+export const fetchAttachmentEmailContent = (attachmentId) =>
+  API.get(`/api/matter/attachment/${attachmentId}/email-content?requestId=${uuidv1()}`);
+
 export const updateMatterChecklist = (formData) =>
   API.put(`/api/matter/checklist`, {
     requestId: uuidv1(),
