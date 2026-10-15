@@ -36,20 +36,26 @@ const FeesByTypeBreakdown = ({
 
     (rows || []).forEach((r) => {
       const siteName = r.siteName || "Head Office";
-      const typeLabel = formatTypeLabel(r.matterType);
+      const rawType = r.matterType || "GENERAL";
+      const label = formatTypeLabel(r.matterType);
       const netFee = Number(r.netFees) || 0;
 
       if (!sitesMap[siteName]) {
         sitesMap[siteName] = {};
       }
-      sitesMap[siteName][typeLabel] = (sitesMap[siteName][typeLabel] || 0) + netFee;
-      aggMap[typeLabel] = (aggMap[typeLabel] || 0) + netFee;
+      if (!sitesMap[siteName][rawType]) {
+        sitesMap[siteName][rawType] = { rawType, label, value: 0 };
+      }
+      sitesMap[siteName][rawType].value += netFee;
+
+      if (!aggMap[rawType]) {
+        aggMap[rawType] = { rawType, label, amount: 0 };
+      }
+      aggMap[rawType].amount += netFee;
     });
 
-    const siteBreakdowns = Object.entries(sitesMap).map(([siteName, typesMap]) => {
-      const items = Object.entries(typesMap)
-        .map(([type, amount]) => ({ type, value: amount }))
-        .sort((a, b) => b.value - a.value);
+    const siteBreakdowns = Object.entries(sitesMap).map(([siteName, mapObj]) => {
+      const items = Object.values(mapObj).sort((a, b) => b.value - a.value);
       const total = items.reduce((acc, curr) => acc + curr.value, 0);
       return { siteName, items, total };
     });
@@ -62,21 +68,27 @@ const FeesByTypeBreakdown = ({
   }, [rows, selectedSite]);
 
   const singleSiteItems = useMemo(() => {
-    return Object.entries(aggregatedTypes)
-      .map(([type, amount]) => ({ type, amount }))
-      .sort((a, b) => b.amount - a.amount);
+    return Object.values(aggregatedTypes).sort((a, b) => b.amount - a.amount);
   }, [aggregatedTypes]);
 
   const singleSiteTotal = useMemo(() => {
     return singleSiteItems.reduce((acc, curr) => acc + curr.amount, 0);
   }, [singleSiteItems]);
 
-  const handleRowClick = (type) => {
+  const chartAggregatedMap = useMemo(() => {
+    const m = {};
+    Object.values(aggregatedTypes).forEach((item) => {
+      m[item.label] = item.amount;
+    });
+    return m;
+  }, [aggregatedTypes]);
+
+  const handleRowClick = (rawType) => {
     if (!onSelectMatterType) return;
-    if (selectedMatterType === type) {
+    if (selectedMatterType === rawType) {
       onSelectMatterType(null); // toggle off
     } else {
-      onSelectMatterType(type);
+      onSelectMatterType(rawType);
     }
   };
 
@@ -142,21 +154,21 @@ const FeesByTypeBreakdown = ({
                   </tr>
                 </thead>
                 <tbody className="fs-13">
-                  {singleSiteItems.map(({ type, amount }) => {
-                    const isSelected = selectedMatterType === type;
+                  {singleSiteItems.map(({ rawType, label, amount }) => {
+                    const isSelected = selectedMatterType === rawType;
                     return (
                       <tr
-                        key={type}
-                        onClick={() => handleRowClick(type)}
+                        key={rawType}
+                        onClick={() => handleRowClick(rawType)}
                         style={{
                           cursor: "pointer",
                           backgroundColor: isSelected ? "rgba(10, 179, 156, 0.08)" : "transparent",
                           fontWeight: isSelected ? "600" : "normal",
                         }}
-                        title={`Click to filter list by ${type}`}
+                        title={`Click to filter list by ${label}`}
                       >
                         <td className="text-dark py-2">
-                          {type}
+                          {label}
                           {isSelected && (
                             <Badge color="success" className="ms-2 fs-10">Filtered</Badge>
                           )}
@@ -178,7 +190,7 @@ const FeesByTypeBreakdown = ({
               </Table>
             </div>
           ) : (
-            /* Multi-Site View: Side-by-Side Columns Comparison matching Frank mockup */
+            /* Multi-Site View: Side-by-Side Columns Comparison */
             <div className="table-responsive">
               <div className="d-flex flex-nowrap gap-3 pb-2" style={{ overflowX: "auto" }}>
                 {siteGroups.map((group) => (
@@ -195,21 +207,21 @@ const FeesByTypeBreakdown = ({
                     </div>
                     <Table size="sm" borderless className="mb-0 fs-12">
                       <tbody>
-                        {group.items.map(({ type, value }) => {
-                          const isSelected = selectedMatterType === type;
+                        {group.items.map(({ rawType, label, value }) => {
+                          const isSelected = selectedMatterType === rawType;
                           return (
                             <tr
-                              key={type}
-                              onClick={() => handleRowClick(type)}
+                              key={rawType}
+                              onClick={() => handleRowClick(rawType)}
                               style={{
                                 cursor: "pointer",
                                 backgroundColor: isSelected ? "rgba(10, 179, 156, 0.12)" : "transparent",
                                 borderRadius: "4px",
                               }}
-                              title={`Click to filter list by ${type}`}
+                              title={`Click to filter list by ${label}`}
                             >
                               <td className="py-1 text-muted text-truncate" style={{ maxWidth: "180px" }}>
-                                {type}
+                                {label}
                               </td>
                               <td className="text-end fw-semibold text-dark py-1" style={{ width: "90px" }}>
                                 {formatCurrency(value)}
@@ -239,11 +251,11 @@ const FeesByTypeBreakdown = ({
         title="Fees Billed - Practice Area Revenue Analytics"
         reportType="FEES"
         siteBreakdowns={siteGroups}
-        aggregatedTypes={aggregatedTypes}
+        aggregatedTypes={chartAggregatedMap}
         isMultiSite={isMultiSite}
       />
     </>
   );
 };
 
-export default FeesByTypeBreakdown;
+export default React.memo(FeesByTypeBreakdown);

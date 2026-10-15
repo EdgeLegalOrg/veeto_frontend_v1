@@ -17,6 +17,7 @@ const getInvoiceStatusBadge = (status) => {
   switch (status?.toUpperCase()) {
     case "PAID":
       return <Badge color="success" className="badge-soft-success">Paid</Badge>;
+    case "PARTIAL_PAID":
     case "PARTIALLY_PAID":
       return <Badge color="warning" className="badge-soft-warning">Partially Paid</Badge>;
     case "UNPAID":

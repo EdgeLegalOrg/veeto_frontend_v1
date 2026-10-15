@@ -1,9 +1,21 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import MattersOpenedMetrics from "../components/MattersOpenedMetrics";
 import MattersByTypeBreakdown from "../components/MattersByTypeBreakdown";
 import MattersOpenedFilterBar from "../components/MattersOpenedFilterBar";
 import MattersOpenedTable from "../components/MattersOpenedTable";
 import { postMattersOpenedReport } from "../../../apis";
+
+const formatDate = (d) => {
+  if (!d) return null;
+  if (typeof d === "string") return d.slice(0, 10);
+  if (typeof d.getFullYear === "function") {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  }
+  return null;
+};
 
 const MattersOpenedReportView = ({
   selectedSite,
@@ -21,24 +33,57 @@ const MattersOpenedReportView = ({
   const [filters, setFilters] = useState({
     status: null,
     type: null,
+    isStrata: null,
     subType: null,
     actingPersonId: null,
     assistingPersonId: null,
   });
 
-  const handleFilterChange = (key, value) => {
-    setFilters((prev) => ({ ...prev, [key]: value }));
-  };
+  const startDateStr = useMemo(
+    () => (dateRange && dateRange[0] ? formatDate(dateRange[0]) : null),
+    [dateRange]
+  );
+  const endDateStr = useMemo(
+    () => (dateRange && dateRange[1] ? formatDate(dateRange[1]) : null),
+    [dateRange]
+  );
 
-  const handleResetFilters = () => {
+  const handleFilterChange = useCallback((key, value) => {
+    setFilters((prev) => ({
+      ...prev,
+      [key]: value,
+      // If setting type explicitly from filter bar, clear isStrata flag
+      ...(key === "type" ? { isStrata: null } : {}),
+    }));
+  }, []);
+
+  const handleResetFilters = useCallback(() => {
     setFilters({
       status: null,
       type: null,
+      isStrata: null,
       subType: null,
       actingPersonId: null,
       assistingPersonId: null,
     });
-  };
+  }, []);
+
+  const handleSelectType = useCallback((type, isStrata) => {
+    setFilters((prev) => ({
+      ...prev,
+      type: type || null,
+      isStrata: isStrata !== undefined ? isStrata : null,
+      subType: null,
+    }));
+  }, []);
+
+  const handleToggleBreakdown = useCallback(() => {
+    setShowBreakdown((prev) => !prev);
+  }, []);
+
+  const handleCloseBreakdown = useCallback(() => {
+    setShowBreakdown(false);
+  }, []);
 
   useEffect(() => {
     let isCurrent = true;
@@ -46,34 +91,25 @@ const MattersOpenedReportView = ({
     const fetchReport = async () => {
       setIsLoading(true);
       try {
-        const formatDate = (d) => {
-          if (!d) return null;
-          const year = d.getFullYear();
-          const month = String(d.getMonth() + 1).padStart(2, "0");
-          const day = String(d.getDate()).padStart(2, "0");
-          return `${year}-${month}-${day}`;
-        };
-
         const payload = {
-          startDate: dateRange && dateRange[0] ? formatDate(dateRange[0]) : null,
-          endDate: dateRange && dateRange[1] ? formatDate(dateRange[1]) : null,
+          startDate: startDateStr,
+          endDate: endDateStr,
           siteId: selectedSite || null,
-          status: filters.status,
-          type: filters.type,
-          subType: filters.subType,
           actingPersonId: filters.actingPersonId,
           assistingPersonId: filters.assistingPersonId,
         };
 
         const response = await postMattersOpenedReport(payload);
         if (isCurrent) {
+          let incomingData = { summary: null, rows: [] };
           if (response?.data?.data) {
-            setReportData(response.data.data);
+            incomingData = response.data.data;
           } else if (response?.data) {
-            setReportData(response.data);
+            incomingData = response.data;
           } else if (response?.rows) {
-            setReportData(response);
+            incomingData = response;
           }
+          setReportData(incomingData);
         }
       } catch (error) {
         if (isCurrent) {
@@ -91,7 +127,35 @@ const MattersOpenedReportView = ({
     return () => {
       isCurrent = false;
     };
-  }, [dateRange, selectedSite, filters, refreshTrigger]);
+  }, [
+    startDateStr,
+    endDateStr,
+    selectedSite,
+    filters.actingPersonId,
+    filters.assistingPersonId,
+    refreshTrigger,
+  ]);
+
+  // Client-side filtering of rows for table view based on status, type, isStrata, and subType
+  const filteredRows = useMemo(() => {
+    return (reportData.rows || []).filter((r) => {
+      if (filters.status && r.status !== filters.status) {
+        return false;
+      }
+      if (filters.type && r.type !== filters.type) {
+        return false;
+      }
+      if (filters.isStrata !== null && filters.isStrata !== undefined) {
+        const itemIsStrata = Boolean(r.subType && r.subType.toLowerCase().includes("strata"));
+        if (filters.isStrata && !itemIsStrata) return false;
+        if (!filters.isStrata && itemIsStrata) return false;
+      }
+      if (filters.subType && r.subType !== filters.subType) {
+        return false;
+      }
+      return true;
+    });
+  }, [reportData.rows, filters.status, filters.type, filters.isStrata, filters.subType]);
 
   return (
     <div>
@@ -102,18 +166,19 @@ const MattersOpenedReportView = ({
         selectedType={filters.type}
         onSelectFilter={handleFilterChange}
         showBreakdown={showBreakdown}
-        onToggleBreakdown={() => setShowBreakdown((prev) => !prev)}
+        onToggleBreakdown={handleToggleBreakdown}
       />
 
-      {/* Matters by Type Breakdown (Vertical List for Single Site, Multi-Column Comparison for All Sites) */}
+      {/* Matters by Type Breakdown (Memoized component) */}
       {showBreakdown && (
         <MattersByTypeBreakdown
           rows={reportData.rows}
           summary={reportData.summary}
           selectedSite={selectedSite}
           selectedType={filters.type}
-          onSelectType={(type) => handleFilterChange("type", type)}
-          onClose={() => setShowBreakdown(false)}
+          selectedIsStrata={filters.isStrata}
+          onSelectType={handleSelectType}
+          onClose={handleCloseBreakdown}
         />
       )}
 
@@ -126,7 +191,7 @@ const MattersOpenedReportView = ({
       />
 
       {/* Data Table */}
-      <MattersOpenedTable rows={reportData.rows} isLoading={isLoading} />
+      <MattersOpenedTable rows={filteredRows} isLoading={isLoading} />
     </div>
   );
 };

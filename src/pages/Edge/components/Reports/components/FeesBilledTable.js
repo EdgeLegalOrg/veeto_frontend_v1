@@ -37,6 +37,7 @@ const getInvoiceStatusBadge = (status) => {
           <i className="ri-close-circle-line me-1 align-middle"></i> Unpaid
         </Badge>
       );
+    case "PARTIAL_PAID":
     case "PARTIALLY_PAID":
       return (
         <Badge color="warning" className="badge-soft-warning px-2 py-1">

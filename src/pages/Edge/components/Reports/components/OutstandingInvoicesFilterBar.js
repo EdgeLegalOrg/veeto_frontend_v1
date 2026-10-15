@@ -13,7 +13,7 @@ const AGING_OPTIONS = [
 const STATUS_OPTIONS = [
   { value: "ALL", label: "All Unpaid Statuses" },
   { value: "UNPAID", label: "Unpaid" },
-  { value: "PARTIALLY_PAID", label: "Partially Paid" },
+  { value: "PARTIAL_PAID", label: "Partially Paid" },
 ];
 
 const selectCustomStyles = {
