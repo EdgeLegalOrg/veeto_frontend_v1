@@ -215,3 +215,47 @@
 .roleType-label {
   width: 88%;
 }
+
+/* Modern Categorized Role Rights Grid Styles */
+.roleType-categorized-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.roleType-section {
+  width: 100%;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #edf0f2;
+}
+
+.roleType-section:last-child {
+  border-bottom: none;
+}
+
+.roleType-section-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1a202c;
+  letter-spacing: 0.5px;
+  margin-top: 4px;
+}
+
+.roleType-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px 16px;
+  width: 100%;
+}
+
+@media (max-width: 1200px) {
+  .roleType-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .roleType-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,14 +1,21 @@
-import React from "react";
-import { Row, Col, Button, ButtonGroup } from "reactstrap";
+import React, { useRef } from "react";
+import { Row, Col, Button } from "reactstrap";
 import Select from "react-select";
 import Flatpickr from "react-flatpickr";
 import "flatpickr/dist/themes/material_blue.css";
+import { checkHasPermission } from "../../../utils/utilFunc";
+
+// Australian Financial Year calculation
+const now = new Date();
+const currentYear = now.getFullYear();
+const fyStartYear = now.getMonth() >= 6 ? currentYear : currentYear - 1;
+const fyLabel = `FY ${fyStartYear}/${String(fyStartYear + 1).slice(-2)}`;
 
 const DATE_PRESETS = [
   { label: "This Month", value: "THIS_MONTH" },
   { label: "Last Month", value: "LAST_MONTH" },
   { label: "This Quarter", value: "THIS_QUARTER" },
-  { label: "FY 2025/26", value: "FY" },
+  { label: fyLabel, value: "FINANCIAL_YEAR" },
   { label: "Custom", value: "CUSTOM" },
 ];
 
@@ -29,18 +36,36 @@ const ReportHeader = ({
   onExportCsv,
   isExporting,
 }) => {
+  const flatpickrRef = useRef(null);
+  const canAccessAllSites = checkHasPermission("AccessAllSites");
   const safeSites = Array.isArray(sites) ? sites : (sites ? [sites] : []);
 
-  const siteOptions = [
-    { value: null, label: "All Offices (Company Level)" },
-    ...safeSites.map((s) => {
-      const siteVal = s.siteId !== undefined ? s.siteId : s.id;
-      return {
-        value: siteVal,
-        label: s.siteName || s.name || `Site #${siteVal}`,
-      };
-    }),
-  ];
+  const siteListOptions = safeSites.map((s) => {
+    const siteVal = s.siteId !== undefined ? s.siteId : s.id;
+    return {
+      value: siteVal,
+      label: s.siteName || s.name || `Site #${siteVal}`,
+    };
+  });
+
+  const siteOptions = canAccessAllSites
+    ? [{ value: null, label: "All Offices (Company Level)" }, ...siteListOptions]
+    : siteListOptions;
+
+  const currentOption = siteOptions.find((opt) => opt.value === selectedSite) || siteOptions[0];
+
+  const handlePresetClick = (presetValue) => {
+    onPresetSelect(presetValue);
+    if (presetValue === "CUSTOM") {
+      setTimeout(() => {
+        flatpickrRef.current?.flatpickr?.open();
+      }, 50);
+    }
+  };
+
+  const handleDateButtonClick = () => {
+    flatpickrRef.current?.flatpickr?.open();
+  };
 
   return (
     <div className="report-header mb-4">
@@ -63,7 +88,7 @@ const ReportHeader = ({
             {/* Site / Office Selector */}
             <div style={{ minWidth: "220px" }}>
               <Select
-                value={siteOptions.find((opt) => opt.value === selectedSite) || siteOptions[0]}
+                value={currentOption}
                 onChange={(opt) => onSiteChange(opt ? opt.value : null)}
                 options={siteOptions}
                 placeholder="Select Office..."
@@ -75,37 +100,64 @@ const ReportHeader = ({
             </div>
 
             {/* Date Preset Buttons */}
-            <ButtonGroup size="sm" className="d-none d-xl-inline-flex">
-              {DATE_PRESETS.map((p) => (
-                <Button
-                  key={p.value}
-                  color={activePreset === p.value ? "primary" : "light"}
-                  onClick={() => onPresetSelect(p.value)}
-                  className="px-2 fs-12"
-                >
-                  {p.label}
-                </Button>
-              ))}
-            </ButtonGroup>
+            <div className="btn-group btn-group-sm d-none d-xl-inline-flex" role="group">
+              {DATE_PRESETS.map((p) => {
+                const isActive = activePreset === p.value;
+                return (
+                  <Button
+                    key={p.value}
+                    color={isActive ? "primary" : "white"}
+                    onClick={() => handlePresetClick(p.value)}
+                    className={`px-3 py-1 fs-12 fw-medium border ${
+                      isActive ? "shadow-sm active" : "text-dark bg-white"
+                    }`}
+                    style={{
+                      borderColor: isActive ? "var(--vz-primary)" : "#ced4da",
+                      boxShadow: isActive ? "0 2px 4px rgba(64, 81, 137, 0.25)" : "none",
+                    }}
+                  >
+                    {p.label}
+                  </Button>
+                );
+              })}
+            </div>
 
-            {/* Flatpickr Date Range Picker */}
-            <div style={{ width: "220px" }}>
-              <Flatpickr
-                className="form-control form-control-sm bg-light border-0"
-                value={dateRange}
-                options={{
-                  mode: "range",
-                  dateFormat: "Y-m-d",
-                  altInput: true,
-                  altFormat: "d M Y",
-                }}
-                onChange={(dates) => {
-                  if (dates.length === 2) {
-                    onDateChange(dates);
-                  }
-                }}
-                placeholder="Select Date Range"
-              />
+            {/* Date Range Picker (Styled as a Button with Calendar Icon) */}
+            <div
+              className="d-flex align-items-center bg-white border rounded px-2 py-1 shadow-sm position-relative cursor-pointer"
+              style={{
+                minWidth: "225px",
+                height: "34px",
+                borderColor: activePreset === "CUSTOM" ? "var(--vz-primary)" : "#ced4da",
+                cursor: "pointer",
+              }}
+              onClick={handleDateButtonClick}
+            >
+              <i className="ri-calendar-2-line text-primary me-2 fs-15 flex-shrink-0"></i>
+              <div className="flex-grow-1">
+                <Flatpickr
+                  ref={flatpickrRef}
+                  className="form-control form-control-sm border-0 p-0 bg-transparent fw-medium text-dark text-center cursor-pointer"
+                  style={{ cursor: "pointer", boxShadow: "none" }}
+                  value={dateRange}
+                  options={{
+                    mode: "range",
+                    dateFormat: "Y-m-d",
+                    altInput: true,
+                    altInputClass:
+                      "form-control form-control-sm border-0 p-0 bg-transparent fw-medium text-dark text-center cursor-pointer",
+                    altFormat: "d M Y",
+                    closeOnSelect: true,
+                  }}
+                  onChange={(dates) => {
+                    if (dates.length === 2) {
+                      onDateChange(dates);
+                    }
+                  }}
+                  placeholder="Select Date Range"
+                />
+              </div>
+              <i className="ri-arrow-down-s-line text-muted ms-1 fs-14 flex-shrink-0"></i>
             </div>
 
             {/* Export CSV Button */}
@@ -116,7 +168,13 @@ const ReportHeader = ({
               disabled={isExporting}
               className="d-flex align-items-center waves-effect waves-light"
             >
-              <i className={isExporting ? "ri-loader-4-line ri-spin align-middle fs-16 me-1" : "ri-file-excel-2-line align-middle fs-16 me-1"}></i>
+              <i
+                className={
+                  isExporting
+                    ? "ri-loader-4-line ri-spin align-middle fs-16 me-1"
+                    : "ri-file-excel-2-line align-middle fs-16 me-1"
+                }
+              ></i>
               {isExporting ? "Exporting..." : "Export CSV"}
             </Button>
           </div>

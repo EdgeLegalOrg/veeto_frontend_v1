@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import FeesBilledMetrics from "../components/FeesBilledMetrics";
+import FeesByTypeBreakdown from "../components/FeesByTypeBreakdown";
 import FeesBilledFilterBar from "../components/FeesBilledFilterBar";
 import FeesBilledTable from "../components/FeesBilledTable";
 import { postFeesBilledReport } from "../../../apis";
@@ -15,6 +16,8 @@ const FeesBilledReportView = ({
     summary: null,
     rows: [],
   });
+  const [showBreakdown, setShowBreakdown] = useState(false);
+  const [selectedCard, setSelectedCard] = useState("total");
 
   const [filters, setFilters] = useState({
     status: "ALL",
@@ -32,6 +35,7 @@ const FeesBilledReportView = ({
       matterType: null,
       feeEarnerId: null,
     });
+    setSelectedCard("total");
   };
 
   useEffect(() => {
@@ -87,8 +91,26 @@ const FeesBilledReportView = ({
 
   return (
     <div>
-      {/* Metric Cards */}
-      <FeesBilledMetrics summary={reportData.summary} />
+      {/* Metric Cards - Selectable with high contrast & toggleable breakdown */}
+      <FeesBilledMetrics
+        summary={reportData.summary}
+        selectedCard={selectedCard}
+        onSelectCard={(c) => setSelectedCard(c)}
+        showBreakdown={showBreakdown}
+        onToggleBreakdown={() => setShowBreakdown((prev) => !prev)}
+      />
+
+      {/* Fees by Practice Area / Type Breakdown (Vertical List for Single Site, Multi-Column Comparison for All Sites) */}
+      {showBreakdown && (
+        <FeesByTypeBreakdown
+          rows={reportData.rows}
+          summary={reportData.summary}
+          selectedSite={selectedSite}
+          selectedMatterType={filters.matterType}
+          onSelectMatterType={(type) => handleFilterChange("matterType", type)}
+          onClose={() => setShowBreakdown(false)}
+        />
+      )}
 
       {/* Filter Bar */}
       <FeesBilledFilterBar

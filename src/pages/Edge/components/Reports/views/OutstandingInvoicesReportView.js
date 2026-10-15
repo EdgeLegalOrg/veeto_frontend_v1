@@ -87,8 +87,12 @@ const OutstandingInvoicesReportView = ({
 
   return (
     <div>
-      {/* 5 Aging Bucket Metric Cards */}
-      <OutstandingInvoicesMetrics summary={reportData.summary} />
+      {/* 5 Aging Bucket Metric Cards - Interactive & Selectable */}
+      <OutstandingInvoicesMetrics
+        summary={reportData.summary}
+        selectedBucket={filters.agingBucket}
+        onSelectBucket={(bucket) => handleFilterChange("agingBucket", bucket)}
+      />
 
       {/* Filter Bar */}
       <OutstandingInvoicesFilterBar

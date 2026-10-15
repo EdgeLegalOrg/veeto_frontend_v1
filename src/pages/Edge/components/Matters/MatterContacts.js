@@ -64,6 +64,16 @@ const MatterContacts = (props) => {
     if (setExtraButtons) {
       setExtraButtons(
         <div className="d-flex align-items-center">
+          {props.openConflictReport && (
+            <Button
+              color="primary"
+              onClick={props.openConflictReport}
+              className="d-flex align-items-center mx-2"
+            >
+              <i className="ri-shield-check-line me-1 font-size-14 align-middle"></i>
+              Generate Conflict Report
+            </Button>
+          )}
           <Button
             color="success"
             disabled={disabled || props.isArchived}
@@ -75,7 +85,7 @@ const MatterContacts = (props) => {
         </div>,
       );
     }
-  }, [disabled, setExtraButtons]);
+  }, [disabled, setExtraButtons, props.openConflictReport, props.isArchived]);
 
   useEffect(() => {
     if (props.data) {

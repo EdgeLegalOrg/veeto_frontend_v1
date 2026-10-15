@@ -1,3 +1,4 @@
+import moment from "moment";
 import React, { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -106,8 +107,7 @@ const MattersOpenedTable = ({ rows, isLoading }) => {
               <th scope="col">Client Name(s)</th>
               <th scope="col">Reference / Subject</th>
               <th scope="col">Type & Sub-Type</th>
-              <th scope="col">Status</th>
-              <th scope="col">Instruction Date</th>
+                            <th scope="col">Instruction Date</th>
               <th scope="col">Acting Staff</th>
               <th scope="col">Assisting Staff</th>
               <th scope="col">Office / Branch</th>
@@ -116,7 +116,7 @@ const MattersOpenedTable = ({ rows, isLoading }) => {
           <tbody>
             {isLoading ? (
               <tr>
-                <td colSpan="9" className="text-center py-5">
+                <td colSpan="8" className="text-center py-5">
                   <Spinner color="primary" size="sm" className="me-2" />
                   <span className="text-muted fs-14">Loading Matters Opened report...</span>
                 </td>
@@ -157,10 +157,9 @@ const MattersOpenedTable = ({ rows, isLoading }) => {
                       )}
                     </div>
                   </td>
-                  <td>{getStatusBadge(row.status)}</td>
-                  <td>
+                                    <td>
                     <span className="text-muted fs-13">
-                      {row.instructionDate ? row.instructionDate.slice(0, 10) : "-"}
+                      {row.instructionDate ? moment(row.instructionDate).format("DD-MM-YYYY") : "-"}
                     </span>
                   </td>
                   <td>
@@ -176,7 +175,7 @@ const MattersOpenedTable = ({ rows, isLoading }) => {
               ))
             ) : (
               <tr>
-                <td colSpan="9" className="text-center py-5">
+                <td colSpan="8" className="text-center py-5">
                   <i className="ri-folder-info-line fs-36 text-muted mb-2 d-block"></i>
                   <p className="text-muted mb-0 fs-14">No matters found matching the selected filter criteria.</p>
                 </td>
