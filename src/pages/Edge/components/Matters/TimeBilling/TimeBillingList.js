@@ -69,7 +69,7 @@ const TimeBillingList = (props) => {
         </div>,
       );
     }
-  }, [setExtraButtons, billingList]);
+  }, [setExtraButtons, billingList, selectedList, props.isArchived]);
 
   const updateFormStatusAction = ({ key, value }) => {
     return setFormStatus((prev) => ({
