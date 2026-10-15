@@ -5,6 +5,10 @@ import {
   VIEWACCOUNTINGTAB,
   VIEWADMINTAB,
   VIEWFEEDBACKREVIEW,
+  VIEWFEESBILLEDREPORT,
+  VIEWMATTERSOPENEDREPORT,
+  VIEWOUTSTANDINGINVOICESREPORT,
+  VIEWSETTLEMENTSDUEREPORT,
   VIEWTRUSTACCOUNTING,
   VIEWXEROADMINTAB,
 } from "pages/Edge/utils/RightConstants";
@@ -49,6 +53,39 @@ const Navdata = () => {
       });
     }
   }
+
+  const reportSubItems = [
+    {
+      id: "mattersOpened",
+      label: "Matters Opened",
+      link: "/reports/matters-opened",
+      show: checkHasPermission(VIEWMATTERSOPENEDREPORT),
+      parentId: "reports",
+    },
+    {
+      id: "settlementsDue",
+      label: "Settlements Due",
+      link: "/reports/settlements-due",
+      show: checkHasPermission(VIEWSETTLEMENTSDUEREPORT),
+      parentId: "reports",
+    },
+    {
+      id: "feesBilled",
+      label: "Fees Billed",
+      link: "/reports/fees-billed",
+      show: checkHasPermission(VIEWFEESBILLEDREPORT),
+      parentId: "reports",
+    },
+    {
+      id: "outstandingInvoices",
+      label: "Outstanding Invoices",
+      link: "/reports/outstanding-invoices",
+      show: checkHasPermission(VIEWOUTSTANDINGINVOICESREPORT),
+      parentId: "reports",
+    },
+  ];
+
+  const hasReportAccess = reportSubItems.filter((item) => item.show).length > 0;
 
   useEffect(() => {
     document.body.classList.remove("twocolumn-panel");
@@ -215,7 +252,7 @@ const Navdata = () => {
       label: "Reports",
       icon: "ri-file-chart-line",
       link: "/#",
-      show: true,
+      show: hasReportAccess,
       stateVariables: isReports,
       click: function (e) {
         e.preventDefault();
@@ -223,36 +260,7 @@ const Navdata = () => {
         setIscurrentState("Reports");
         updateIconSidebar(e);
       },
-      subItems: [
-        {
-          id: "mattersOpened",
-          label: "Matters Opened",
-          link: "/reports/matters-opened",
-          show: true,
-          parentId: "reports",
-        },
-        {
-          id: "settlementsDue",
-          label: "Settlements Due",
-          link: "/reports/settlements-due",
-          show: true,
-          parentId: "reports",
-        },
-        {
-          id: "feesBilled",
-          label: "Fees Billed",
-          link: "/reports/fees-billed",
-          show: true,
-          parentId: "reports",
-        },
-        {
-          id: "outstandingInvoices",
-          label: "Outstanding Invoices",
-          link: "/reports/outstanding-invoices",
-          show: true,
-          parentId: "reports",
-        },
-      ],
+      subItems: reportSubItems,
     },
     {
       id: "account",
