@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import {
@@ -67,6 +67,10 @@ const MatterDetail = (props) => {
   const [loading, setLoading] = useState(false);
   const [extraButtons, setExtraButtons] = useState(null);
   const [showConflictModal, setShowConflictModal] = useState(false);
+
+  const handleOpenConflictReport = useCallback(() => {
+    setShowConflictModal(true);
+  }, []);
   const { formStatus, navigationEditForm } = useSelector(
     (state) => state.Layout
   );
@@ -221,7 +225,7 @@ const MatterDetail = (props) => {
             refresh={handleRefresh}
             setExtraButtons={setExtraButtons}
             isArchived={isArchivedReadOnly}
-            openConflictReport={() => setShowConflictModal(true)}
+            openConflictReport={handleOpenConflictReport}
           />
         );
       case "INVOICES":

@@ -85,7 +85,7 @@ const MatterContacts = (props) => {
         </div>,
       );
     }
-  }, [disabled, setExtraButtons, props.openConflictReport, props.isArchived]);
+  }, [disabled, setExtraButtons, Boolean(props.openConflictReport), props.isArchived]);
 
   useEffect(() => {
     if (props.data) {
