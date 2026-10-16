@@ -229,6 +229,13 @@ const AddNewInvoice = (props) => {
   };
 
   const handleChange = (name, value) => {
+
+    if (name === "invoiceDate" || name === "invoiceDueDate") {
+      const formattedDate = value ? moment(value).format("YYYY-MM-DD") : null;
+      setFormData({ ...formData, [name]: formattedDate });
+      return;
+    }
+
     setFormData({ ...formData, [name]: value });
 
     if (name === "timeBillingList" || name === "serviceLineList") {
