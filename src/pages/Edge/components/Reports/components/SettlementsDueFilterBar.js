@@ -13,11 +13,20 @@ const STATUS_OPTIONS = [
 const SUB_TYPE_OPTIONS = [
   { value: null, label: "All Sub-Types" },
   { value: "PURCHASE", label: "Purchase" },
+  { value: "PURCHASE_STRATA", label: "Purchase Strata" },
   { value: "SALE", label: "Sale" },
-  { value: "OFF_THE_PLAN", label: "Off The Plan" },
+  { value: "SALE_STRATA", label: "Sale Strata" },
   { value: "TRANSFER", label: "Transfer" },
-  { value: "REFINANCE", label: "Refinance" },
-  { value: "COMMERCIAL", label: "Commercial" },
+  { value: "SUBDIVISION", label: "Subdivision" },
+  { value: "CONVEYANCING_GENERAL", label: "Conveyancing General" },
+  { value: "EASEMENTS_RESTRICTIONS", label: "Easements / Restrictions" },
+  { value: "MORTGAGE_DISCHARGE", label: "Mortgage - Discharge" },
+  { value: "MORTGAGE_GENERAL", label: "Mortgage - General" },
+  { value: "MORTGAGE_VARIATION", label: "Mortgage - Variation" },
+  { value: "MORTGAGE_TRANSFER", label: "Mortgage - Transfer" },
+  { value: "PERSONAL_PROPERTY_SECURITIES", label: "Personal Property Securities" },
+  { value: "WATER_ACCESS_LICENCE_PURCHASE", label: "Water Access Licence - Purchase" },
+  { value: "WATER_ACCESS_LICENCE_SALE", label: "Water Access Licence - Sale" },
 ];
 
 const selectCustomStyles = {

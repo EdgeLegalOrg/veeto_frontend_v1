@@ -4,6 +4,12 @@ import classnames from "classnames";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { checkHasPermission } from "../../utils/utilFunc";
+import {
+  VIEWFEESBILLEDREPORT,
+  VIEWMATTERSOPENEDREPORT,
+  VIEWOUTSTANDINGINVOICESREPORT,
+  VIEWSETTLEMENTSDUEREPORT,
+} from "../../utils/RightConstants";
 import ReportHeader from "./components/ReportHeader";
 import MattersOpenedReportView from "./views/MattersOpenedReportView";
 import SettlementsDueReportView from "./views/SettlementsDueReportView";
@@ -62,11 +68,56 @@ const getDatePresetRange = (preset) => {
   }
 };
 
-const resolveTabFromPath = (pathname) => {
-  if (pathname.includes("settlements-due")) return "settlements-due";
-  if (pathname.includes("fees-billed")) return "fees-billed";
-  if (pathname.includes("outstanding-invoices")) return "outstanding-invoices";
-  return "matters-opened";
+const ALL_REPORT_TABS = [
+  {
+    id: "matters-opened",
+    label: "Matters Opened",
+    icon: "ri-folder-open-line",
+    right: VIEWMATTERSOPENEDREPORT,
+    component: MattersOpenedReportView,
+    exportFn: postExportMattersOpenedCsv,
+    exportPrefix: "matters_opened",
+  },
+  {
+    id: "settlements-due",
+    label: "Settlements Due",
+    icon: "ri-calendar-event-line",
+    right: VIEWSETTLEMENTSDUEREPORT,
+    component: SettlementsDueReportView,
+    exportFn: postExportSettlementsDueCsv,
+    exportPrefix: "settlements_due",
+  },
+  {
+    id: "fees-billed",
+    label: "Fees Billed",
+    icon: "ri-money-dollar-circle-line",
+    right: VIEWFEESBILLEDREPORT,
+    component: FeesBilledReportView,
+    exportFn: postExportFeesBilledCsv,
+    exportPrefix: "fees_billed",
+  },
+  {
+    id: "outstanding-invoices",
+    label: "Outstanding Invoices",
+    icon: "ri-alarm-warning-line",
+    right: VIEWOUTSTANDINGINVOICESREPORT,
+    component: OutstandingInvoicesReportView,
+    exportFn: postExportOutstandingInvoicesCsv,
+    exportPrefix: "outstanding_invoices",
+  },
+];
+
+const resolveTabFromPath = (pathname, permittedTabs) => {
+  let matchedId = null;
+  if (pathname.includes("settlements-due")) matchedId = "settlements-due";
+  else if (pathname.includes("fees-billed")) matchedId = "fees-billed";
+  else if (pathname.includes("outstanding-invoices")) matchedId = "outstanding-invoices";
+  else if (pathname.includes("matters-opened")) matchedId = "matters-opened";
+
+  if (matchedId && permittedTabs.some((t) => t.id === matchedId)) {
+    return matchedId;
+  }
+  return permittedTabs.length > 0 ? permittedTabs[0].id : null;
 };
 
 const ReportDashboard = () => {
@@ -75,7 +126,14 @@ const ReportDashboard = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const activeTab = useMemo(() => resolveTabFromPath(location.pathname), [location.pathname]);
+  const permittedTabs = useMemo(() => {
+    return ALL_REPORT_TABS.filter((tab) => checkHasPermission(tab.right));
+  }, []);
+
+  const activeTab = useMemo(
+    () => resolveTabFromPath(location.pathname, permittedTabs),
+    [location.pathname, permittedTabs]
+  );
 
   const canAccessAllSites = checkHasPermission("AccessAllSites");
   const [selectedSite, setSelectedSite] = useState(() => {
@@ -108,7 +166,7 @@ const ReportDashboard = () => {
       console.error("Error reading sites from storage:", e);
     }
 
-    // 2. Fetch fresh sites and staff metadata
+    // 2. Refresh from network asynchronously
     const loadMetadata = async () => {
       try {
         // If user cannot access all sites, only show assigned sites
@@ -193,22 +251,11 @@ const ReportDashboard = () => {
         siteId: selectedSite || null,
       };
 
-      let response;
-      let filenamePrefix = "report";
+      const currentTab = permittedTabs.find((t) => t.id === activeTab);
+      if (!currentTab || !currentTab.exportFn) return;
 
-      if (activeTab === "matters-opened") {
-        response = await postExportMattersOpenedCsv(payload);
-        filenamePrefix = "matters_opened";
-      } else if (activeTab === "settlements-due") {
-        response = await postExportSettlementsDueCsv(payload);
-        filenamePrefix = "settlements_due";
-      } else if (activeTab === "fees-billed") {
-        response = await postExportFeesBilledCsv(payload);
-        filenamePrefix = "fees_billed";
-      } else if (activeTab === "outstanding-invoices") {
-        response = await postExportOutstandingInvoicesCsv(payload);
-        filenamePrefix = "outstanding_invoices";
-      }
+      const response = await currentTab.exportFn(payload);
+      const filenamePrefix = currentTab.exportPrefix || "report";
 
       if (response && response.data) {
         const blob = new Blob([response.data], { type: "text/csv;charset=utf-8;" });
@@ -247,81 +294,48 @@ const ReportDashboard = () => {
         />
 
         {/* Tab Navigation */}
-        <Nav tabs className="nav-tabs-custom nav-success mb-3">
-          <NavItem>
-            <NavLink
-              className={classnames({ active: activeTab === "matters-opened" }, "fw-semibold")}
-              onClick={() => handleTabClick("matters-opened")}
-              style={{ cursor: "pointer" }}
-            >
-              <i className="ri-folder-open-line me-1 align-bottom"></i> 1. Matters Opened
-            </NavLink>
-          </NavItem>
-          <NavItem>
-            <NavLink
-              className={classnames({ active: activeTab === "settlements-due" }, "fw-semibold")}
-              onClick={() => handleTabClick("settlements-due")}
-              style={{ cursor: "pointer" }}
-            >
-              <i className="ri-calendar-event-line me-1 align-bottom"></i> 2. Settlements Due
-            </NavLink>
-          </NavItem>
-          <NavItem>
-            <NavLink
-              className={classnames({ active: activeTab === "fees-billed" }, "fw-semibold")}
-              onClick={() => handleTabClick("fees-billed")}
-              style={{ cursor: "pointer" }}
-            >
-              <i className="ri-money-dollar-circle-line me-1 align-bottom"></i> 3. Fees Billed
-            </NavLink>
-          </NavItem>
-          <NavItem>
-            <NavLink
-              className={classnames({ active: activeTab === "outstanding-invoices" }, "fw-semibold")}
-              onClick={() => handleTabClick("outstanding-invoices")}
-              style={{ cursor: "pointer" }}
-            >
-              <i className="ri-alarm-warning-line me-1 align-bottom"></i> 4. Outstanding Invoices
-            </NavLink>
-          </NavItem>
-        </Nav>
+        {permittedTabs.length > 0 && (
+          <Nav tabs className="nav-tabs-custom nav-success mb-3">
+            {permittedTabs.map((tab, idx) => (
+              <NavItem key={tab.id}>
+                <NavLink
+                  className={classnames({ active: activeTab === tab.id }, "fw-semibold")}
+                  onClick={() => handleTabClick(tab.id)}
+                  style={{ cursor: "pointer" }}
+                >
+                  <i className={`${tab.icon} me-1 align-bottom`}></i> {`${idx + 1}. ${tab.label}`}
+                </NavLink>
+              </NavItem>
+            ))}
+          </Nav>
+        )}
 
         {/* Isolated Active Report View - Mounts and loads ONLY the active report */}
         <div className="report-content-wrapper">
-          {activeTab === "matters-opened" && (
-            <MattersOpenedReportView
-              selectedSite={selectedSite}
-              dateRange={dateRange}
-              staffList={staffList}
-              refreshTrigger={refreshTrigger}
-            />
-          )}
-
-          {activeTab === "settlements-due" && (
-            <SettlementsDueReportView
-              selectedSite={selectedSite}
-              dateRange={dateRange}
-              staffList={staffList}
-              refreshTrigger={refreshTrigger}
-            />
-          )}
-
-          {activeTab === "fees-billed" && (
-            <FeesBilledReportView
-              selectedSite={selectedSite}
-              dateRange={dateRange}
-              staffList={staffList}
-              refreshTrigger={refreshTrigger}
-            />
-          )}
-
-          {activeTab === "outstanding-invoices" && (
-            <OutstandingInvoicesReportView
-              selectedSite={selectedSite}
-              dateRange={dateRange}
-              staffList={staffList}
-              refreshTrigger={refreshTrigger}
-            />
+          {permittedTabs.length === 0 ? (
+            <div className="card shadow-sm border-0 mt-3">
+              <div className="card-body text-center py-5">
+                <i className="ri-lock-line fs-48 text-warning mb-3 d-block"></i>
+                <h5 className="text-dark">Access Restricted</h5>
+                <p className="text-muted mb-0">
+                  You do not have permission to view any reports. Please contact your system administrator to assign reporting access.
+                </p>
+              </div>
+            </div>
+          ) : (
+            permittedTabs.map((tab) => {
+              if (tab.id !== activeTab) return null;
+              const ViewComponent = tab.component;
+              return (
+                <ViewComponent
+                  key={tab.id}
+                  selectedSite={selectedSite}
+                  dateRange={dateRange}
+                  staffList={staffList}
+                  refreshTrigger={refreshTrigger}
+                />
+              );
+            })
           )}
         </div>
       </Container>

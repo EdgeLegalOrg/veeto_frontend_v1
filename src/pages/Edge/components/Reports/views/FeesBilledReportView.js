@@ -1,9 +1,21 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import FeesBilledMetrics from "../components/FeesBilledMetrics";
 import FeesByTypeBreakdown from "../components/FeesByTypeBreakdown";
 import FeesBilledFilterBar from "../components/FeesBilledFilterBar";
 import FeesBilledTable from "../components/FeesBilledTable";
 import { postFeesBilledReport } from "../../../apis";
+
+const formatDate = (d) => {
+  if (!d) return null;
+  if (typeof d === "string") return d.slice(0, 10);
+  if (typeof d.getFullYear === "function") {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  }
+  return null;
+};
 
 const FeesBilledReportView = ({
   selectedSite,
@@ -25,18 +37,39 @@ const FeesBilledReportView = ({
     feeEarnerId: null,
   });
 
-  const handleFilterChange = (key, value) => {
-    setFilters((prev) => ({ ...prev, [key]: value }));
-  };
+  const startDateStr = useMemo(
+    () => (dateRange && dateRange[0] ? formatDate(dateRange[0]) : null),
+    [dateRange]
+  );
+  const endDateStr = useMemo(
+    () => (dateRange && dateRange[1] ? formatDate(dateRange[1]) : null),
+    [dateRange]
+  );
 
-  const handleResetFilters = () => {
+  const handleFilterChange = useCallback((key, value) => {
+    setFilters((prev) => ({ ...prev, [key]: value }));
+  }, []);
+
+  const handleResetFilters = useCallback(() => {
     setFilters({
       status: "ALL",
       matterType: null,
       feeEarnerId: null,
     });
     setSelectedCard("total");
-  };
+  }, []);
+
+  const handleSelectMatterType = useCallback((type) => {
+    setFilters((prev) => ({ ...prev, matterType: type }));
+  }, []);
+
+  const handleToggleBreakdown = useCallback(() => {
+    setShowBreakdown((prev) => !prev);
+  }, []);
+
+  const handleCloseBreakdown = useCallback(() => {
+    setShowBreakdown(false);
+  }, []);
 
   useEffect(() => {
     let isCurrent = true;
@@ -44,32 +77,24 @@ const FeesBilledReportView = ({
     const fetchReport = async () => {
       setIsLoading(true);
       try {
-        const formatDate = (d) => {
-          if (!d) return null;
-          const year = d.getFullYear();
-          const month = String(d.getMonth() + 1).padStart(2, "0");
-          const day = String(d.getDate()).padStart(2, "0");
-          return `${year}-${month}-${day}`;
-        };
-
         const payload = {
-          startDate: dateRange && dateRange[0] ? formatDate(dateRange[0]) : null,
-          endDate: dateRange && dateRange[1] ? formatDate(dateRange[1]) : null,
+          startDate: startDateStr,
+          endDate: endDateStr,
           siteId: selectedSite || null,
-          status: filters.status,
-          matterType: filters.matterType,
           feeEarnerId: filters.feeEarnerId,
         };
 
         const response = await postFeesBilledReport(payload);
         if (isCurrent) {
+          let incomingData = { summary: null, rows: [] };
           if (response?.data?.data) {
-            setReportData(response.data.data);
+            incomingData = response.data.data;
           } else if (response?.data) {
-            setReportData(response.data);
+            incomingData = response.data;
           } else if (response?.rows) {
-            setReportData(response);
+            incomingData = response;
           }
+          setReportData(incomingData);
         }
       } catch (error) {
         if (isCurrent) {
@@ -87,7 +112,30 @@ const FeesBilledReportView = ({
     return () => {
       isCurrent = false;
     };
-  }, [dateRange, selectedSite, filters, refreshTrigger]);
+  }, [
+    startDateStr,
+    endDateStr,
+    selectedSite,
+    filters.feeEarnerId,
+    refreshTrigger,
+  ]);
+
+  // Client-side filtering of rows for table view based on status and matterType
+  const filteredRows = useMemo(() => {
+    return (reportData.rows || []).filter((r) => {
+      if (
+        filters.status &&
+        filters.status !== "ALL" &&
+        r.invoiceStatus !== filters.status
+      ) {
+        return false;
+      }
+      if (filters.matterType && r.matterType !== filters.matterType) {
+        return false;
+      }
+      return true;
+    });
+  }, [reportData.rows, filters.status, filters.matterType]);
 
   return (
     <div>
@@ -95,20 +143,20 @@ const FeesBilledReportView = ({
       <FeesBilledMetrics
         summary={reportData.summary}
         selectedCard={selectedCard}
-        onSelectCard={(c) => setSelectedCard(c)}
+        onSelectCard={setSelectedCard}
         showBreakdown={showBreakdown}
-        onToggleBreakdown={() => setShowBreakdown((prev) => !prev)}
+        onToggleBreakdown={handleToggleBreakdown}
       />
 
-      {/* Fees by Practice Area / Type Breakdown (Vertical List for Single Site, Multi-Column Comparison for All Sites) */}
+      {/* Fees by Practice Area / Type Breakdown (Memoized component) */}
       {showBreakdown && (
         <FeesByTypeBreakdown
           rows={reportData.rows}
           summary={reportData.summary}
           selectedSite={selectedSite}
           selectedMatterType={filters.matterType}
-          onSelectMatterType={(type) => handleFilterChange("matterType", type)}
-          onClose={() => setShowBreakdown(false)}
+          onSelectMatterType={handleSelectMatterType}
+          onClose={handleCloseBreakdown}
         />
       )}
 
@@ -121,7 +169,7 @@ const FeesBilledReportView = ({
       />
 
       {/* Data Table */}
-      <FeesBilledTable rows={reportData.rows} isLoading={isLoading} />
+      <FeesBilledTable rows={filteredRows} isLoading={isLoading} />
     </div>
   );
 };
