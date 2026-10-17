@@ -19,6 +19,7 @@ import { returnFileIcon, filterFileType } from "../../../utils/Icons";
 import fileDownload from "js-file-download";
 import LoadingPage from "../../../utils/LoadingPage";
 import AddEditAttachment from "./AddEditAttachment";
+import MasterFileBinderModal from "./MasterFileBinderModal";
 import { deleteMatterAttach, downloadMatterAttach } from "../../../apis";
 import { AlertPopup } from "../../customComponents/CustomComponents";
 import upArrow from "../../../images/upArrow.svg";
@@ -79,6 +80,8 @@ const AttachmentList = (props) => {
     data: {},
   });
   const [deletePop, setDeletePop] = useState(false);
+  const [openBinder, setOpenBinder] = useState(false);
+  const [selectedBinderAttachId, setSelectedBinderAttachId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [sortOrder, setSortOrder] = useState("desc");
   const [sortField, setSortField] = useState("uploadDate");
@@ -140,6 +143,21 @@ const AttachmentList = (props) => {
     if (setExtraButtons) {
       setExtraButtons(
         <div className="d-flex align-items-center">
+          <Button
+            color="primary"
+            onClick={() => {
+              setSelectedBinderAttachId(null);
+              setOpenBinder(true);
+            }}
+            className="d-flex mx-2"
+            style={{ backgroundColor: "#002b5c", borderColor: "#002b5c" }}
+            title="Read all documents and emails in continuous chronological file reader"
+          >
+            <span className="plusdiv">
+              <i className="ri-book-read-line" style={{ fontSize: "13px", lineHeight: 1 }}></i>
+            </span>
+            Master File Binder
+          </Button>
           <Button
             color="success"
             onClick={() => setAdd(true)}
@@ -960,6 +978,18 @@ const AttachmentList = (props) => {
             />
           </ModalBody>
         </Modal>
+      )}
+      {openBinder && (
+        <MasterFileBinderModal
+          isOpen={openBinder}
+          toggle={() => {
+            setOpenBinder(false);
+            setSelectedBinderAttachId(null);
+          }}
+          matterId={props?.data?.id}
+          matterData={props?.data}
+          initialAttachmentId={selectedBinderAttachId}
+        />
       )}
       {loading && <LoadingPage />}
     </div>
