@@ -386,7 +386,9 @@ const AttachmentList = (props) => {
             isGroup: true,
             key: `email-group-${item.id}-${subjectKey}`,
             subject: item.emailSubject || item.name?.replace(/\.(eml|msg)$/i, "") || "Email Message",
-            sender: item.sender || item.uploadedBy,
+            sender: item.sender,
+            direction: item.direction,
+            recipient: item.recipient,
             receivedDate: item.receivedDate || item.uploadDate,
             uploadDate: item.uploadDate,
             uploadedBy: item.uploadedBy || item.sender,
@@ -664,7 +666,11 @@ const AttachmentList = (props) => {
                   )}
                   <td className="pe-cursor" style={{ verticalAlign: "top", paddingTop: "12px" }}>
                     <div onClick={() => handleEditRowDetail(entry.primaryItem)}>
-                      <EmailReceivedIcon />
+                      {(entry.direction === "OUTGOING" || entry.primaryItem?.direction === "OUTGOING") ? (
+                        <EmailSentIcon />
+                      ) : (
+                        <EmailReceivedIcon />
+                      )}
                     </div>
                   </td>
                   <td className="pe-cursor" style={{ verticalAlign: "top", paddingTop: "10px" }}>
@@ -677,23 +683,26 @@ const AttachmentList = (props) => {
                       >
                         {entry.subject}
                       </div>
-                      <div className="d-flex align-items-center mt-1">
+                      <div className="d-flex align-items-center mt-1 flex-wrap gap-2">
                         <span
                           style={{
-                            backgroundColor: "#64748b",
+                            backgroundColor: entry.direction === "OUTGOING" ? "#2563eb" : "#059669",
                             color: "#ffffff",
                             fontSize: "10px",
                             fontWeight: "700",
                             padding: "1px 6px",
                             borderRadius: "4px",
                             letterSpacing: "0.5px",
-                            marginRight: "6px",
                           }}
                         >
-                          RECEIVED
+                          {entry.direction === "OUTGOING" ? "SENT" : "RECEIVED"}
                         </span>
                         <span style={{ fontSize: "12px", color: "#475569" }}>
-                          {entry.sender}
+                          {entry.direction === "OUTGOING"
+                            ? `To: ${entry.recipient || "Unknown"}`
+                            : entry.direction === "INCOMING"
+                              ? `From: ${entry.sender || "Unknown"}`
+                              : "Email participant unavailable"}
                         </span>
                       </div>
 
@@ -758,7 +767,8 @@ const AttachmentList = (props) => {
                     </p>
                     {entry.receivedDate && (
                       <div style={{ fontSize: "11px", color: "#6b7280" }}>
-                        Received: {formatDateFunc(entry.receivedDate)}
+                        {entry.direction === "OUTGOING" ? "Sent: " : "Received: "}
+                        {formatDateFunc(entry.receivedDate)}
                       </div>
                     )}
                   </td>
