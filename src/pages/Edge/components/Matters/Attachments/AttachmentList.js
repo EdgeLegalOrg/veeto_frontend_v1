@@ -258,19 +258,15 @@ const AttachmentList = (props) => {
   // navigate("/Documents");
 
   const handleDownload = (d) => {
-  let rval = [];
-  rval.push(d.name);
+    let filename = d.name;
+    if (d.type && !filename.toLowerCase().endsWith(`.${d.type.toLowerCase()}`)) {
+      filename = `${filename}.${d.type}`;
+    }
 
-  const hasExtension = d.name && /\.[^./\\]+$/.test(d.name);
-
-  if (d.type && !hasExtension) {
-    rval.push(d.type);
-  }
-
-  downloadMatterAttach(d.id).then((res) => {
-    fileDownload(res.data, rval.join("."));
-  });
-};
+    downloadMatterAttach(d.id).then((res) => {
+      fileDownload(res.data, filename);
+    });
+  };
 
   const handleDeleteAlert = () => {
     if (selectedList && selectedList.length > 0) {
