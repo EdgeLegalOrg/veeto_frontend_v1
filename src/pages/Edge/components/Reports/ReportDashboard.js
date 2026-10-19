@@ -49,6 +49,12 @@ const getDatePresetRange = (preset) => {
       const end = new Date(now.getFullYear(), qMonth + 3, 0);
       return [startOfDay(start), endOfDay(end)];
     }
+    case "CALENDAR_YEAR": {
+      // Calendar Year: 1 January to 31 December
+      const start = new Date(now.getFullYear(), 0, 1);
+      const end = new Date(now.getFullYear(), 11, 31);
+      return [startOfDay(start), endOfDay(end)];
+    }
     case "FINANCIAL_YEAR": {
       // Australian Financial Year: 1 July to 30 June
       const currentYear = now.getFullYear();

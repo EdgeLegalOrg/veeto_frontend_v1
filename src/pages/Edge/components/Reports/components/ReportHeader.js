@@ -5,17 +5,14 @@ import Flatpickr from "react-flatpickr";
 import "flatpickr/dist/themes/material_blue.css";
 import { checkHasPermission } from "../../../utils/utilFunc";
 
-// Australian Financial Year calculation
-const now = new Date();
-const currentYear = now.getFullYear();
-const fyStartYear = now.getMonth() >= 6 ? currentYear : currentYear - 1;
-const fyLabel = `FY ${fyStartYear}/${String(fyStartYear + 1).slice(-2)}`;
+// Report date range presets
 
 const DATE_PRESETS = [
   { label: "This Month", value: "THIS_MONTH" },
   { label: "Last Month", value: "LAST_MONTH" },
   { label: "This Quarter", value: "THIS_QUARTER" },
-  { label: fyLabel, value: "FINANCIAL_YEAR" },
+  { label: "Current Calendar Year", value: "CALENDAR_YEAR" },
+  { label: "Current Financial Year", value: "FINANCIAL_YEAR" },
   { label: "Custom", value: "CUSTOM" },
 ];
 
