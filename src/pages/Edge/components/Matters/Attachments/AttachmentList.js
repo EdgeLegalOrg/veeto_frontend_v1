@@ -75,10 +75,6 @@ const AttachmentList = (props) => {
   const [attachList, setAttachList] = useState([]);
   const [selectedList, setSelectedList] = useState([]);
   const [add, setAdd] = useState(false);
-  const [editState, setEditState] = useState({
-    show: false,
-    data: {},
-  });
   const [deletePop, setDeletePop] = useState(false);
   const [openBinder, setOpenBinder] = useState(false);
   const [selectedBinderAttachId, setSelectedBinderAttachId] = useState(null);
@@ -249,23 +245,17 @@ const AttachmentList = (props) => {
     setFilteredList(arr);
   };
 
-  const handleEditRowDetail = (row) => {
-    setEditState({
-      show: true,
-      data: row,
-    });
-    // const formValue = {
-    //   ...row,
-    //   matterId: props.data.id
-    // };
-    // dispatch(
-    //   navigationEditFormAction({
-    //     currentValue: { ...formValue,  tab: "ATTACHMENTS" },
-    //     newValue: formValue,
-    //   })
-    // );
-    // navigate("/Documents");
-  };
+  // const formValue = {
+  //   ...row,
+  //   matterId: props.data.id
+  // };
+  // dispatch(
+  //   navigationEditFormAction({
+  //     currentValue: { ...formValue,  tab: "ATTACHMENTS" },
+  //     newValue: formValue,
+  //   })
+  // );
+  // navigate("/Documents");
 
   const handleDownload = (d) => {
   let rval = [];
@@ -664,8 +654,8 @@ const AttachmentList = (props) => {
                       />
                     </td>
                   )}
-                  <td className="pe-cursor" style={{ verticalAlign: "top", paddingTop: "12px" }}>
-                    <div onClick={() => handleEditRowDetail(entry.primaryItem)}>
+                  <td style={{ verticalAlign: "top", paddingTop: "12px" }}>
+                    <div>
                       {(entry.direction === "OUTGOING" || entry.primaryItem?.direction === "OUTGOING") ? (
                         <EmailSentIcon />
                       ) : (
@@ -677,9 +667,9 @@ const AttachmentList = (props) => {
                     <div>
                       {/* Email Subject Header */}
                       <div
-                        className="fw-medium pe-cursor"
+                        className="fw-medium"
                         style={{ color: "#1e40af", fontSize: "14px" }}
-                        onClick={() => handleEditRowDetail(entry.primaryItem)}
+
                       >
                         {entry.subject}
                       </div>
@@ -761,8 +751,8 @@ const AttachmentList = (props) => {
                       </div>
                     </div>
                   </td>
-                  <td className="pe-cursor" style={{ verticalAlign: "top", paddingTop: "12px" }}>
-                    <p className="mb-0" onClick={() => handleEditRowDetail(entry.primaryItem)}>
+                  <td style={{ verticalAlign: "top", paddingTop: "12px" }}>
+                    <p className="mb-0">
                       {entry.uploadDate ? formatDateFunc(entry.uploadDate) : ""}
                     </p>
                     {entry.receivedDate && (
@@ -773,9 +763,7 @@ const AttachmentList = (props) => {
                     )}
                   </td>
                   <td
-                    className="pe-cursor"
                     style={{ verticalAlign: "top", paddingTop: "10px" }}
-                    onClick={() => handleEditRowDetail(entry.primaryItem)}
                   >
                     <div className="d-flex align-items-center gap-2">
                       <span
@@ -825,15 +813,15 @@ const AttachmentList = (props) => {
                     />
                   </td>
                 )}
-                <td className="pe-cursor" style={{ verticalAlign: "top", paddingTop: "12px" }}>
+                <td style={{ verticalAlign: "top", paddingTop: "12px" }}>
                   <img
                     src={returnFileIcon(attach.type)}
                     draggable={false}
                     alt={attach.type}
                     width="30px"
                     height="30px"
-                    className="mr-r16 pe-cursor"
-                    onClick={() => handleEditRowDetail(attach)}
+                    className="mr-r16"
+
                   />
                 </td>
                 <td className="pe-cursor" style={{ verticalAlign: "top", paddingTop: "10px" }}>
@@ -857,15 +845,13 @@ const AttachmentList = (props) => {
                     ></TooltipWrapper>
                   </div>
                 </td>
-                <td className="pe-cursor" style={{ verticalAlign: "top", paddingTop: "12px" }}>
-                  <p className="mb-0" onClick={() => handleEditRowDetail(attach)}>
+                <td style={{ verticalAlign: "top", paddingTop: "12px" }}>
+                  <p className="mb-0">
                     {attach.uploadDate ? formatDateFunc(attach.uploadDate) : ""}
                   </p>
                 </td>
                 <td
-                  className="pe-cursor"
                   style={{ verticalAlign: "top", paddingTop: "10px" }}
-                  onClick={() => handleEditRowDetail(attach)}
                 >
                   <div className="d-flex align-items-center gap-2">
                     <span
@@ -917,47 +903,6 @@ const AttachmentList = (props) => {
               matterNumber={props?.data?.matterNumber}
               matterRe={props?.data?.letterSubject}
               mode="add"
-            />
-          </ModalBody>
-        </Modal>
-      )}
-      {editState.show && (
-        <Modal
-          isOpen={editState.show}
-          toggle={() =>
-            setEditState({
-              show: false,
-              data: {},
-            })
-          }
-          backdrop="static"
-          scrollable={true}
-          size="md"
-          centered
-        >
-          <ModalHeader
-            toggle={() =>
-              setEditState({
-                show: false,
-                data: {},
-              })
-            }
-            className="bg-light p-3"
-          >
-            Edit Attachment
-          </ModalHeader>
-          <ModalBody>
-            <AddEditAttachment
-              closeForm={() =>
-                setEditState({
-                  show: false,
-                  data: {},
-                })
-              }
-              refresh={props.refresh}
-              matterId={props?.data?.id}
-              editState={editState.data}
-              mode="edit"
             />
           </ModalBody>
         </Modal>
