@@ -1,3 +1,4 @@
+import ReportComparisonControl from "./ReportComparisonControl";
 import React, { useRef } from "react";
 import { Row, Col, Button } from "reactstrap";
 import Select from "react-select";
@@ -34,6 +35,8 @@ const ReportHeader = ({
   isExporting,
   exportDisabled,
   financialYearNote,
+  comparison,
+  onComparisonChange,
 }) => {
   const flatpickrRef = useRef(null);
   const canAccessAllSites = checkHasPermission("AccessAllSites");
@@ -158,6 +161,12 @@ const ReportHeader = ({
               </div>
               <i className="ri-arrow-down-s-line text-muted ms-1 fs-14 flex-shrink-0"></i>
             </div>
+
+            <ReportComparisonControl
+              dateRange={dateRange}
+              comparison={comparison}
+              onChange={onComparisonChange}
+            />
 
             {/* Export CSV Button */}
             <Button

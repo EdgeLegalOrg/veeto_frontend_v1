@@ -1,3 +1,4 @@
+import ReportComparison from "../components/ReportComparison";
 import React, { useEffect, useState, useMemo } from "react";
 import OutstandingInvoicesMetrics from "../components/OutstandingInvoicesMetrics";
 import OutstandingInvoicesFilterBar from "../components/OutstandingInvoicesFilterBar";
@@ -19,10 +20,11 @@ const formatDate = (d) => {
 const OutstandingInvoicesReportView = ({
   selectedSite,
   dateRange,
+  comparisonRange,
   staffList,
   refreshTrigger,
 }) => {
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [reportData, setReportData] = useState({
     summary: null,
     rows: [],
@@ -82,6 +84,8 @@ const OutstandingInvoicesReportView = ({
         }
       } catch (error) {
         if (isCurrent) {
+          // Clear stale selected-period values rather than compare against a failed refresh.
+          setReportData({ summary: null, rows: [] });
           console.error("Failed to load Outstanding Invoices report:", error);
         }
       } finally {
@@ -119,6 +123,24 @@ const OutstandingInvoicesReportView = ({
         onFilterChange={handleFilterChange}
         onResetFilters={handleResetFilters}
         staffList={staffList}
+      />
+
+      {/* Comparison reuses this report's API, filters, and detail table. */}
+      <ReportComparison
+        type="outstanding"
+        dateRange={dateRange}
+        comparisonRange={comparisonRange}
+        fetchReport={postOutstandingInvoicesReport}
+        payload={{
+          siteId: selectedSite || null,
+          agingBucket: filters.agingBucket,
+            status: filters.status,
+            feeEarnerId: filters.feeEarnerId,
+        }}
+        summary={reportData.summary}
+        isPrimaryLoading={isLoading}
+        refreshTrigger={refreshTrigger}
+        renderDetails={(rows) => <OutstandingInvoicesTable rows={rows} isLoading={false} />}
       />
 
       {/* Data Table */}

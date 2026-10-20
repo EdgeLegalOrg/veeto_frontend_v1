@@ -1,3 +1,4 @@
+import ReportComparison from "../components/ReportComparison";
 import React, { useEffect, useState, useMemo, useCallback } from "react";
 import FeesBilledMetrics from "../components/FeesBilledMetrics";
 import FeesByTypeBreakdown from "../components/FeesByTypeBreakdown";
@@ -20,10 +21,11 @@ const formatDate = (d) => {
 const FeesBilledReportView = ({
   selectedSite,
   dateRange,
+  comparisonRange,
   staffList,
   refreshTrigger,
 }) => {
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [reportData, setReportData] = useState({
     summary: null,
     rows: [],
@@ -98,6 +100,8 @@ const FeesBilledReportView = ({
         }
       } catch (error) {
         if (isCurrent) {
+          // Clear stale selected-period values rather than compare against a failed refresh.
+          setReportData({ summary: null, rows: [] });
           console.error("Failed to load Fees Billed report:", error);
         }
       } finally {
@@ -121,8 +125,8 @@ const FeesBilledReportView = ({
   ]);
 
   // Client-side filtering of rows for table view based on status and matterType
-  const filteredRows = useMemo(() => {
-    return (reportData.rows || []).filter((r) => {
+  const filterComparisonRows = useCallback((rows) => {
+    return (rows || []).filter((r) => {
       if (
         filters.status &&
         filters.status !== "ALL" &&
@@ -135,7 +139,8 @@ const FeesBilledReportView = ({
       }
       return true;
     });
-  }, [reportData.rows, filters.status, filters.matterType]);
+  }, [filters.status, filters.matterType]);
+  const filteredRows = useMemo(() => filterComparisonRows(reportData.rows), [reportData.rows, filterComparisonRows]);
 
   return (
     <div>
@@ -166,6 +171,22 @@ const FeesBilledReportView = ({
         onFilterChange={handleFilterChange}
         onResetFilters={handleResetFilters}
         staffList={staffList}
+      />
+
+      {/* Comparison reuses this report's API, filters, and detail table. */}
+      <ReportComparison
+        type="fees"
+        dateRange={dateRange}
+        comparisonRange={comparisonRange}
+        fetchReport={postFeesBilledReport}
+        payload={{
+          siteId: selectedSite || null,
+          feeEarnerId: filters.feeEarnerId,
+        }}
+        summary={reportData.summary}
+        isPrimaryLoading={isLoading}
+        refreshTrigger={refreshTrigger}
+        renderDetails={(rows) => <FeesBilledTable rows={filterComparisonRows(rows)} isLoading={false} />}
       />
 
       {/* Data Table */}

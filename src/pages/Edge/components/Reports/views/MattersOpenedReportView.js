@@ -1,3 +1,4 @@
+import ReportComparison from "../components/ReportComparison";
 import React, { useEffect, useState, useMemo, useCallback } from "react";
 import MattersOpenedMetrics from "../components/MattersOpenedMetrics";
 import MattersByTypeBreakdown from "../components/MattersByTypeBreakdown";
@@ -20,10 +21,11 @@ const formatDate = (d) => {
 const MattersOpenedReportView = ({
   selectedSite,
   dateRange,
+  comparisonRange,
   staffList,
   refreshTrigger,
 }) => {
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [reportData, setReportData] = useState({
     summary: null,
     rows: [],
@@ -113,6 +115,8 @@ const MattersOpenedReportView = ({
         }
       } catch (error) {
         if (isCurrent) {
+          // Clear stale selected-period values rather than compare against a failed refresh.
+          setReportData({ summary: null, rows: [] });
           console.error("Failed to load Matters Opened report:", error);
         }
       } finally {
@@ -137,8 +141,8 @@ const MattersOpenedReportView = ({
   ]);
 
   // Client-side filtering of rows for table view based on status, type, isStrata, and subType
-  const filteredRows = useMemo(() => {
-    return (reportData.rows || []).filter((r) => {
+  const filterComparisonRows = useCallback((rows) => {
+    return (rows || []).filter((r) => {
       if (filters.status && r.status !== filters.status) {
         return false;
       }
@@ -155,7 +159,8 @@ const MattersOpenedReportView = ({
       }
       return true;
     });
-  }, [reportData.rows, filters.status, filters.type, filters.isStrata, filters.subType]);
+  }, [filters.status, filters.type, filters.isStrata, filters.subType]);
+  const filteredRows = useMemo(() => filterComparisonRows(reportData.rows), [reportData.rows, filterComparisonRows]);
 
   return (
     <div>
@@ -188,6 +193,23 @@ const MattersOpenedReportView = ({
         onFilterChange={handleFilterChange}
         onResetFilters={handleResetFilters}
         staffList={staffList}
+      />
+
+      {/* Comparison reuses this report's API, filters, and detail table. */}
+      <ReportComparison
+        type="matters"
+        dateRange={dateRange}
+        comparisonRange={comparisonRange}
+        fetchReport={postMattersOpenedReport}
+        payload={{
+          siteId: selectedSite || null,
+          actingPersonId: filters.actingPersonId,
+            assistingPersonId: filters.assistingPersonId,
+        }}
+        summary={reportData.summary}
+        isPrimaryLoading={isLoading}
+        refreshTrigger={refreshTrigger}
+        renderDetails={(rows) => <MattersOpenedTable rows={filterComparisonRows(rows)} isLoading={false} />}
       />
 
       {/* Data Table */}

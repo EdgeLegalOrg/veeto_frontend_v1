@@ -1,3 +1,4 @@
+import ReportComparison from "../components/ReportComparison";
 import React, { useEffect, useState, useMemo } from "react";
 import SettlementsDueMetrics from "../components/SettlementsDueMetrics";
 import SettlementsDueFilterBar from "../components/SettlementsDueFilterBar";
@@ -19,10 +20,11 @@ const formatDate = (d) => {
 const SettlementsDueReportView = ({
   selectedSite,
   dateRange,
+  comparisonRange,
   staffList,
   refreshTrigger,
 }) => {
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [reportData, setReportData] = useState({
     summary: null,
     rows: [],
@@ -85,6 +87,8 @@ const SettlementsDueReportView = ({
         }
       } catch (error) {
         if (isCurrent) {
+          // Clear stale selected-period values rather than compare against a failed refresh.
+          setReportData({ summary: null, rows: [] });
           console.error("Failed to load Settlements Due report:", error);
         }
       } finally {
@@ -122,6 +126,25 @@ const SettlementsDueReportView = ({
         onFilterChange={handleFilterChange}
         onResetFilters={handleResetFilters}
         staffList={staffList}
+      />
+
+      {/* Comparison reuses this report's API, filters, and detail table. */}
+      <ReportComparison
+        type="settlements"
+        dateRange={dateRange}
+        comparisonRange={comparisonRange}
+        fetchReport={postSettlementsDueReport}
+        payload={{
+          siteId: selectedSite || null,
+          settlementStatus: filters.settlementStatus,
+            subType: filters.subType,
+            actingPersonId: filters.actingPersonId,
+            assistingPersonId: filters.assistingPersonId,
+        }}
+        summary={reportData.summary}
+        isPrimaryLoading={isLoading}
+        refreshTrigger={refreshTrigger}
+        renderDetails={(rows) => <SettlementsDueTable rows={rows} isLoading={false} />}
       />
 
       {/* Data Table */}

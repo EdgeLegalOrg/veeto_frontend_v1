@@ -1,3 +1,4 @@
+import { comparisonDates } from "./utils/reportComparison";
 import React, { useState, useEffect, useMemo } from "react";
 import { Container, Nav, NavItem, NavLink } from "reactstrap";
 import classnames from "classnames";
@@ -161,6 +162,7 @@ const ReportDashboard = () => {
   });
   const [presetDateRange, setDateRange] = useState([null, null]);
   const [activePreset, setActivePreset] = useState("FINANCIAL_YEAR");
+  const [comparison, setComparison] = useState(null);
   const [financialYearConfig, setFinancialYearConfig] = useState(null);
   const financialYearKey = selectedSite == null ? "active" : String(selectedSite);
   const financialYearReady = financialYearConfig?.key === financialYearKey;
@@ -187,6 +189,8 @@ const ReportDashboard = () => {
     loadFinancialYear();
     return () => { cancelled = true; };
   }, [selectedSite, financialYearKey]);
+
+  const comparisonRange = useMemo(() => comparisonDates(dateRange, comparison), [dateRange, comparison]);
 
   const financialYearNote = activePreset === "FINANCIAL_YEAR" && financialYearReady && !financialYearConfig.error
     ? [
@@ -344,6 +348,8 @@ const ReportDashboard = () => {
           isExporting={isExporting}
           exportDisabled={financialYearPending || financialYearError}
           financialYearNote={financialYearNote}
+          comparison={comparison}
+          onComparisonChange={setComparison}
         />
 
         {/* Tab Navigation */}
@@ -390,6 +396,7 @@ const ReportDashboard = () => {
                   key={tab.id}
                   selectedSite={selectedSite}
                   dateRange={dateRange}
+                  comparisonRange={comparisonRange}
                   staffList={staffList}
                   refreshTrigger={refreshTrigger}
                 />
