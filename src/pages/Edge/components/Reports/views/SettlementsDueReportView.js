@@ -23,6 +23,7 @@ const SettlementsDueReportView = ({
   comparisonRange,
   staffList,
   refreshTrigger,
+  onExportFiltersChange,
 }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [reportData, setReportData] = useState({
@@ -32,7 +33,7 @@ const SettlementsDueReportView = ({
 
   const [filters, setFilters] = useState({
     settlementStatus: "ALL",
-    subType: null,
+    type: null,
     actingPersonId: null,
     assistingPersonId: null,
   });
@@ -46,6 +47,11 @@ const SettlementsDueReportView = ({
     [dateRange]
   );
 
+  // Keep the header's CSV export aligned with this report's current filters.
+  useEffect(() => {
+    onExportFiltersChange?.(filters);
+  }, [filters, onExportFiltersChange]);
+
   const handleFilterChange = (key, value) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
   };
@@ -53,7 +59,7 @@ const SettlementsDueReportView = ({
   const handleResetFilters = () => {
     setFilters({
       settlementStatus: "ALL",
-      subType: null,
+      type: null,
       actingPersonId: null,
       assistingPersonId: null,
     });
@@ -70,7 +76,7 @@ const SettlementsDueReportView = ({
           endDate: endDateStr,
           siteId: selectedSite || null,
           settlementStatus: filters.settlementStatus,
-          subType: filters.subType,
+          type: filters.type,
           actingPersonId: filters.actingPersonId,
           assistingPersonId: filters.assistingPersonId,
         };
@@ -137,7 +143,7 @@ const SettlementsDueReportView = ({
         payload={{
           siteId: selectedSite || null,
           settlementStatus: filters.settlementStatus,
-            subType: filters.subType,
+            type: filters.type,
             actingPersonId: filters.actingPersonId,
             assistingPersonId: filters.assistingPersonId,
         }}

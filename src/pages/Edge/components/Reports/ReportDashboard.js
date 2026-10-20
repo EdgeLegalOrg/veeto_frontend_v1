@@ -164,7 +164,9 @@ const ReportDashboard = () => {
   const [activePreset, setActivePreset] = useState("FINANCIAL_YEAR");
   const [comparison, setComparison] = useState(null);
   const [financialYearConfig, setFinancialYearConfig] = useState(null);
-  const financialYearKey = selectedSite == null ? "active" : String(selectedSite);
+  const [siteSettingsVersion, setSiteSettingsVersion] = useState(0);
+  // A tab change or Site Info update invalidates the cached range before the report loads.
+  const financialYearKey = `${selectedSite == null ? "active" : selectedSite}:${activeTab}:${siteSettingsVersion}`;
   const financialYearReady = financialYearConfig?.key === financialYearKey;
   const financialYearPending = activePreset === "FINANCIAL_YEAR" && !financialYearReady;
   const financialYearError = activePreset === "FINANCIAL_YEAR" && financialYearReady && financialYearConfig.error;
@@ -173,6 +175,20 @@ const ReportDashboard = () => {
     if (!financialYearReady || financialYearConfig.error) return [null, null];
     return getDatePresetRange("FINANCIAL_YEAR", financialYearConfig.data);
   }, [activePreset, presetDateRange, financialYearReady, financialYearConfig]);
+
+  useEffect(() => {
+    const refreshSiteSettings = (event) => {
+      // The local save flow already emits siteChanged; storage handles updates in another tab.
+      if (event.type === "storage" && !["userDetails", "companyInfo"].includes(event.key)) return;
+      setSiteSettingsVersion((version) => version + 1);
+    };
+    window.addEventListener("siteChanged", refreshSiteSettings);
+    window.addEventListener("storage", refreshSiteSettings);
+    return () => {
+      window.removeEventListener("siteChanged", refreshSiteSettings);
+      window.removeEventListener("storage", refreshSiteSettings);
+    };
+  }, []);
 
   // Refresh selected-site settings; All Offices uses the logged-in active site's range.
   useEffect(() => {
@@ -204,6 +220,7 @@ const ReportDashboard = () => {
   const [sites, setSites] = useState([]);
   const [staffList, setStaffList] = useState([]);
   const [isExporting, setIsExporting] = useState(false);
+  const [settlementExportFilters, setSettlementExportFilters] = useState({});
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // Load sites and staff metadata for dropdowns
@@ -301,6 +318,7 @@ const ReportDashboard = () => {
       };
 
       const payload = {
+        ...(activeTab === "settlements-due" ? settlementExportFilters : {}),
         startDate: dateRange && dateRange[0] ? formatDate(dateRange[0]) : null,
         endDate: dateRange && dateRange[1] ? formatDate(dateRange[1]) : null,
         siteId: selectedSite || null,
@@ -399,6 +417,7 @@ const ReportDashboard = () => {
                   comparisonRange={comparisonRange}
                   staffList={staffList}
                   refreshTrigger={refreshTrigger}
+                  onExportFiltersChange={tab.id === "settlements-due" ? setSettlementExportFilters : undefined}
                 />
               );
             })
