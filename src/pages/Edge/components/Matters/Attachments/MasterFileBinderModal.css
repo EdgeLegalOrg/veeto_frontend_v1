@@ -616,3 +616,23 @@
   font-size: 10.5px;
   color: #94a3b8;
 }
+
+/* DOCX occupies the same canvas as PDFs; document styles remain inside its iframe. */
+.binder-docx-preview {
+  position: relative;
+  display: flex;
+  flex: 1 1 0%;
+  min-width: 0;
+  min-height: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.binder-docx-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}

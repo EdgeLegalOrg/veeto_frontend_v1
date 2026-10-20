@@ -1,3 +1,4 @@
+import DocxAttachmentPreview from "./DocxAttachmentPreview";
 import React, { useEffect, useState, useMemo, useRef, useCallback } from "react";
 import { Modal, Spinner } from "reactstrap";
 import fileDownload from "js-file-download";
@@ -442,6 +443,18 @@ const MasterFileBinderModal = ({
             )}
           </div>
         </div>
+      );
+    }
+
+    // DOCX files render locally inside an isolated preview; other Office formats remain downloads.
+    if (currentItem.fileExtension?.toLowerCase() === "docx") {
+      return (
+        <DocxAttachmentPreview
+          key={currentItem.attachmentId}
+          attachmentId={currentItem.attachmentId}
+          title={getDocumentDisplayTitle(currentItem)}
+          onDownload={() => handleDownload(currentItem)}
+        />
       );
     }
 

@@ -366,8 +366,9 @@ export const deleteMatterAttach = (ids) =>
 export const fetchMatterBinderSequence = (matterId, sortOrder = "DESC") =>
   API.get(`/api/matter/${matterId}/binder/sequence?requestId=${uuidv1()}&sortOrder=${sortOrder}`);
 
-export const fetchAttachmentInlinePreview = (attachmentId) =>
+export const fetchAttachmentInlinePreview = (attachmentId, requestConfig) =>
   API.get(`/api/matter/attachment/${attachmentId}/preview?requestId=${uuidv1()}`, {
+    ...requestConfig,
     responseType: "blob",
   });
 
