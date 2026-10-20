@@ -59,6 +59,15 @@ const EmailSentIcon = () => (
   </svg>
 );
 
+// Historical uploads retain subject grouping; new emails are grouped by their upload ID.
+const emailGroupKey = (item) => {
+  if (item.uploadGroupId) return `upload:${item.uploadGroupId}`;
+  const isEmail = Boolean(item.emailSubject) || ["email", "eml", "msg"].includes(item.type?.toLowerCase())
+    || /\.(eml|msg)$/i.test(item.name || "");
+  if (!isEmail) return null;
+  return `legacy:${(item.emailSubject || item.name?.replace(/\.(eml|msg)$/i, "") || "Email Message").trim().toLowerCase()}`;
+};
+
 const initFilter = {
   name: "",
   uploadDate: "",
@@ -205,7 +214,8 @@ const AttachmentList = (props) => {
       (data) =>
         (obj["name"] !== ""
           ? data?.["name"]?.toLowerCase()?.includes(obj["name"]?.toLowerCase()) ||
-            data?.["emailSubject"]?.toLowerCase()?.includes(obj["name"]?.toLowerCase())
+            data?.["emailSubject"]?.toLowerCase()?.includes(obj["name"]?.toLowerCase()) ||
+            data?.uploadGroupName?.toLowerCase()?.includes(obj["name"]?.toLowerCase())
           : true) &&
         (obj["uploadedBy"] !== ""
           ? data?.["uploadedBy"]
@@ -282,7 +292,10 @@ const AttachmentList = (props) => {
       const ids = selectedList.join(",");
       const { data } = await deleteMatterAttach(ids);
       if (data.success) {
-        const deletedIds = [...selectedList];
+        const selectedGroups = new Set(attachList.filter((item) => selectedList.includes(item.id))
+          .map((item) => item.uploadGroupId).filter(Boolean));
+        const deletedIds = attachList.filter((item) => selectedList.includes(item.id)
+          || selectedGroups.has(item.uploadGroupId)).map((item) => item.id);
         const remaining = attachList.filter((a) => !deletedIds.includes(a.id));
         setAttachList(remaining);
         setFilteredList((prev) =>
@@ -352,33 +365,28 @@ const AttachmentList = (props) => {
     const emailMap = new Map();
 
     filteredList.forEach((item) => {
-      const isEmail =
-        Boolean(item.emailSubject) ||
-        ["email", "eml", "msg"].includes(item.type?.toLowerCase()) ||
-        item.name?.toLowerCase().endsWith(".eml") ||
-        item.name?.toLowerCase().endsWith(".msg");
-
-      if (isEmail) {
-        const subjectKey = (
-          item.emailSubject ||
-          item.name?.replace(/\.(eml|msg)$/i, "") ||
-          "Email Message"
-        ).trim().toLowerCase();
+      const subjectKey = emailGroupKey(item);
+      if (subjectKey) {
 
         if (emailMap.has(subjectKey)) {
           emailMap.get(subjectKey).children.push(item);
         } else {
+          const primaryItem = item.uploadGroupId
+            ? attachList.find((member) => member.uploadGroupId === item.uploadGroupId
+              && (member.type?.toLowerCase() === "msg" || member.name?.toLowerCase().endsWith(".msg"))) || item
+            : item;
           const group = {
             isGroup: true,
+            groupKey: subjectKey,
             key: `email-group-${item.id}-${subjectKey}`,
-            subject: item.emailSubject || item.name?.replace(/\.(eml|msg)$/i, "") || "Email Message",
-            sender: item.sender,
-            direction: item.direction,
-            recipient: item.recipient,
-            receivedDate: item.receivedDate || item.uploadDate,
-            uploadDate: item.uploadDate,
-            uploadedBy: item.uploadedBy || item.sender,
-            primaryItem: item,
+            subject: item.uploadGroupName || item.emailSubject || item.name?.replace(/\.(eml|msg)$/i, "") || "Email Message",
+            sender: primaryItem.sender,
+            direction: primaryItem.direction,
+            recipient: primaryItem.recipient,
+            receivedDate: primaryItem.receivedDate || primaryItem.uploadDate,
+            uploadDate: primaryItem.uploadDate,
+            uploadedBy: primaryItem.uploadedBy || primaryItem.sender,
+            primaryItem,
             children: [item],
           };
           emailMap.set(subjectKey, group);
@@ -394,7 +402,7 @@ const AttachmentList = (props) => {
     });
 
     return groups;
-  }, [filteredList]);
+  }, [filteredList, attachList]);
 
   const renderStorageBadge = (storageType) => {
     switch (storageType) {
@@ -618,7 +626,9 @@ const AttachmentList = (props) => {
         <tbody>
           {groupedList?.map((entry) => {
             if (entry.isGroup) {
-              const childIds = entry.children.map((c) => c.id);
+              // Select the full group even when a search/type/date filter hides some files.
+              const childIds = attachList.filter((item) => emailGroupKey(item) === entry.groupKey)
+                .map((item) => item.id);
               const allSelected = childIds.every((id) => isSelected(id));
               const someSelected = childIds.some((id) => isSelected(id));
 
@@ -920,7 +930,7 @@ const AttachmentList = (props) => {
           </ModalHeader>
           <ModalBody>
             <AlertPopup
-              message="Are you sure you want to delete the record?"
+              message="Delete the selected attachments? Selected email groups and all their files will be deleted together."
               heading="Confirm Your Action"
               closeForm={() => setDeletePop(false)}
               btn1={"No"}

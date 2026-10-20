@@ -30,6 +30,7 @@ const getDocumentDisplayTitle = (item) => {
     item.emailSubject.trim() !== ""
       ? item.emailSubject.trim()
       : null;
+  if (isEmail && item.uploadGroupName) return item.uploadGroupName;
   if (isEmail && cleanSubject) return cleanSubject;
   if (item.name && item.name.trim() !== "-" && item.name.trim() !== "") return item.name;
   return isEmail ? "Email Message" : "Attachment Document";
@@ -120,6 +121,7 @@ const MasterFileBinderModal = ({
       const title = getDocumentDisplayTitle(it).toLowerCase();
       return (
         title.includes(query) ||
+        it.uploadGroupName?.toLowerCase().includes(query) ||
         it.sender?.toLowerCase().includes(query) ||
         it.uploadedBy?.toLowerCase().includes(query) ||
         it.previewType?.toLowerCase().includes(query)
