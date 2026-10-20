@@ -1,3 +1,4 @@
+import SiteFinancialYearFields, { validateFinancialYearRange } from "./SiteFinancialYearFields";
 import { TextInputField } from "pages/Edge/components/InputField";
 import { v1 as uuidv1 } from "uuid";
 import { Fragment, useEffect, useState } from "react";
@@ -45,6 +46,8 @@ const initialData = {
   templateName: "",
   abn: "",
   timeZone: "",
+  financialYearStart: "",
+  financialYearEnd: "",
 };
 
 const SiteInfoPage = () => {
@@ -158,6 +161,11 @@ const SiteInfoPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const financialYearError = validateFinancialYearRange(siteInfo);
+    if (financialYearError) {
+      toast.warning(financialYearError);
+      return;
+    }
     const tempData = {
       ...siteInfo,
     };
@@ -167,7 +175,11 @@ const SiteInfoPage = () => {
     }
     setLoading(true);
     try {
-      let newData = { requestId: uuidv1(), data: siteInfo };
+      let newData = { requestId: uuidv1(), data: {
+        ...siteInfo,
+        financialYearStart: siteInfo.financialYearStart || null,
+        financialYearEnd: siteInfo.financialYearEnd || null,
+      } };
 
       delete newData.data["templateName"];
 
@@ -236,7 +248,7 @@ const SiteInfoPage = () => {
                   </button>
                 </div> */}
                 <div className="">
-                  <div className="row">
+                  <div className="row justify-content-start">
                     <div className="col-md-3 mt-3">
                       <TextInputField
                         label="Site Name"
@@ -429,6 +441,7 @@ const SiteInfoPage = () => {
                         onChange={handleFormChange}
                       />
                     </div>
+                    <SiteFinancialYearFields value={siteInfo} onChange={handleFormChange} />
                     {siteInfo.logoPath && !editLogo ? (
                       <div className="col-md-3 mt-3">
                         <div className="d-flex justify-content-between">

@@ -22,12 +22,13 @@ import {
   postExportFeesBilledCsv,
   postExportOutstandingInvoicesCsv,
   getSiteInfo,
+  getSiteById,
   getCompanyInfo,
   allStaffMember,
 } from "../../apis";
 
 // Date preset helper calculating standard fiscal / calendar periods
-const getDatePresetRange = (preset) => {
+const getDatePresetRange = (preset, siteInfo) => {
   const now = new Date();
   const startOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0);
   const endOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59);
@@ -56,7 +57,15 @@ const getDatePresetRange = (preset) => {
       return [startOfDay(start), endOfDay(end)];
     }
     case "FINANCIAL_YEAR": {
-      // Australian Financial Year: 1 July to 30 June
+      // Construct local calendar dates so date-only site settings do not shift through UTC.
+      if (siteInfo?.financialYearStart && siteInfo?.financialYearEnd) {
+        const parseDate = (value) => {
+          const [year, month, day] = value.split("-").map(Number);
+          return new Date(year, month - 1, day);
+        };
+        return [startOfDay(parseDate(siteInfo.financialYearStart)), endOfDay(parseDate(siteInfo.financialYearEnd))];
+      }
+      // Australian Financial Year: 1 July to 30 June (fallback for unconfigured sites)
       const currentYear = now.getFullYear();
       const fyStartYear = now.getMonth() >= 6 ? currentYear : currentYear - 1;
       const start = new Date(fyStartYear, 6, 1);
@@ -150,8 +159,43 @@ const ReportDashboard = () => {
       return null;
     }
   });
-  const [dateRange, setDateRange] = useState(getDatePresetRange("FINANCIAL_YEAR"));
+  const [presetDateRange, setDateRange] = useState([null, null]);
   const [activePreset, setActivePreset] = useState("FINANCIAL_YEAR");
+  const [financialYearConfig, setFinancialYearConfig] = useState(null);
+  const financialYearKey = selectedSite == null ? "active" : String(selectedSite);
+  const financialYearReady = financialYearConfig?.key === financialYearKey;
+  const financialYearPending = activePreset === "FINANCIAL_YEAR" && !financialYearReady;
+  const financialYearError = activePreset === "FINANCIAL_YEAR" && financialYearReady && financialYearConfig.error;
+  const dateRange = useMemo(() => {
+    if (activePreset !== "FINANCIAL_YEAR") return presetDateRange;
+    if (!financialYearReady || financialYearConfig.error) return [null, null];
+    return getDatePresetRange("FINANCIAL_YEAR", financialYearConfig.data);
+  }, [activePreset, presetDateRange, financialYearReady, financialYearConfig]);
+
+  // Refresh selected-site settings; All Offices uses the logged-in active site's range.
+  useEffect(() => {
+    let cancelled = false;
+    const loadFinancialYear = async () => {
+      try {
+        const response = selectedSite == null ? await getSiteInfo() : await getSiteById(selectedSite);
+        if (!response.data?.success || !response.data.data) throw new Error("Site settings unavailable");
+        if (!cancelled) setFinancialYearConfig({ key: financialYearKey, data: response.data.data, error: false });
+      } catch (error) {
+        if (!cancelled) setFinancialYearConfig({ key: financialYearKey, data: null, error: true });
+      }
+    };
+    loadFinancialYear();
+    return () => { cancelled = true; };
+  }, [selectedSite, financialYearKey]);
+
+  const financialYearNote = activePreset === "FINANCIAL_YEAR" && financialYearReady && !financialYearConfig.error
+    ? [
+        selectedSite == null ? `All Offices uses the financial year for ${financialYearConfig.data.siteName || "the active site"}.` : "",
+        !financialYearConfig.data.financialYearStart
+          ? "No financial year is configured for this site; using the default July–June range."
+          : "",
+      ].filter(Boolean).join(" ")
+    : "";
 
   const [sites, setSites] = useState([]);
   const [staffList, setStaffList] = useState([]);
@@ -230,7 +274,7 @@ const ReportDashboard = () => {
   const handlePresetSelect = (preset) => {
     if (activePreset === preset && preset !== "CUSTOM") return;
     setActivePreset(preset);
-    if (preset !== "CUSTOM") {
+    if (preset !== "CUSTOM" && preset !== "FINANCIAL_YEAR") {
       setDateRange(getDatePresetRange(preset));
     }
   };
@@ -241,6 +285,7 @@ const ReportDashboard = () => {
   };
 
   const handleExportCsv = async () => {
+    if (financialYearPending || financialYearError) return;
     setIsExporting(true);
     try {
       const formatDate = (d) => {
@@ -297,6 +342,8 @@ const ReportDashboard = () => {
           onPresetSelect={handlePresetSelect}
           onExportCsv={handleExportCsv}
           isExporting={isExporting}
+          exportDisabled={financialYearPending || financialYearError}
+          financialYearNote={financialYearNote}
         />
 
         {/* Tab Navigation */}
@@ -328,6 +375,12 @@ const ReportDashboard = () => {
                 </p>
               </div>
             </div>
+          ) : financialYearPending ? (
+            <p className="text-muted py-4">Loading site financial year…</p>
+          ) : financialYearError ? (
+            <p className="text-danger py-4">
+              Could not load the site's financial year. Reload the page to retry, or select another date range.
+            </p>
           ) : (
             permittedTabs.map((tab) => {
               if (tab.id !== activeTab) return null;

@@ -32,6 +32,8 @@ const ReportHeader = ({
   onPresetSelect,
   onExportCsv,
   isExporting,
+  exportDisabled,
+  financialYearNote,
 }) => {
   const flatpickrRef = useRef(null);
   const canAccessAllSites = checkHasPermission("AccessAllSites");
@@ -162,7 +164,7 @@ const ReportHeader = ({
               color="success"
               size="sm"
               onClick={onExportCsv}
-              disabled={isExporting}
+              disabled={isExporting || exportDisabled}
               className="d-flex align-items-center waves-effect waves-light"
             >
               <i
@@ -177,6 +179,7 @@ const ReportHeader = ({
           </div>
         </Col>
       </Row>
+      {financialYearNote && <p className="text-muted fs-12 mt-2 mb-0">{financialYearNote}</p>}
     </div>
   );
 };
