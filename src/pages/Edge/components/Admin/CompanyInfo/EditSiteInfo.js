@@ -1,4 +1,5 @@
-import SiteFinancialYearFields, { validateFinancialYearRange } from "../SiteInfo/SiteFinancialYearFields";
+import SiteFinancialYearFields from "../SiteInfo/SiteFinancialYearFields";
+import { validateFinancialYearStart } from "../../../utils/financialYear";
 import React, { Fragment, useState, useEffect } from "react";
 import { updateSiteInfo, getAllBaseTemplates } from "../../../apis";
 import LoadingPage from "../../../utils/LoadingPage";
@@ -29,8 +30,8 @@ const initialData = {
   defaultTemplateId: "",
   siteCode: "",
   timeZone: "",
-  financialYearStart: "",
-  financialYearEnd: "",
+  financialYearStartDay: "",
+  financialYearStartMonth: "",
 };
 
 const initAcc = {
@@ -334,7 +335,7 @@ const EditSiteInfo = (props) => {
   };
 
   const handleSubmitEditForm = async () => {
-    const financialYearError = validateFinancialYearRange(formData);
+    const financialYearError = validateFinancialYearStart(formData);
     if (financialYearError) {
       setLoading(false);
       toast.warning(financialYearError);
