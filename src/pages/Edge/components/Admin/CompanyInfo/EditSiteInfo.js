@@ -1,3 +1,4 @@
+import SiteFinancialYearFields, { validateFinancialYearRange } from "../SiteInfo/SiteFinancialYearFields";
 import React, { Fragment, useState, useEffect } from "react";
 import { updateSiteInfo, getAllBaseTemplates } from "../../../apis";
 import LoadingPage from "../../../utils/LoadingPage";
@@ -28,6 +29,8 @@ const initialData = {
   defaultTemplateId: "",
   siteCode: "",
   timeZone: "",
+  financialYearStart: "",
+  financialYearEnd: "",
 };
 
 const initAcc = {
@@ -331,6 +334,12 @@ const EditSiteInfo = (props) => {
   };
 
   const handleSubmitEditForm = async () => {
+    const financialYearError = validateFinancialYearRange(formData);
+    if (financialYearError) {
+      setLoading(false);
+      toast.warning(financialYearError);
+      return;
+    }
     let updatedData = { ...formData };
     let updatedAdd = { ...tempSearchField };
     let updatedAcc = { ...preferredAccount };
@@ -417,7 +426,7 @@ const EditSiteInfo = (props) => {
   return (
     <Fragment>
       <div style={{ height: "25rem", overflow: "scroll" }} className="mb-4">
-        <div className="row">
+        <div className="row justify-content-start">
           <div className="col-md-4 mt-3">
             <TextInputField
               label="Name"
@@ -463,6 +472,7 @@ const EditSiteInfo = (props) => {
               onChange={handleFormChange}
             />
           </div>
+          <SiteFinancialYearFields value={formData} onChange={handleFormChange} columnClassName="col-md-4" />
 
           <div className="col-md-4 mt-3">
             <TextInputField

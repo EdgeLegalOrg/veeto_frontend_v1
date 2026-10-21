@@ -1,3 +1,4 @@
+import { REPORT_MATTER_TYPE_OPTIONS as TYPE_OPTIONS } from "../utils/reportMatterTypes";
 import React from "react";
 import { Row, Col, Card, CardBody, Button } from "reactstrap";
 import Select from "react-select";
@@ -10,24 +11,7 @@ const STATUS_OPTIONS = [
   { value: "SETTLED", label: "Settled / Complete" },
 ];
 
-const SUB_TYPE_OPTIONS = [
-  { value: null, label: "All Sub-Types" },
-  { value: "PURCHASE", label: "Purchase" },
-  { value: "PURCHASE_STRATA", label: "Purchase Strata" },
-  { value: "SALE", label: "Sale" },
-  { value: "SALE_STRATA", label: "Sale Strata" },
-  { value: "TRANSFER", label: "Transfer" },
-  { value: "SUBDIVISION", label: "Subdivision" },
-  { value: "CONVEYANCING_GENERAL", label: "Conveyancing General" },
-  { value: "EASEMENTS_RESTRICTIONS", label: "Easements / Restrictions" },
-  { value: "MORTGAGE_DISCHARGE", label: "Mortgage - Discharge" },
-  { value: "MORTGAGE_GENERAL", label: "Mortgage - General" },
-  { value: "MORTGAGE_VARIATION", label: "Mortgage - Variation" },
-  { value: "MORTGAGE_TRANSFER", label: "Mortgage - Transfer" },
-  { value: "PERSONAL_PROPERTY_SECURITIES", label: "Personal Property Securities" },
-  { value: "WATER_ACCESS_LICENCE_PURCHASE", label: "Water Access Licence - Purchase" },
-  { value: "WATER_ACCESS_LICENCE_SALE", label: "Water Access Licence - Sale" },
-];
+
 
 const selectCustomStyles = {
   menuPortal: (base) => ({ ...base, zIndex: 9999 }),
@@ -68,13 +52,13 @@ const SettlementsDueFilterBar = ({
             />
           </Col>
 
-          {/* Sub-Type Filter */}
+          {/* Matter Type Filter */}
           <Col lg={3} md={6} sm={12}>
-            <label className="form-label fs-12 fw-medium text-muted mb-1">Conveyancing Sub-Type</label>
+            <label className="form-label fs-12 fw-medium text-muted mb-1">Matter Type</label>
             <Select
-              value={SUB_TYPE_OPTIONS.find((opt) => opt.value === filters.subType) || SUB_TYPE_OPTIONS[0]}
-              onChange={(opt) => onFilterChange("subType", opt ? opt.value : null)}
-              options={SUB_TYPE_OPTIONS}
+              value={TYPE_OPTIONS.find((opt) => opt.value === filters.type) || TYPE_OPTIONS[0]}
+              onChange={(opt) => onFilterChange("type", opt ? opt.value : null)}
+              options={TYPE_OPTIONS}
               classNamePrefix="select2-selection"
               isClearable={false}
               menuPortalTarget={typeof document !== "undefined" ? document.body : null}

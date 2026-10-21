@@ -1,3 +1,4 @@
+import ReportComparisonControl from "./ReportComparisonControl";
 import React, { useRef } from "react";
 import { Row, Col, Button } from "reactstrap";
 import Select from "react-select";
@@ -5,17 +6,14 @@ import Flatpickr from "react-flatpickr";
 import "flatpickr/dist/themes/material_blue.css";
 import { checkHasPermission } from "../../../utils/utilFunc";
 
-// Australian Financial Year calculation
-const now = new Date();
-const currentYear = now.getFullYear();
-const fyStartYear = now.getMonth() >= 6 ? currentYear : currentYear - 1;
-const fyLabel = `FY ${fyStartYear}/${String(fyStartYear + 1).slice(-2)}`;
+// Report date range presets
 
 const DATE_PRESETS = [
   { label: "This Month", value: "THIS_MONTH" },
   { label: "Last Month", value: "LAST_MONTH" },
   { label: "This Quarter", value: "THIS_QUARTER" },
-  { label: fyLabel, value: "FINANCIAL_YEAR" },
+  { label: "Current Calendar Year", value: "CALENDAR_YEAR" },
+  { label: "Current Financial Year", value: "FINANCIAL_YEAR" },
   { label: "Custom", value: "CUSTOM" },
 ];
 
@@ -35,6 +33,10 @@ const ReportHeader = ({
   onPresetSelect,
   onExportCsv,
   isExporting,
+  exportDisabled,
+  financialYearNote,
+  comparison,
+  onComparisonChange,
 }) => {
   const flatpickrRef = useRef(null);
   const canAccessAllSites = checkHasPermission("AccessAllSites");
@@ -160,12 +162,18 @@ const ReportHeader = ({
               <i className="ri-arrow-down-s-line text-muted ms-1 fs-14 flex-shrink-0"></i>
             </div>
 
+            <ReportComparisonControl
+              dateRange={dateRange}
+              comparison={comparison}
+              onChange={onComparisonChange}
+            />
+
             {/* Export CSV Button */}
             <Button
               color="success"
               size="sm"
               onClick={onExportCsv}
-              disabled={isExporting}
+              disabled={isExporting || exportDisabled}
               className="d-flex align-items-center waves-effect waves-light"
             >
               <i
@@ -180,6 +188,7 @@ const ReportHeader = ({
           </div>
         </Col>
       </Row>
+      {financialYearNote && <p className="text-muted fs-12 mt-2 mb-0">{financialYearNote}</p>}
     </div>
   );
 };

@@ -1,3 +1,4 @@
+import DocxAttachmentPreview from "./DocxAttachmentPreview";
 import React, { useEffect, useState, useMemo, useRef, useCallback } from "react";
 import { Modal, Spinner } from "reactstrap";
 import fileDownload from "js-file-download";
@@ -29,6 +30,7 @@ const getDocumentDisplayTitle = (item) => {
     item.emailSubject.trim() !== ""
       ? item.emailSubject.trim()
       : null;
+  if (isEmail && item.uploadGroupName) return item.uploadGroupName;
   if (isEmail && cleanSubject) return cleanSubject;
   if (item.name && item.name.trim() !== "-" && item.name.trim() !== "") return item.name;
   return isEmail ? "Email Message" : "Attachment Document";
@@ -43,7 +45,7 @@ const MasterFileBinderModal = ({
 }) => {
   const [loadingSequence, setLoadingSequence] = useState(true);
   const [binderData, setBinderData] = useState(null);
-  const [sortOrder, setSortOrder] = useState("ASC");
+  const [sortOrder, setSortOrder] = useState("DESC");
   const [currentIndex, setCurrentIndex] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -119,6 +121,7 @@ const MasterFileBinderModal = ({
       const title = getDocumentDisplayTitle(it).toLowerCase();
       return (
         title.includes(query) ||
+        it.uploadGroupName?.toLowerCase().includes(query) ||
         it.sender?.toLowerCase().includes(query) ||
         it.uploadedBy?.toLowerCase().includes(query) ||
         it.previewType?.toLowerCase().includes(query)
@@ -339,15 +342,40 @@ const MasterFileBinderModal = ({
     // 3. Outlook Email (.msg)
     if (currentItem.previewType === "EMAIL_MSG") {
       const email = emailContent;
+      const isOutgoing = email?.direction === "OUTGOING";
+      const toDisplay = email?.toDisplay || email?.toIds?.join(", ");
+      const fromDisplay = email?.sender || "Unknown";
+      const counterparty = isOutgoing ? toDisplay : email?.direction === "INCOMING" ? fromDisplay : null;
+
       return (
         <div className="binder-scroll-canvas">
           <div className="binder-email-card">
             <div className="binder-email-header">
+              <div className="d-flex align-items-center mb-2">
+                <span
+                  style={{
+                    backgroundColor: isOutgoing ? "#2563eb" : "#059669",
+                    color: "#ffffff",
+                    fontSize: "10.5px",
+                    fontWeight: "700",
+                    padding: "2px 8px",
+                    borderRadius: "4px",
+                    letterSpacing: "0.5px",
+                    textTransform: "uppercase",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "4px",
+                  }}
+                >
+                  <i className={isOutgoing ? "ri-arrow-right-up-line" : "ri-arrow-left-down-line"}></i>
+                  {isOutgoing ? "Outgoing Email" : "Incoming Email"}
+                </span>
+              </div>
               <h3 className="binder-email-subject">
                 {email?.subject || getDocumentDisplayTitle(currentItem)}
               </h3>
               <div className="binder-email-meta-grid">
-                <span className="binder-email-meta-label">From:</span>
+                <span className="binder-email-meta-label">{isOutgoing ? "To:" : email?.direction === "INCOMING" ? "From:" : "Email:"}</span>
                 <div className="d-flex align-items-center gap-2">
                   <span
                     style={{
@@ -361,12 +389,13 @@ const MasterFileBinderModal = ({
                       display: "inline-flex",
                       alignItems: "center",
                       justifyContent: "center",
+                      flexShrink: 0,
                     }}
                   >
-                    {getInitials(email?.sender || currentItem.sender || currentItem.uploadedBy)}
+                    {getInitials(counterparty || "Unknown")}
                   </span>
                   <span className="fw-semibold text-dark">
-                    {email?.sender || currentItem.sender || currentItem.uploadedBy || "Unknown"}
+                    {counterparty || "Unknown"}
                   </span>
                 </div>
 
@@ -416,6 +445,18 @@ const MasterFileBinderModal = ({
             )}
           </div>
         </div>
+      );
+    }
+
+    // DOCX files render locally inside an isolated preview; other Office formats remain downloads.
+    if (currentItem.fileExtension?.toLowerCase() === "docx") {
+      return (
+        <DocxAttachmentPreview
+          key={currentItem.attachmentId}
+          attachmentId={currentItem.attachmentId}
+          title={getDocumentDisplayTitle(currentItem)}
+          onDownload={() => handleDownload(currentItem)}
+        />
       );
     }
 
@@ -570,10 +611,26 @@ const MasterFileBinderModal = ({
                       <div className="binder-item-meta">
                         {renderTypeBadge(item.previewType)}
                         <span>{renderItemDate(item.effectiveDate)}</span>
-                        {item.sender && (
-                          <span className="text-truncate" style={{ maxWidth: "120px" }}>
-                            • {item.sender}
+                        {item.previewType === "EMAIL_MSG" ? (
+                          <span className="text-truncate" style={{ maxWidth: "140px" }}>
+                            • {isActive && emailContent
+                              ? (emailContent.direction === "OUTGOING"
+                                ? `To: ${emailContent.toDisplay || emailContent.toIds?.join(", ") || "Unknown"}`
+                                : emailContent.direction === "INCOMING"
+                                  ? `From: ${emailContent.sender || "Unknown"}`
+                                  : "Email participant unavailable")
+                              : item.direction === "OUTGOING"
+                                ? `To: ${item.recipient || "Unknown"}`
+                                : item.direction === "INCOMING"
+                                  ? `From: ${item.sender || "Unknown"}`
+                                  : "Email participant unavailable"}
                           </span>
+                        ) : (
+                          item.sender && (
+                            <span className="text-truncate" style={{ maxWidth: "120px" }}>
+                              • {item.sender}
+                            </span>
+                          )
                         )}
                       </div>
                     </div>

@@ -1,3 +1,4 @@
+import { comparisonDates } from "./utils/reportComparison";
 import React, { useState, useEffect, useMemo } from "react";
 import { Container, Nav, NavItem, NavLink } from "reactstrap";
 import classnames from "classnames";
@@ -22,12 +23,13 @@ import {
   postExportFeesBilledCsv,
   postExportOutstandingInvoicesCsv,
   getSiteInfo,
+  getSiteById,
   getCompanyInfo,
   allStaffMember,
 } from "../../apis";
 
 // Date preset helper calculating standard fiscal / calendar periods
-const getDatePresetRange = (preset) => {
+const getDatePresetRange = (preset, siteInfo) => {
   const now = new Date();
   const startOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0);
   const endOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59);
@@ -49,8 +51,22 @@ const getDatePresetRange = (preset) => {
       const end = new Date(now.getFullYear(), qMonth + 3, 0);
       return [startOfDay(start), endOfDay(end)];
     }
+    case "CALENDAR_YEAR": {
+      // Calendar Year: 1 January to 31 December
+      const start = new Date(now.getFullYear(), 0, 1);
+      const end = new Date(now.getFullYear(), 11, 31);
+      return [startOfDay(start), endOfDay(end)];
+    }
     case "FINANCIAL_YEAR": {
-      // Australian Financial Year: 1 July to 30 June
+      // Construct local calendar dates so date-only site settings do not shift through UTC.
+      if (siteInfo?.financialYearStart && siteInfo?.financialYearEnd) {
+        const parseDate = (value) => {
+          const [year, month, day] = value.split("-").map(Number);
+          return new Date(year, month - 1, day);
+        };
+        return [startOfDay(parseDate(siteInfo.financialYearStart)), endOfDay(parseDate(siteInfo.financialYearEnd))];
+      }
+      // Australian Financial Year: 1 July to 30 June (fallback for unconfigured sites)
       const currentYear = now.getFullYear();
       const fyStartYear = now.getMonth() >= 6 ? currentYear : currentYear - 1;
       const start = new Date(fyStartYear, 6, 1);
@@ -144,12 +160,67 @@ const ReportDashboard = () => {
       return null;
     }
   });
-  const [dateRange, setDateRange] = useState(getDatePresetRange("FINANCIAL_YEAR"));
+  const [presetDateRange, setDateRange] = useState([null, null]);
   const [activePreset, setActivePreset] = useState("FINANCIAL_YEAR");
+  const [comparison, setComparison] = useState(null);
+  const [financialYearConfig, setFinancialYearConfig] = useState(null);
+  const [siteSettingsVersion, setSiteSettingsVersion] = useState(0);
+  // A tab change or Site Info update invalidates the cached range before the report loads.
+  const financialYearKey = `${selectedSite == null ? "active" : selectedSite}:${activeTab}:${siteSettingsVersion}`;
+  const financialYearReady = financialYearConfig?.key === financialYearKey;
+  const financialYearPending = activePreset === "FINANCIAL_YEAR" && !financialYearReady;
+  const financialYearError = activePreset === "FINANCIAL_YEAR" && financialYearReady && financialYearConfig.error;
+  const dateRange = useMemo(() => {
+    if (activePreset !== "FINANCIAL_YEAR") return presetDateRange;
+    if (!financialYearReady || financialYearConfig.error) return [null, null];
+    return getDatePresetRange("FINANCIAL_YEAR", financialYearConfig.data);
+  }, [activePreset, presetDateRange, financialYearReady, financialYearConfig]);
+
+  useEffect(() => {
+    const refreshSiteSettings = (event) => {
+      // The local save flow already emits siteChanged; storage handles updates in another tab.
+      if (event.type === "storage" && !["userDetails", "companyInfo"].includes(event.key)) return;
+      setSiteSettingsVersion((version) => version + 1);
+    };
+    window.addEventListener("siteChanged", refreshSiteSettings);
+    window.addEventListener("storage", refreshSiteSettings);
+    return () => {
+      window.removeEventListener("siteChanged", refreshSiteSettings);
+      window.removeEventListener("storage", refreshSiteSettings);
+    };
+  }, []);
+
+  // Refresh selected-site settings; All Offices uses the logged-in active site's range.
+  useEffect(() => {
+    let cancelled = false;
+    const loadFinancialYear = async () => {
+      try {
+        const response = selectedSite == null ? await getSiteInfo() : await getSiteById(selectedSite);
+        if (!response.data?.success || !response.data.data) throw new Error("Site settings unavailable");
+        if (!cancelled) setFinancialYearConfig({ key: financialYearKey, data: response.data.data, error: false });
+      } catch (error) {
+        if (!cancelled) setFinancialYearConfig({ key: financialYearKey, data: null, error: true });
+      }
+    };
+    loadFinancialYear();
+    return () => { cancelled = true; };
+  }, [selectedSite, financialYearKey]);
+
+  const comparisonRange = useMemo(() => comparisonDates(dateRange, comparison), [dateRange, comparison]);
+
+  const financialYearNote = activePreset === "FINANCIAL_YEAR" && financialYearReady && !financialYearConfig.error
+    ? [
+        selectedSite == null ? `All Offices uses the financial year for ${financialYearConfig.data.siteName || "the active site"}.` : "",
+        !financialYearConfig.data.financialYearStart
+          ? "No financial year is configured for this site; using the default July–June range."
+          : "",
+      ].filter(Boolean).join(" ")
+    : "";
 
   const [sites, setSites] = useState([]);
   const [staffList, setStaffList] = useState([]);
   const [isExporting, setIsExporting] = useState(false);
+  const [settlementExportFilters, setSettlementExportFilters] = useState({});
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // Load sites and staff metadata for dropdowns
@@ -224,7 +295,7 @@ const ReportDashboard = () => {
   const handlePresetSelect = (preset) => {
     if (activePreset === preset && preset !== "CUSTOM") return;
     setActivePreset(preset);
-    if (preset !== "CUSTOM") {
+    if (preset !== "CUSTOM" && preset !== "FINANCIAL_YEAR") {
       setDateRange(getDatePresetRange(preset));
     }
   };
@@ -235,6 +306,7 @@ const ReportDashboard = () => {
   };
 
   const handleExportCsv = async () => {
+    if (financialYearPending || financialYearError) return;
     setIsExporting(true);
     try {
       const formatDate = (d) => {
@@ -246,6 +318,7 @@ const ReportDashboard = () => {
       };
 
       const payload = {
+        ...(activeTab === "settlements-due" ? settlementExportFilters : {}),
         startDate: dateRange && dateRange[0] ? formatDate(dateRange[0]) : null,
         endDate: dateRange && dateRange[1] ? formatDate(dateRange[1]) : null,
         siteId: selectedSite || null,
@@ -291,6 +364,10 @@ const ReportDashboard = () => {
           onPresetSelect={handlePresetSelect}
           onExportCsv={handleExportCsv}
           isExporting={isExporting}
+          exportDisabled={financialYearPending || financialYearError}
+          financialYearNote={financialYearNote}
+          comparison={comparison}
+          onComparisonChange={setComparison}
         />
 
         {/* Tab Navigation */}
@@ -322,6 +399,12 @@ const ReportDashboard = () => {
                 </p>
               </div>
             </div>
+          ) : financialYearPending ? (
+            <p className="text-muted py-4">Loading site financial year…</p>
+          ) : financialYearError ? (
+            <p className="text-danger py-4">
+              Could not load the site's financial year. Reload the page to retry, or select another date range.
+            </p>
           ) : (
             permittedTabs.map((tab) => {
               if (tab.id !== activeTab) return null;
@@ -331,8 +414,10 @@ const ReportDashboard = () => {
                   key={tab.id}
                   selectedSite={selectedSite}
                   dateRange={dateRange}
+                  comparisonRange={comparisonRange}
                   staffList={staffList}
                   refreshTrigger={refreshTrigger}
+                  onExportFiltersChange={tab.id === "settlements-due" ? setSettlementExportFilters : undefined}
                 />
               );
             })

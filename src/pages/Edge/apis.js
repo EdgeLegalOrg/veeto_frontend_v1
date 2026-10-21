@@ -363,11 +363,12 @@ export const deleteMatterAttach = (ids) =>
     config
   );
 
-export const fetchMatterBinderSequence = (matterId, sortOrder = "ASC") =>
+export const fetchMatterBinderSequence = (matterId, sortOrder = "DESC") =>
   API.get(`/api/matter/${matterId}/binder/sequence?requestId=${uuidv1()}&sortOrder=${sortOrder}`);
 
-export const fetchAttachmentInlinePreview = (attachmentId) =>
+export const fetchAttachmentInlinePreview = (attachmentId, requestConfig) =>
   API.get(`/api/matter/attachment/${attachmentId}/preview?requestId=${uuidv1()}`, {
+    ...requestConfig,
     responseType: "blob",
   });
 
@@ -1342,32 +1343,32 @@ export const signOffMatterConflictReport = (matterId, data) =>
   API.post(`/api/conflict-check/matter/${matterId}/sign-off?requestId=${uuidv1()}`, data);
 
 // Reports (Task 5)
-export const postMattersOpenedReport = (filterData) =>
-  API.post(`/api/reports/matters-opened?requestId=${uuidv1()}`, filterData);
+export const postMattersOpenedReport = (filterData, requestConfig) =>
+  API.post(`/api/reports/matters-opened?requestId=${uuidv1()}`, filterData, requestConfig);
 
 export const postExportMattersOpenedCsv = (filterData) =>
   API.post(`/api/reports/matters-opened/export-csv?requestId=${uuidv1()}`, filterData, {
     responseType: "blob",
   });
 
-export const postSettlementsDueReport = (filterData) =>
-  API.post(`/api/reports/settlements-due?requestId=${uuidv1()}`, filterData);
+export const postSettlementsDueReport = (filterData, requestConfig) =>
+  API.post(`/api/reports/settlements-due?requestId=${uuidv1()}`, filterData, requestConfig);
 
 export const postExportSettlementsDueCsv = (filterData) =>
   API.post(`/api/reports/settlements-due/export-csv?requestId=${uuidv1()}`, filterData, {
     responseType: "blob",
   });
 
-export const postFeesBilledReport = (filterData) =>
-  API.post(`/api/reports/fees-billed?requestId=${uuidv1()}`, filterData);
+export const postFeesBilledReport = (filterData, requestConfig) =>
+  API.post(`/api/reports/fees-billed?requestId=${uuidv1()}`, filterData, requestConfig);
 
 export const postExportFeesBilledCsv = (filterData) =>
   API.post(`/api/reports/fees-billed/export-csv?requestId=${uuidv1()}`, filterData, {
     responseType: "blob",
   });
 
-export const postOutstandingInvoicesReport = (filterData) =>
-  API.post(`/api/reports/outstanding-invoices?requestId=${uuidv1()}`, filterData);
+export const postOutstandingInvoicesReport = (filterData, requestConfig) =>
+  API.post(`/api/reports/outstanding-invoices?requestId=${uuidv1()}`, filterData, requestConfig);
 
 export const postExportOutstandingInvoicesCsv = (filterData) =>
   API.post(`/api/reports/outstanding-invoices/export-csv?requestId=${uuidv1()}`, filterData, {

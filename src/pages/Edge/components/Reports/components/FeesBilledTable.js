@@ -90,7 +90,7 @@ const FeesBilledTable = ({ rows, isLoading }) => {
   }, [filteredRows, currentPage, pageSize]);
 
   return (
-    <div className="table-card bg-white rounded shadow-sm p-3">
+    <div className="table-card m-0 bg-white rounded shadow-sm p-3">
       {/* Search & Page Size Bar */}
       <Row className="mb-3 align-items-center g-2">
         <Col sm={6} md={4}>

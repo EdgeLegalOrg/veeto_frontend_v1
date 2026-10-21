@@ -1,3 +1,4 @@
+import { REPORT_MATTER_TYPE_OPTIONS as TYPE_OPTIONS } from "../utils/reportMatterTypes";
 import React from "react";
 import { Row, Col, Card, CardBody, Button } from "reactstrap";
 import Select from "react-select";
@@ -13,25 +14,7 @@ const STATUS_OPTIONS = [
   { value: "NOT_PROCEEDING", label: "Not Proceeding" },
 ];
 
-const TYPE_OPTIONS = [
-  { value: null, label: "All Types" },
-  { value: "CONVEYANCING", label: "Conveyancing" },
-  { value: "FAMILY_LAW", label: "Family Law" },
-  { value: "ESTATES", label: "Estates" },
-  { value: "LEASES", label: "Leases" },
-  { value: "BUSINESS_SALE_PURCHASE", label: "Business Sale/Purchase" },
-  { value: "COMPANIES_TRUST_AND_PARTNERSHIP", label: "Companies, Trusts & Partnerships" },
-  { value: "LITIGATION_GENERALLY", label: "Litigation Generally" },
-  { value: "INSOLVENCY_LIQUIDATION", label: "Insolvency/Liquidation" },
-  { value: "WILLS_POWER_OF_ATTORNEYS_AND_ENDURING_GUARDIANS", label: "Wills, POA & Enduring Guardians" },
-  { value: "PERSONAL_INJURY", label: "Personal Injury" },
-  { value: "GENERAL", label: "General" },
-  { value: "NOTARY", label: "Notary" },
-  { value: "REVENUE_NSW", label: "Revenue NSW" },
-  { value: "VOI_CLIENT_AUTHORITIES", label: "VOI & Client Authorities" },
-  { value: "SEPCIALIST_AREAS", label: "Specialist Areas" },
-  { value: "MISCELLANEOUS", label: "Miscellaneous" },
-];
+
 
 const selectCustomStyles = {
   menuPortal: (base) => ({ ...base, zIndex: 9999 }),
