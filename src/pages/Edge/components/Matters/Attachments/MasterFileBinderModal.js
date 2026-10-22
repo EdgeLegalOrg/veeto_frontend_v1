@@ -261,19 +261,30 @@ const MasterFileBinderModal = ({
     return formatDateFunc(date);
   };
 
-  // Render badge helper
-  const renderTypeBadge = (type) => {
-    switch (type) {
+  /** Labels the uploaded format independently of whether an inline preview is available. */
+  const renderTypeBadge = (item) => {
+    const extension = (item.fileExtension || item.name?.match(/\.([^.]+)$/)?.[1] || "")
+      .replace(/^\./, "").trim().toLowerCase();
+    if (["doc", "docx", "docm", "dot", "dotx", "dotm"].includes(extension)) {
+      return <span className="binder-badge binder-badge-word"><i className="ri-file-word-2-line" aria-hidden="true" />Word</span>;
+    }
+    if (["xls", "xlsx", "xlsm", "xlsb", "xlt", "xltx", "xltm"].includes(extension)) {
+      return <span className="binder-badge binder-badge-excel"><i className="ri-file-excel-2-line" aria-hidden="true" />Excel</span>;
+    }
+    if (["heic", "heif"].includes(extension)) {
+      return <span className="binder-badge binder-badge-image"><i className="ri-image-line" aria-hidden="true" />{extension.toUpperCase()}</span>;
+    }
+    switch (item.previewType) {
       case "PDF":
-        return <span className="binder-badge binder-badge-pdf">PDF</span>;
+        return <span className="binder-badge binder-badge-pdf"><i className="ri-file-pdf-line" aria-hidden="true" />PDF</span>;
       case "EMAIL_MSG":
-        return <span className="binder-badge binder-badge-msg">EMAIL</span>;
+        return <span className="binder-badge binder-badge-msg"><i className="ri-mail-line" aria-hidden="true" />EMAIL</span>;
       case "IMAGE":
-        return <span className="binder-badge binder-badge-image">IMAGE</span>;
+        return <span className="binder-badge binder-badge-image"><i className="ri-image-line" aria-hidden="true" />IMAGE</span>;
       case "OFFICE_DOC":
-        return <span className="binder-badge binder-badge-office">OFFICE</span>;
+        return <span className="binder-badge binder-badge-office"><i className="ri-file-line" aria-hidden="true" />OFFICE</span>;
       default:
-        return <span className="binder-badge binder-badge-other">FILE</span>;
+        return <span className="binder-badge binder-badge-other"><i className="ri-file-line" aria-hidden="true" />FILE</span>;
     }
   };
 
@@ -609,7 +620,7 @@ const MasterFileBinderModal = ({
                         {displayTitle}
                       </div>
                       <div className="binder-item-meta">
-                        {renderTypeBadge(item.previewType)}
+                        {renderTypeBadge(item)}
                         <span>{renderItemDate(item.effectiveDate)}</span>
                         {item.previewType === "EMAIL_MSG" ? (
                           <span className="text-truncate" style={{ maxWidth: "140px" }}>
@@ -655,7 +666,7 @@ const MasterFileBinderModal = ({
                 <span className="badge bg-light text-dark border" style={{ fontSize: "11px", flexShrink: 0 }}>
                   Doc {currentIndex + 1} of {items.length}
                 </span>
-                {renderTypeBadge(currentItem.previewType)}
+                {renderTypeBadge(currentItem)}
                 <span className="binder-doc-title" title={getDocumentDisplayTitle(currentItem)}>
                   {getDocumentDisplayTitle(currentItem)}
                 </span>
