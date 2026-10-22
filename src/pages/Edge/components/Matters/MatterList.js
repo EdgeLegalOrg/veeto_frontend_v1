@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Fragment } from "react";
+import React, { useState, useEffect, useRef, Fragment } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { OverlayTrigger, Tooltip } from "react-bootstrap";
@@ -51,6 +51,17 @@ import {
 } from "slices/layouts/reducer";
 import { fetchStorageType } from "slices/storage/reducer";
 
+const RECENT_MATTERS_STORAGE_KEY = "veeto.matters.showRecentMatters";
+
+/** Restores the toggle before the first request; unavailable or unset storage defaults to off. */
+const readRecentMattersPreference = () => {
+  try {
+    return window.localStorage.getItem(RECENT_MATTERS_STORAGE_KEY) === "true";
+  } catch {
+    return false;
+  }
+};
+
 const initialFilter = {
   matterNumber: "",
   archiveNumber: "",
@@ -84,7 +95,10 @@ const MatterList = () => {
   const [filterST, setFilterST] = useState([]);
   const [types, setTypes] = useState([]);
   const [staffList, setStaffList] = useState([]);
-  const [filterInput, setFilterInput] = useState(initialFilter);
+  const [filterInput, setFilterInput] = useState(() => ({
+    ...initialFilter,
+    recentMatters: readRecentMattersPreference(),
+  }));
   const [statusList, setStatusList] = useState([]);
   const [matterDetail, setMatterDetail] = useState(null);
   const [showAdd, setShowAdd] = useState(false);
@@ -100,31 +114,24 @@ const MatterList = () => {
   const [sortField, setSortField] = useState("");
   const [showArchived, setShowArchived] = useState(false);
   const [showMyMatter, setShowMyMatter] = useState(false);
-  const [showRecentMatters, setShowRecentMatters] = useState(false);
+  const [showRecentMatters, setShowRecentMatters] = useState(filterInput.recentMatters);
+  const matterListRequestRef = useRef(0);
 
-  const hasActiveSearch = (filters) => {
-    return Boolean(
-      (filters.matterNumber && filters.matterNumber.trim().length > 0) ||
-      (filters.archiveNumber && String(filters.archiveNumber).trim().length > 0) ||
-      (filters.status && filters.status !== "") ||
-      (filters.type && filters.type !== "") ||
-      (filters.subType && filters.subType !== "") ||
-      (filters.letterSubject && filters.letterSubject.trim().length > 0) ||
-      (filters.contacts && filters.contacts.trim().length > 0) ||
-      filters.instructionDate ||
-      filters.completionDate
-    );
-  };
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(RECENT_MATTERS_STORAGE_KEY, String(showRecentMatters));
+    } catch {
+      // Keep the toggle usable when the browser prevents local storage writes.
+    }
+  }, [showRecentMatters]);
 
   const fetchMatterList = async (filters = filterInput) => {
+    const requestId = ++matterListRequestRef.current;
     try {
       setLoading(true);
-      const effectiveFilters = {
-        ...filters,
-        recentMatters:
-          filters.recentMatters && !hasActiveSearch(filters) ? true : false,
-      };
-      const { data } = await getMattersList(effectiveFilters);
+      const { data } = await getMattersList(filters);
+      // A slow recent-mode response must not replace the normal list after switching it off.
+      if (requestId !== matterListRequestRef.current) return;
       if (data.success) {
         setMatterList(data?.data?.matterList);
         setTotalPages(data.metadata.page.totalPages);
@@ -134,6 +141,7 @@ const MatterList = () => {
       }
       setLoading(false);
     } catch (error) {
+      if (requestId !== matterListRequestRef.current) return;
       setLoading(false);
       console.error(error);
     }
@@ -197,18 +205,18 @@ const MatterList = () => {
   useEffect(() => {
     if (currentRouterState) {
       if (location.pathname.toLowerCase() === "/matters") {
+        const resetFilters = { ...initialFilter, recentMatters: showRecentMatters };
         setMatterDetail(null);
         setShowAdd(false);
         setShowArchived(false);
         setShowMyMatter(false);
-        setShowRecentMatters(true);
         setLabelSort("");
         setSortOrder("");
         setSortField("");
         setFilterST([]);
         setPageNo(0);
-        setFilterInput(initialFilter);
-        fetchMatterList(initialFilter);
+        setFilterInput(resetFilters);
+        fetchMatterList(resetFilters);
       }
       dispatch(resetCurrentRouterState());
     }
@@ -351,29 +359,7 @@ const MatterList = () => {
       return;
     }
 
-    setLoading(true);
-    try {
-      setTotalRecords(0);
-      const effectiveFilters = {
-        ...filters,
-        recentMatters:
-          filters.recentMatters && !hasActiveSearch(filters) ? true : false,
-      };
-      const { data } = await getMattersList(effectiveFilters);
-      if (data.success) {
-        setMatterList(data?.data?.matterList);
-        setTotalPages(data.metadata.page.totalPages);
-        setTotalRecords(data?.metadata?.page?.totalRecords);
-      } else {
-        toast.warning(
-          "There is some problem from server side, please try later.",
-        );
-      }
-      setLoading(false);
-    } catch (error) {
-      console.error(error);
-      setLoading(false);
-    }
+    return fetchMatterList(filters);
   };
 
   const handleResetFilter = () => {
@@ -473,29 +459,31 @@ const MatterList = () => {
   };
 
   const handleRecentMatters = () => {
-    if (showRecentMatters) {
-      setShowRecentMatters(false);
-      setFilterInput({ ...filterInput, recentMatters: false });
-      handleRefreshList({ ...filterInput, recentMatters: false });
-    } else {
-      setShowRecentMatters(true);
+    const enabled = !showRecentMatters;
+    const nextFilters = {
+      ...filterInput,
+      recentMatters: enabled,
+      pageNo: 0,
+      ...(enabled ? { archived: false, myMatters: false } : {}),
+      // Archive-number sorting does not apply when entering the active recent-matter view.
+      ...(showArchived ? { sortOn: "", sortType: "DESC" } : {}),
+    };
+    setShowRecentMatters(enabled);
+    setPageNo(0);
+    // Do not leave the previous mode's rows visible if the replacement request fails.
+    setMatterList([]);
+    setTotalRecords(0);
+    if (enabled) {
       setShowArchived(false);
       setShowMyMatter(false);
-      setFilterInput({
-        ...filterInput,
-        recentMatters: false,
-        archived: false,
-        myMatters: false,
-        sortOn: "",
-      });
-      handleRefreshList({
-        ...filterInput,
-        recentMatters: false,
-        archived: false,
-        myMatters: false,
-        sortOn: "",
-      });
     }
+    if (showArchived) {
+      setLabelSort("");
+      setSortOrder("");
+      setSortField("");
+    }
+    setFilterInput(nextFilters);
+    fetchMatterList(nextFilters);
   };
 
   const handleArchived = () => {
@@ -601,7 +589,7 @@ const MatterList = () => {
                           type="switch"
                           role="switch"
                           checked={showRecentMatters}
-                          onClick={handleRecentMatters}
+                          onChange={handleRecentMatters}
                           size="md"
                         />
                       </FormGroup>
@@ -1061,7 +1049,7 @@ const MatterList = () => {
                           >
                             <div className="d-flex align-items-center">
                               <p className="mb-0">{matter.matterNumber}</p>
-                              {(matter.isRecent || matter.recent) && (
+                              {showRecentMatters && (matter.isRecent || matter.recent) && (
                                 <span
                                   className="badge ms-2"
                                   style={{
