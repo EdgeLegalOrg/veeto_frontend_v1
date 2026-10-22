@@ -534,7 +534,7 @@ const AddNewOrg = (props) => {
           checked={organizationDetails.role === "Bussiness/Partnership"}
           className="mx-2"
         />
-        Bussiness/Partnership&nbsp;&nbsp;&nbsp;
+        Business/Organisation&nbsp;&nbsp;&nbsp;
         <Input
           type="radio"
           name="role"

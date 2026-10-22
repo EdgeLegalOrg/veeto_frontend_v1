@@ -552,7 +552,7 @@ function AddOrganization(props) {
               onChange={handleFormChange}
               checked={organizationDetails.role === "Bussiness/Partnership"}
             />
-            <span className="mx-2">Bussiness/Partnership</span>
+            <span className="mx-2">Business/Organisation</span>
           </div>
           <div className="d-flex align-items-center">
             <Input
