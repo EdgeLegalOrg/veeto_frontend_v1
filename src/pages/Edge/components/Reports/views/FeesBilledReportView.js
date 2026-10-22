@@ -24,6 +24,7 @@ const FeesBilledReportView = ({
   comparisonRange,
   staffList,
   refreshTrigger,
+  onExportFiltersChange,
 }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [reportData, setReportData] = useState({
@@ -38,6 +39,11 @@ const FeesBilledReportView = ({
     matterType: null,
     feeEarnerId: null,
   });
+
+  // Export the same criteria used to calculate the report rows and summary.
+  useEffect(() => {
+    onExportFiltersChange?.(filters);
+  }, [filters, onExportFiltersChange]);
 
   const startDateStr = useMemo(
     () => (dateRange && dateRange[0] ? formatDate(dateRange[0]) : null),
@@ -80,10 +86,10 @@ const FeesBilledReportView = ({
       setIsLoading(true);
       try {
         const payload = {
+          ...filters,
           startDate: startDateStr,
           endDate: endDateStr,
           siteId: selectedSite || null,
-          feeEarnerId: filters.feeEarnerId,
         };
 
         const response = await postFeesBilledReport(payload);
@@ -120,27 +126,9 @@ const FeesBilledReportView = ({
     startDateStr,
     endDateStr,
     selectedSite,
-    filters.feeEarnerId,
+    filters,
     refreshTrigger,
   ]);
-
-  // Client-side filtering of rows for table view based on status and matterType
-  const filterComparisonRows = useCallback((rows) => {
-    return (rows || []).filter((r) => {
-      if (
-        filters.status &&
-        filters.status !== "ALL" &&
-        r.invoiceStatus !== filters.status
-      ) {
-        return false;
-      }
-      if (filters.matterType && r.matterType !== filters.matterType) {
-        return false;
-      }
-      return true;
-    });
-  }, [filters.status, filters.matterType]);
-  const filteredRows = useMemo(() => filterComparisonRows(reportData.rows), [reportData.rows, filterComparisonRows]);
 
   return (
     <div>
@@ -180,17 +168,17 @@ const FeesBilledReportView = ({
         comparisonRange={comparisonRange}
         fetchReport={postFeesBilledReport}
         payload={{
+          ...filters,
           siteId: selectedSite || null,
-          feeEarnerId: filters.feeEarnerId,
         }}
         summary={reportData.summary}
         isPrimaryLoading={isLoading}
         refreshTrigger={refreshTrigger}
-        renderDetails={(rows) => <FeesBilledTable rows={filterComparisonRows(rows)} isLoading={false} />}
+        renderDetails={(rows) => <FeesBilledTable rows={rows} isLoading={false} />}
       />
 
       {/* Data Table */}
-      <FeesBilledTable rows={filteredRows} isLoading={isLoading} />
+      <FeesBilledTable rows={reportData.rows} isLoading={isLoading} />
     </div>
   );
 };
