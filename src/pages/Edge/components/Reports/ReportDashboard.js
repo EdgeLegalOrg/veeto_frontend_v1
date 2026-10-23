@@ -1,3 +1,4 @@
+import { getFinancialYearRange } from "../../utils/financialYear";
 import { comparisonDates } from "./utils/reportComparison";
 import React, { useState, useEffect, useMemo } from "react";
 import { Container, Nav, NavItem, NavLink } from "reactstrap";
@@ -58,20 +59,8 @@ const getDatePresetRange = (preset, siteInfo) => {
       return [startOfDay(start), endOfDay(end)];
     }
     case "FINANCIAL_YEAR": {
-      // Construct local calendar dates so date-only site settings do not shift through UTC.
-      if (siteInfo?.financialYearStart && siteInfo?.financialYearEnd) {
-        const parseDate = (value) => {
-          const [year, month, day] = value.split("-").map(Number);
-          return new Date(year, month - 1, day);
-        };
-        return [startOfDay(parseDate(siteInfo.financialYearStart)), endOfDay(parseDate(siteInfo.financialYearEnd))];
-      }
-      // Australian Financial Year: 1 July to 30 June (fallback for unconfigured sites)
-      const currentYear = now.getFullYear();
-      const fyStartYear = now.getMonth() >= 6 ? currentYear : currentYear - 1;
-      const start = new Date(fyStartYear, 6, 1);
-      const end = new Date(fyStartYear + 1, 5, 30);
-      return [startOfDay(start), endOfDay(end)];
+      // The recurring site boundary determines the full financial year containing today.
+      return getFinancialYearRange(siteInfo);
     }
     case "LAST_30_DAYS": {
       const start = new Date();
@@ -211,7 +200,7 @@ const ReportDashboard = () => {
   const financialYearNote = activePreset === "FINANCIAL_YEAR" && financialYearReady && !financialYearConfig.error
     ? [
         selectedSite == null ? `All Offices uses the financial year for ${financialYearConfig.data.siteName || "the active site"}.` : "",
-        !financialYearConfig.data.financialYearStart
+        (!financialYearConfig.data.financialYearStartDay || !financialYearConfig.data.financialYearStartMonth)
           ? "No financial year is configured for this site; using the default July–June range."
           : "",
       ].filter(Boolean).join(" ")
@@ -221,6 +210,7 @@ const ReportDashboard = () => {
   const [staffList, setStaffList] = useState([]);
   const [isExporting, setIsExporting] = useState(false);
   const [settlementExportFilters, setSettlementExportFilters] = useState({});
+  const [feesExportFilters, setFeesExportFilters] = useState({});
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // Load sites and staff metadata for dropdowns
@@ -319,6 +309,7 @@ const ReportDashboard = () => {
 
       const payload = {
         ...(activeTab === "settlements-due" ? settlementExportFilters : {}),
+        ...(activeTab === "fees-billed" ? feesExportFilters : {}),
         startDate: dateRange && dateRange[0] ? formatDate(dateRange[0]) : null,
         endDate: dateRange && dateRange[1] ? formatDate(dateRange[1]) : null,
         siteId: selectedSite || null,
@@ -417,7 +408,8 @@ const ReportDashboard = () => {
                   comparisonRange={comparisonRange}
                   staffList={staffList}
                   refreshTrigger={refreshTrigger}
-                  onExportFiltersChange={tab.id === "settlements-due" ? setSettlementExportFilters : undefined}
+                  onExportFiltersChange={tab.id === "settlements-due" ? setSettlementExportFilters
+                    : tab.id === "fees-billed" ? setFeesExportFilters : undefined}
                 />
               );
             })

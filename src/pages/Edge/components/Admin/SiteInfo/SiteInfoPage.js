@@ -1,4 +1,5 @@
-import SiteFinancialYearFields, { validateFinancialYearRange } from "./SiteFinancialYearFields";
+import SiteFinancialYearFields from "./SiteFinancialYearFields";
+import { validateFinancialYearStart } from "../../../utils/financialYear";
 import { TextInputField } from "pages/Edge/components/InputField";
 import { v1 as uuidv1 } from "uuid";
 import { Fragment, useEffect, useState } from "react";
@@ -46,8 +47,8 @@ const initialData = {
   templateName: "",
   abn: "",
   timeZone: "",
-  financialYearStart: "",
-  financialYearEnd: "",
+  financialYearStartDay: "",
+  financialYearStartMonth: "",
 };
 
 const SiteInfoPage = () => {
@@ -161,7 +162,7 @@ const SiteInfoPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const financialYearError = validateFinancialYearRange(siteInfo);
+    const financialYearError = validateFinancialYearStart(siteInfo);
     if (financialYearError) {
       toast.warning(financialYearError);
       return;
@@ -177,8 +178,8 @@ const SiteInfoPage = () => {
     try {
       let newData = { requestId: uuidv1(), data: {
         ...siteInfo,
-        financialYearStart: siteInfo.financialYearStart || null,
-        financialYearEnd: siteInfo.financialYearEnd || null,
+        financialYearStartDay: siteInfo.financialYearStartDay ? Number(siteInfo.financialYearStartDay) : null,
+        financialYearStartMonth: siteInfo.financialYearStartMonth ? Number(siteInfo.financialYearStartMonth) : null,
       } };
 
       delete newData.data["templateName"];
