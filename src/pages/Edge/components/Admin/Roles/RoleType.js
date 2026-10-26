@@ -45,6 +45,7 @@ const CATEGORY_DEFINITIONS = [
     label: 'REPORTS',
     fallbackRights: [
       'ViewFeesBilledReport',
+      'ViewOwnFeesOnly',
       'ViewMattersOpenedReport',
       'ViewOutstandingInvoicesReport',
       'ViewSettlementsDueReport',
@@ -151,6 +152,11 @@ const RoleType = (props) => {
                 </div>
               ))}
             </div>
+            {category.key === 'REPORTS' && categoryRights.some((right) => right.rightName === 'ViewOwnFeesOnly') && (
+              <p className='text-muted mt-2 mb-0'>
+                View Own Fees Only grants personal billing access. Fees Billed grants full access when both are selected.
+              </p>
+            )}
           </div>
         );
       })}

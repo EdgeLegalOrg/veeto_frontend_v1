@@ -8,6 +8,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { checkHasPermission } from "../../utils/utilFunc";
 import {
   VIEWFEESBILLEDREPORT,
+  VIEWOWNFEESONLY,
   VIEWMATTERSOPENEDREPORT,
   VIEWOUTSTANDINGINVOICESREPORT,
   VIEWSETTLEMENTSDUEREPORT,
@@ -132,7 +133,8 @@ const ReportDashboard = () => {
   const navigate = useNavigate();
 
   const permittedTabs = useMemo(() => {
-    return ALL_REPORT_TABS.filter((tab) => checkHasPermission(tab.right));
+    return ALL_REPORT_TABS.filter((tab) => checkHasPermission(tab.right)
+      || (tab.id === "fees-billed" && checkHasPermission(VIEWOWNFEESONLY)));
   }, []);
 
   const activeTab = useMemo(

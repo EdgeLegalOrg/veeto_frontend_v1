@@ -3,6 +3,8 @@ import { Table } from "reactstrap";
 import CustomSideDrawer from "../../customComponents/CustomSideDrawer";
 import { v4 as uuidv4 } from "uuid";
 
+import { newInvoiceServiceLine } from "../../../utils/invoiceServiceLines";
+
 const TemplateList = (props) => {
   const [templateList, setTemplateList] = useState([]);
 
@@ -43,12 +45,12 @@ const TemplateList = (props) => {
   };
 
   const handleSelect = (val) => {
-    let arr = props.serviceList ? props.serviceList : [];
+    let arr = props.serviceList ? [...props.serviceList] : [];
 
     if (val && val.serviceLineList && val.serviceLineList.length > 0) {
       let list = val.serviceLineList;
       list.forEach((l) => {
-        arr.push({ ...l, uid: uuidv4() });
+        arr.push(newInvoiceServiceLine({ ...l, uid: uuidv4() }));
       });
     }
 

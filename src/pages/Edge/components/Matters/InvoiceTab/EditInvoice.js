@@ -24,6 +24,8 @@ import { toast } from "react-toastify";
 import { TextInputField } from "pages/Edge/components/InputField";
 import { UNDOFINALINVOICE, EXPORTTOXERO } from "pages/Edge/utils/RightConstants";
 
+import { invoiceServiceLineError } from "../../../utils/invoiceServiceLines";
+
 const initialData = {
   invoiceNumber: "",
   invoiceDate: new Date(),
@@ -270,21 +272,6 @@ const EditInvoice = (props) => {
     }
   };
 
-  const validateServiceItem = () => {
-    let valid = true;
-
-    if (formData.serviceLineList.length) {
-      for (let item of formData.serviceLineList) {
-        if (item.billingFrequency?.toLowerCase() === "hourly" && !item.units) {
-          valid = false;
-          break;
-        }
-      }
-    }
-
-    return valid;
-  };
-
   const validateServiceItemDesc = () => {
     let valid = true;
 
@@ -359,15 +346,9 @@ const EditInvoice = (props) => {
       return;
     }
 
-    const isServiceItemValid = validateServiceItem();
-
-    if (!isServiceItemValid) {
-      toast.error(
-        "Unit for hourly service is required and must be greater than zero",
-        {
-          autoClose: 7000,
-        }
-      );
+    const serviceLineError = invoiceServiceLineError(invoiceData.serviceLineList);
+    if (serviceLineError) {
+      toast.error(serviceLineError, { autoClose: 5000 });
       return;
     }
 
@@ -389,7 +370,7 @@ const EditInvoice = (props) => {
       setLoading(false);
     } catch (error) {
       console.error(error);
-      toast.error("Something went wrong, please try later.");
+      toast.error(error?.response?.data?.message || "Something went wrong, please try later.");
       setLoading(false);
     }
   };

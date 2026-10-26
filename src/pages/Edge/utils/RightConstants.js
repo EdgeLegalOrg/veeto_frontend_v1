@@ -38,6 +38,8 @@ export const VIEWFEEDBACKREVIEW = "ViewFeedbackReview";
 // Reports module rights seeded by 2026-10-09-application-rights-update.sql
 // and checked in ReportController.
 export const VIEWFEESBILLEDREPORT = "ViewFeesBilledReport";
+// Grants personal Fees Billed access independently; the existing full-report right takes precedence.
+export const VIEWOWNFEESONLY = "ViewOwnFeesOnly";
 export const VIEWMATTERSOPENEDREPORT = "ViewMattersOpenedReport";
 export const VIEWOUTSTANDINGINVOICESREPORT = "ViewOutstandingInvoicesReport";
 export const VIEWSETTLEMENTSDUEREPORT = "ViewSettlementsDueReport";

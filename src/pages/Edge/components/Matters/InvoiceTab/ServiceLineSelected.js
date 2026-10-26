@@ -12,6 +12,8 @@ import {
   SelectInputField,
 } from "pages/Edge/components/InputField";
 
+import { normalizeInvoiceServiceLine } from "../../../utils/invoiceServiceLines";
+
 const ServiceLineSelected = (props) => {
   const [selectedList, setSelectedList] = useState([]);
   const [serviceType, setServiceType] = useState([]);
@@ -23,7 +25,7 @@ const ServiceLineSelected = (props) => {
       if (props.type === "edit") {
         prepareSelectedList(props.serviceList);
       } else {
-        setSelectedList(props.serviceList);
+        setSelectedList(props.serviceList.map(normalizeInvoiceServiceLine));
       }
     }
   }, [props.serviceList]);
@@ -34,7 +36,7 @@ const ServiceLineSelected = (props) => {
 
   const prepareSelectedList = (arg) => {
     const newList = arg.map((service) => {
-      return { ...service, uid: uuidv4() };
+      return { ...normalizeInvoiceServiceLine(service), uid: service.uid || uuidv4() };
     });
 
     setSelectedList(newList);
@@ -63,48 +65,17 @@ const ServiceLineSelected = (props) => {
     let arr = [...selectedList];
     let obj = arr[i];
 
-    if (name === "units") {
-      if (parseFloat(value) < 0) {
-        return;
-      } else {
-        let prev = parseFloat(obj[name]);
-        let newVal = parseFloat(value);
-        obj = { ...obj, [name]: prev === 0 ? prev + newVal : newVal };
-      }
-    } else if (name === "rate") {
-      if (parseFloat(value) < 0) {
-        return;
-      } else {
-        let prev = parseFloat(obj[name]);
-        let newVal = parseFloat(value);
-        obj = { ...obj, [name]: prev === 0 ? prev + newVal : newVal };
-      }
-    } else if (name === "amount") {
-      if (obj.billingFrequency === "HOURLY" && parseFloat(value) < 0) {
-        return;
-      } else {
-        let prev = parseFloat(obj[name]);
-        let newVal = parseFloat(value);
-        obj = { ...obj, [name]: prev === 0 ? prev + newVal : newVal };
-      }
+    if (["units", "hourlyRate", "amount"].includes(name)) {
+      const numeric = value === "" ? "" : Number(value);
+      if (numeric !== "" && !Number.isFinite(numeric)) return;
+      if ((name !== "amount" || obj.billingFrequency === "HOURLY") && numeric < 0) return;
+      obj = { ...obj, [name]: numeric };
     } else {
       obj = { ...obj, [name]: value };
     }
-
-    arr[i] = obj;
-
-    setSelectedList([
-      ...selectedList.map((item, index) => {
-        if (index === i) {
-          return obj;
-        }
-        return item;
-      }),
-    ]);
-
-    if (props.onChange) {
-      props.onChange("serviceLineList", arr);
-    }
+    arr[i] = normalizeInvoiceServiceLine(obj);
+    setSelectedList(arr);
+    props.onChange?.("serviceLineList", arr);
   };
 
   const changeTaxType = (val, i) => {
@@ -232,7 +203,7 @@ const ServiceLineSelected = (props) => {
                   <p className="m-0">Units</p>
                 </td>
                 <td>
-                  <p className="m-0">Rate</p>
+                  <p className="m-0">Hourly Rate</p>
                 </td>
                 <td>
                   <p className="m-0">Amount</p>
@@ -242,7 +213,7 @@ const ServiceLineSelected = (props) => {
             </thead>
             <tbody>
               {selectedList.map((service, i) => (
-                <tr key={service.id}>
+                <tr key={service.uid || service.id || i}>
                   <td>{sequence(i)}</td>
                   <td>
                     <TextInputField
@@ -282,12 +253,11 @@ const ServiceLineSelected = (props) => {
                   <td>
                     {service.billingFrequency === "HOURLY" ? (
                       <TextInputField
-                        name="rate"
-                        value={service.rate ? service.rate : 0}
+                        name="hourlyRate"
+                        value={service.hourlyRate ?? ""}
                         onChange={(e) => handleChange(e, i)}
                         type="number"
                         disabled={props.disabled}
-                        readOnly={true}
                       />
                     ) : (
                       <p className="sls-label">NA</p>
@@ -296,6 +266,7 @@ const ServiceLineSelected = (props) => {
                   <td>
                     <TextInputField
                       name="amount"
+                      readOnly={service.billingFrequency === "HOURLY"}
                       value={service.amount ? service.amount : 0}
                       onChange={(e) => handleChange(e, i)}
                       type="number"
