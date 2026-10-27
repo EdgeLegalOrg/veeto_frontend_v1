@@ -1,4 +1,5 @@
 import DocxAttachmentPreview from "./DocxAttachmentPreview";
+import BrowserAttachmentPreview from "./BrowserAttachmentPreview";
 import React, { useEffect, useState, useMemo, useRef, useCallback } from "react";
 import { Modal, Spinner } from "reactstrap";
 import fileDownload from "js-file-download";
@@ -10,6 +11,15 @@ import {
 } from "../../../apis";
 import { formatDateFunc } from "../../../utils/utilFunc";
 import "./MasterFileBinderModal.css";
+
+/** Uses the stored extension with a filename fallback, independent of backend preview classification. */
+const browserPreviewKind = (item) => {
+  const extension = (item?.fileExtension || item?.name?.match(/\.([^.]+)$/)?.[1] || "")
+    .replace(/^\./, "").trim().toLowerCase();
+  if (["heic", "heif"].includes(extension)) return "heic";
+  if (["xls", "xlsx"].includes(extension)) return "spreadsheet";
+  return null;
+};
 
 const getInitials = (name) => {
   if (!name) return "LD";
@@ -58,6 +68,14 @@ const MasterFileBinderModal = ({
   const [docError, setDocError] = useState(null);
 
   const blobUrlRef = useRef(null);
+  const imagePreviewCache = useRef(new Map());
+
+  // Cache only within one matter's open viewer session; previews never enter browser storage.
+  useEffect(() => {
+    imagePreviewCache.current.clear();
+    const cache = imagePreviewCache.current;
+    return () => cache.clear();
+  }, [isOpen, matterId]);
 
   // Revoke blob URL cleanly
   const revokeCurrentBlob = useCallback(() => {
@@ -131,7 +149,7 @@ const MasterFileBinderModal = ({
 
   // Load preview data when currentIndex or currentItem changes
   useEffect(() => {
-    if (!currentItem) {
+    if (!isOpen || !currentItem) {
       revokeCurrentBlob();
       setDocBlobUrl(null);
       setEmailContent(null);
@@ -148,7 +166,10 @@ const MasterFileBinderModal = ({
     const previewType = currentItem.previewType;
     const attId = currentItem.attachmentId;
 
-    if (previewType === "EMAIL_MSG") {
+    if (browserPreviewKind(currentItem)) {
+      // Browser previews own their download, worker, cancellation and loading state.
+      setLoadingDoc(false);
+    } else if (previewType === "EMAIL_MSG") {
       fetchAttachmentEmailContent(attId)
         .then((res) => {
           if (!isSubscribed) return;
@@ -194,7 +215,7 @@ const MasterFileBinderModal = ({
       isSubscribed = false;
       revokeCurrentBlob();
     };
-  }, [currentItem, revokeCurrentBlob]);
+  }, [currentItem, isOpen, revokeCurrentBlob]);
 
   // Navigation handlers
   const handlePrev = useCallback(() => {
@@ -214,7 +235,7 @@ const MasterFileBinderModal = ({
     if (!isOpen) return;
 
     const handleKeyDown = (e) => {
-      if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") {
+      if (["INPUT", "TEXTAREA", "SELECT"].includes(e.target.tagName) || e.target.closest?.(".binder-sheet-scroll")) {
         return;
       }
       if (e.key === "ArrowLeft") {
@@ -324,6 +345,16 @@ const MasterFileBinderModal = ({
           <p className="text-muted">No documents found in this matter.</p>
         </div>
       );
+    }
+
+    const localPreviewKind = browserPreviewKind(currentItem);
+    if (localPreviewKind) {
+      return <BrowserAttachmentPreview
+        key={`${matterId}:${currentItem.attachmentId}`}
+        item={currentItem} kind={localPreviewKind}
+        title={getDocumentDisplayTitle(currentItem)} imageCache={imagePreviewCache}
+        onDownload={() => handleDownload(currentItem)}
+      />;
     }
 
     // 1. PDF
@@ -690,7 +721,7 @@ const MasterFileBinderModal = ({
 
           {/* Central Document Display Canvas */}
           <div className="binder-canvas">
-            {renderCanvasContent()}
+            {isOpen && renderCanvasContent()}
           </div>
 
           {/* Bottom Floating Navigation Toolbar */}
