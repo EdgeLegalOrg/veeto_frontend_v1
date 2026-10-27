@@ -26,7 +26,7 @@ export const SECTION_ICON = {
  * The Accounting sections have no way to open a single record, so they carry
  * the search term to their list instead of pretending to.
  */
-export const resultHref = (result, term) => {
+export const recordHref = (result, term) => {
   const encoded = encodeURIComponent(term || "");
 
   switch (result.section) {
@@ -65,6 +65,18 @@ export const resultHref = (result, term) => {
     default:
       return `/search?q=${encoded}`;
   }
+};
+
+/** Opens multi-site records through an authenticated site switch before their detail page mounts. */
+export const resultHref = (result, term) => {
+  if (["MATTERS", "CONTACTS", "SAFE_CUSTODY"].includes(result.section) && result.siteId != null) {
+    const params = new URLSearchParams({
+      section: result.section, id: String(result.id), siteId: String(result.siteId), q: term || "",
+    });
+    if (result.recordType) params.set("recordType", result.recordType);
+    return `/search/open?${params.toString()}`;
+  }
+  return recordHref(result, term);
 };
 
 /**
