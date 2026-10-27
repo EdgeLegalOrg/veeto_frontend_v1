@@ -1389,3 +1389,9 @@ export const postExportOutstandingInvoicesCsv = (filterData) =>
   API.post(`/api/reports/outstanding-invoices/export-csv?requestId=${uuidv1()}`, filterData, {
     responseType: "blob",
   });
+
+// Settlement Figures: one versioned worksheet per matter, calculated authoritatively by the backend.
+export const fetchSettlementSheet = (matterId, requestConfig = {}) =>
+  API.get(`/api/matter/${matterId}/settlement-sheet`, requestConfig);
+export const saveSettlementSheet = (matterId, sheet) =>
+  API.put(`/api/matter/${matterId}/settlement-sheet`, sheet);
