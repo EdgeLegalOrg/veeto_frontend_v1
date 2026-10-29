@@ -5,11 +5,14 @@ import { findDisplayname } from "../../../utils/utilFunc";
 import { v4 as uuidv4 } from "uuid";
 import { TextInputField } from "pages/Edge/components/InputField";
 
+import { newInvoiceServiceLine } from "../../../utils/invoiceServiceLines";
+
 const initialData = {
   serviceLineTitle: "",
   serviceLineDesc: "",
   billingFrequency: "ONE_TIME",
   amount: "",
+  hourlyRate: "",
   units: "",
   type: "FEES",
   taxType: "GST_EXCLUDE",
@@ -60,22 +63,11 @@ const NewServiceLine = (props) => {
     const { name, value } = e.target;
     let obj = { ...formData };
 
-    if (name === "units") {
-      if (parseFloat(value) < 0) {
-        return;
-      } else {
-        let prev = parseFloat(obj[name]);
-        let newVal = parseFloat(value);
-        obj = { ...obj, [name]: prev === 0 ? prev + newVal : newVal };
-      }
-    } else if (name === "amount") {
-      if (formData.billingFrequency === "HOURLY" && parseFloat(value) < 0) {
-        return;
-      } else {
-        let prev = parseFloat(obj[name]);
-        let newVal = parseFloat(value);
-        obj = { ...obj, [name]: prev === 0 ? prev + newVal : newVal };
-      }
+    if (["units", "amount", "hourlyRate"].includes(name)) {
+      const numeric = value === "" ? "" : Number(value);
+      if (numeric !== "" && !Number.isFinite(numeric)) return;
+      if ((name !== "amount" || formData.billingFrequency === "HOURLY") && numeric < 0) return;
+      obj = { ...obj, [name]: numeric };
     } else {
       obj = { ...obj, [name]: value };
     }
@@ -103,7 +95,7 @@ const NewServiceLine = (props) => {
 
     let isValid = true;
 
-    if (formData.billingFrequency === "HOURLY" && formData.units < 1) {
+    if (formData.billingFrequency === "HOURLY" && (!Number.isInteger(Number(formData.units)) || Number(formData.units) <= 0)) {
       isError.units = true;
       isValid = false;
     }
@@ -113,12 +105,9 @@ const NewServiceLine = (props) => {
       isValid = false;
     }
 
-    if (
-      !formData.amount ||
-      isNaN(formData.amount) ||
-      (formData.billingFrequency === "HOURLY" &&
-        parseFloat(formData.amount) < 1)
-    ) {
+    const inputAmount = formData.billingFrequency === "HOURLY" ? formData.hourlyRate : formData.amount;
+    if (inputAmount === "" || !Number.isFinite(Number(inputAmount))
+      || (formData.billingFrequency === "HOURLY" ? Number(inputAmount) <= 0 : Number(inputAmount) === 0)) {
       isError.amount = true;
       isValid = false;
     }
@@ -140,7 +129,7 @@ const NewServiceLine = (props) => {
     if (props.onChange) {
       props.onChange("serviceLineList", [
         ...arr,
-        { ...formData, uid: uuidv4() },
+        newInvoiceServiceLine({ ...formData, uid: uuidv4() }),
       ]);
       handleClose();
     }
@@ -154,6 +143,7 @@ const NewServiceLine = (props) => {
     if (name === "billingFrequency" && value !== formData.billingFrequency) {
       obj["units"] = "";
       obj["amount"] = "";
+      obj["hourlyRate"] = "";
     }
 
     obj = { ...obj, [name]: value };
@@ -241,17 +231,17 @@ const NewServiceLine = (props) => {
 
         <div className="mr-t30 mr-b10 mt-3">
           <TextInputField
-            label="Amount/Hourly Rate"
-            name="amount"
+            label={formData.billingFrequency === "HOURLY" ? "Hourly Rate" : "Amount"}
+            name={formData.billingFrequency === "HOURLY" ? "hourlyRate" : "amount"}
             placeholder="$ Amount/Hourly Rate"
-            value={formData.amount}
+            value={formData.billingFrequency === "HOURLY" ? formData.hourlyRate : formData.amount}
             onChange={handleFormChange}
             type="number"
             required={true}
           />
           {error.amount && (
             <span className="text-danger fs-6">
-              * This field is required (min: 1)
+              * Enter a valid amount or positive hourly rate.
             </span>
           )}
         </div>

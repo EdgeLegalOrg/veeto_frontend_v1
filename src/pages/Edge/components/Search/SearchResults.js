@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   Button,
@@ -36,33 +36,43 @@ const SearchResults = () => {
   const [totalResults, setTotalResults] = useState(0);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
+  const requestRef = useRef(0);
 
   const runSearch = useCallback(async (value) => {
+    const requestId = ++requestRef.current;
     const trimmed = (value || "").trim();
 
     if (trimmed.length < MIN_TERM_LENGTH) {
       setSections([]);
       setTotalResults(0);
       setSearched(false);
+      setLoading(false);
       return;
     }
 
     setLoading(true);
+    setSearched(false);
+    setSections([]);
+    setTotalResults(0);
 
     try {
       const { data } = await globalSearch(trimmed, PAGE_LIMIT);
 
+      if (requestId !== requestRef.current) return;
       if (data.success) {
         setSections(data.data?.sections || []);
         setTotalResults(data.data?.totalResults || 0);
       }
     } catch (error) {
+      if (requestId !== requestRef.current) return;
       console.error("error", error);
       setSections([]);
       setTotalResults(0);
     } finally {
-      setLoading(false);
-      setSearched(true);
+      if (requestId === requestRef.current) {
+        setLoading(false);
+        setSearched(true);
+      }
     }
   }, []);
 
@@ -74,6 +84,7 @@ const SearchResults = () => {
     if (urlTerm.trim().length >= MIN_TERM_LENGTH) {
       pushSearchHistory(urlTerm);
     }
+    return () => { requestRef.current += 1; };
   }, [urlTerm, runSearch]);
 
   const submit = (e) => {
@@ -144,11 +155,12 @@ const SearchResults = () => {
                   {section.results.map((result) => (
                     <a
                       href={resultHref(result, term)}
-                      key={`${section.section}-${result.id}`}
+                      key={`${section.section}-${result.recordType || ""}-${result.id}-${result.siteId || ""}`}
                       className="list-group-item list-group-item-action"
                       onClick={(e) => handleResultClick(e, result)}
                     >
                       <span className="fw-medium">{result.title}</span>
+                      {result.siteId != null && <span className="badge bg-light text-dark border ms-2">{result.siteName || `Office ${result.siteId}`}</span>}
                       {result.subtitle && (
                         <span className="text-muted fs-13 ms-2">
                           {result.subtitle}

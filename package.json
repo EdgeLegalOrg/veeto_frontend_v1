@@ -47,6 +47,7 @@
     "js-file-download": "^0.4.12",
     "jwt-decode": "^4.0.0",
     "leaflet": "^1.9.4",
+    "libheif-js": "^1.23.5",
     "list.js": "^2.3.1",
     "lord-icon-element": "^4.1.2",
     "lottie-web": "^5.13.0",
@@ -104,6 +105,7 @@
     "uuid": "^13.0.0",
     "validator": "^13.15.15",
     "web-vitals": "^5.1.0",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",
     "yup": "^1.7.1"
   },
   "scripts": {

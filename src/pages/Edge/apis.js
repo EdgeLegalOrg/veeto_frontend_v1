@@ -1,3 +1,4 @@
+import { normalizeInvoiceServiceLine } from "./utils/invoiceServiceLines";
 import axios from "axios";
 import Cookies from "js-cookie";
 import { jwtDecode } from "jwt-decode";
@@ -318,7 +319,9 @@ export const getInvoiceById = (id) =>
 export const addOrPreviewInvoice = (formData, preview) =>
   API.post(`/api/invoice?preview=${preview}`, {
     requestId: uuidv1(),
-    data: formData,
+    data: { ...formData,
+      serviceLineList: Array.isArray(formData.serviceLineList)
+        ? formData.serviceLineList.map(normalizeInvoiceServiceLine) : formData.serviceLineList },
   });
 
 export const addReceivedPayment = (formData) =>
@@ -330,7 +333,9 @@ export const addReceivedPayment = (formData) =>
 export const editOrPreviewInvoice = (formData, preview) =>
   API.put(`/api/invoice?preview=${preview}`, {
     requestId: uuidv1(),
-    data: formData,
+    data: { ...formData,
+      serviceLineList: Array.isArray(formData.serviceLineList)
+        ? formData.serviceLineList.map(normalizeInvoiceServiceLine) : formData.serviceLineList },
   });
 
 export const printMatterInvoice = (id) => API.get(`/api/invoice/${id}/print`);
@@ -1384,3 +1389,9 @@ export const postExportOutstandingInvoicesCsv = (filterData) =>
   API.post(`/api/reports/outstanding-invoices/export-csv?requestId=${uuidv1()}`, filterData, {
     responseType: "blob",
   });
+
+// Settlement Figures: one versioned worksheet per matter, calculated authoritatively by the backend.
+export const fetchSettlementSheet = (matterId, requestConfig = {}) =>
+  API.get(`/api/matter/${matterId}/settlement-sheet`, requestConfig);
+export const saveSettlementSheet = (matterId, sheet) =>
+  API.put(`/api/matter/${matterId}/settlement-sheet`, sheet);

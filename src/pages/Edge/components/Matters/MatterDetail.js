@@ -72,7 +72,7 @@ const MatterDetail = (props) => {
     setShowConflictModal(true);
   }, []);
   const { formStatus, navigationEditForm } = useSelector(
-    (state) => state.Layout
+    (state) => state.Layout,
   );
 
   //file directory popup state
@@ -94,7 +94,7 @@ const MatterDetail = (props) => {
             setModalOpen(true);
             setModal(item);
           },
-        })
+        }),
       );
     }
     setModalOpen(true);
@@ -117,7 +117,7 @@ const MatterDetail = (props) => {
       setSelected(
         navigationEditForm.currentFormValue.tab === "matters"
           ? "BASIC"
-          : navigationEditForm.currentFormValue.tab
+          : navigationEditForm.currentFormValue.tab,
       );
       // if (["CONTACTS"].includes(navigationEditForm.currentFormValue.tab)) {
       //   dispatch(resetNavigationEditFormAction());
@@ -131,7 +131,7 @@ const MatterDetail = (props) => {
     let tabToDisplay = [];
     if (tabList && tabList.length > 0) {
       tabToDisplay = tabList.filter(
-        (tab) => tab.type === arg.type && tab.subType === arg.subType
+        (tab) => tab.type === arg.type && tab.subType === arg.subType,
       );
     }
 
@@ -147,7 +147,7 @@ const MatterDetail = (props) => {
     if (!defaultTabApplied.current) {
       defaultTabApplied.current = true;
       setSelected(
-        arg?.checklistTracker?.taskList?.length > 0 ? "CHECKLIST" : "BASIC"
+        arg?.checklistTracker?.taskList?.length > 0 ? "CHECKLIST" : "BASIC",
       );
     }
 
@@ -170,7 +170,7 @@ const MatterDetail = (props) => {
           key: "isShowModal",
           value: true,
           callback: () => setSelected(val),
-        })
+        }),
       );
     }
     setSelected(val);
@@ -188,7 +188,7 @@ const MatterDetail = (props) => {
   const handleArchive = async () => {
     if (formStatus.isFormChanged && !data?.flagArchived) {
       return dispatch(
-        updateFormStatusAction({ key: "isShowModal", value: true })
+        updateFormStatusAction({ key: "isShowModal", value: true }),
       );
     }
 
@@ -214,7 +214,8 @@ const MatterDetail = (props) => {
     }
   };
 
-  const isArchivedReadOnly = data?.flagArchived && !checkHasPermission(EDITARCHIVEDMATTER);
+  const isArchivedReadOnly =
+    data?.flagArchived && !checkHasPermission(EDITARCHIVEDMATTER);
 
   const displaySection = () => {
     switch (selected) {
@@ -353,18 +354,22 @@ const MatterDetail = (props) => {
   };
 
   const handleSettlementTab = () => {
-    if (formStatus.isFormChanged && !data?.flagArchived) { 
+    if (formStatus.isFormChanged && !data?.flagArchived) {
       return dispatch(
         updateFormStatusAction({
           key: "isShowModal",
           value: true,
-          callback: () => navigate({ search: "?settlement=true" }),
-        })
+          callback: () => {
+            const query = new URLSearchParams(location.search);
+            query.set("settlement", "true");
+            navigate({ search: `?${query.toString()}` });
+          },
+        }),
       );
     }
-    navigate({
-      search: "?settlement=true",
-    });
+    const query = new URLSearchParams(location.search);
+    query.set("settlement", "true");
+    navigate({ search: `?${query.toString()}` });
   };
 
   const showSettlement = () => {
@@ -463,7 +468,7 @@ const MatterDetail = (props) => {
                       });
                       props.setMatterDetail(null);
                     },
-                  })
+                  }),
                 );
               }
 
@@ -533,7 +538,21 @@ const MatterDetail = (props) => {
         />
       );
     } else if (location.search && location.search.includes("settlement=true")) {
-      return <SettlementDetails />;
+      if (!data?.id) return null;
+      return (
+        <SettlementDetails
+          key={data.id}
+          data={data}
+          isArchived={isArchivedReadOnly}
+          onClose={() => {
+            const query = new URLSearchParams(location.search);
+            query.delete("settlement");
+            navigate({
+              search: query.toString() ? `?${query.toString()}` : "",
+            });
+          }}
+        />
+      );
     } else {
       return matterDetailSec();
     }
@@ -580,7 +599,7 @@ const MatterDetail = (props) => {
                       discard the changes?"
               closeForm={() => {
                 dispatch(
-                  updateFormStatusAction({ key: "isShowModal", value: false })
+                  updateFormStatusAction({ key: "isShowModal", value: false }),
                 );
               }}
               btn1={"No"}

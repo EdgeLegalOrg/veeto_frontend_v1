@@ -93,3 +93,90 @@
   margin-right: 6px;
   cursor: pointer;
 }
+
+/* Saved settlement worksheet; styles are scoped to avoid altering legacy adjustment forms. */
+.settlement-sheet {
+  max-width: 1440px;
+  margin: 0 auto;
+}
+.settlement-sheet fieldset {
+  min-width: 0;
+}
+.settlement-sheet .settlement-section {
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 20px;
+  margin-bottom: 20px;
+  background: #fff;
+}
+.settlement-sheet .settlement-section > h6 {
+  margin-bottom: 16px;
+}
+.settlement-sheet .settlement-adjustment {
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  padding: 16px;
+  margin-top: 12px;
+  background: #fff;
+}
+.settlement-sheet .settlement-disabled {
+  background: #f8fafc;
+  padding-bottom: 8px;
+}
+.settlement-sheet .form-label {
+  font-size: 13px;
+}
+.settlement-sheet .settlement-row-result {
+  border-top: 1px solid #e2e8f0;
+  padding-top: 12px;
+  font-size: 13px;
+}
+.settlement-sheet .settlement-summary {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(120px, auto);
+  gap: 10px 24px;
+  max-width: 760px;
+  margin-bottom: 16px;
+}
+.settlement-sheet .settlement-summary dt {
+  font-weight: 500;
+}
+.settlement-sheet .settlement-summary dd {
+  margin: 0;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.settlement-sheet .settlement-final {
+  border-top: 1px solid #cbd5e1;
+  padding-top: 12px;
+  font-weight: 700 !important;
+  font-size: 16px;
+}
+.settlement-sheet .table input {
+  min-width: 140px;
+}
+.settlement-sheet .table-responsive {
+  position: relative;
+  max-width: 100%;
+  overflow-x: auto !important;
+}
+.settlement-sheet .visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+@media (max-width: 576px) {
+  .settlement-sheet .settlement-section {
+    padding: 12px;
+  }
+  .settlement-sheet .settlement-summary {
+    grid-template-columns: minmax(140px, 1fr) auto;
+    gap: 10px;
+  }
+}

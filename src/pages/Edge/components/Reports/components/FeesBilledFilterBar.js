@@ -39,10 +39,11 @@ const FeesBilledFilterBar = ({
   onFilterChange,
   onResetFilters,
   staffList,
+  ownFeesOnly = false,
 }) => {
   const safeStaffList = Array.isArray(staffList) ? staffList : (staffList ? [staffList] : []);
 
-  const staffOptions = [
+  const staffOptions = ownFeesOnly ? [{ value: "OWN", label: "My billing only" }] : [
     { value: null, label: "All Fee Earners / Staff" },
     ...safeStaffList.map((s) => ({
       value: s.id,
@@ -84,11 +85,12 @@ const FeesBilledFilterBar = ({
 
           {/* Fee Earner Filter */}
           <Col lg={3} md={10} sm={10}>
-            <label className="form-label fs-12 fw-medium text-muted mb-1">Fee Earner / Staff</label>
+            <label className="form-label fs-12 fw-medium text-muted mb-1">{ownFeesOnly ? "Billing Scope" : "Fee Earner / Staff"}</label>
             <Select
               value={staffOptions.find((opt) => opt.value === filters.feeEarnerId) || staffOptions[0]}
               onChange={(opt) => onFilterChange("feeEarnerId", opt ? opt.value : null)}
               options={staffOptions}
+              isDisabled={ownFeesOnly}
               classNamePrefix="select2-selection"
               isClearable={false}
               menuPortalTarget={typeof document !== "undefined" ? document.body : null}

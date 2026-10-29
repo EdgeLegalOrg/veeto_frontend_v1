@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { linkRoleToUser } from "../../../apis";
+import { linkRoleToUser, userProfile } from "../../../apis";
 import "../../../stylesheets/ManageUserPage.css";
 import { toast } from "react-toastify";
 import { Button } from "reactstrap";
 import { AiOutlineClose } from "react-icons/ai";
 import {
-  CustomDropDown,
   TextInputField,
 } from "pages/Edge/components/InputField";
+
+import UserAccessFields from "./UserAccessFields";
 
 const UpdateUser = (props) => {
   const {
@@ -15,7 +16,6 @@ const UpdateUser = (props) => {
     userDetail,
     siteList,
     roleList,
-    setLoading,
     fetchUsers,
     linkedRoles,
     handleUpdateRole,
@@ -23,91 +23,61 @@ const UpdateUser = (props) => {
     updatedUserDetails,
   } = props;
 
-  const [dataList, setDataList] = useState([]);
-  const [dummyList, setDummyList] = useState([]);
+  const [siteIds, setSiteIds] = useState([]);
+  const [roleId, setRoleId] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
   const [defaultTemplateId, setDefaultTemplateId] = useState("");
 
+  // Initialise from persisted assignments, never from the order of the visible site list.
   useEffect(() => {
-    if (updatedUserDetails) {
-      setDefaultTemplateId(updatedUserDetails.defaultTemplateId || "");
-    }
-  }, [updatedUserDetails]);
+    const mappings = updatedUserDetails?.siteRoleList || linkedRoles || [];
+    const existingRoles = [...new Set(mappings.map((mapping) => mapping.roleId).filter(Boolean))];
+    setSiteIds((updatedUserDetails?.siteIds || mappings.map((mapping) => mapping.siteId)).map(Number));
+    setRoleId(updatedUserDetails?.roleId ?? (!updatedUserDetails?.requiresRoleSelection && existingRoles.length === 1
+      ? Number(existingRoles[0]) : ""));
+    setDefaultTemplateId(updatedUserDetails?.defaultTemplateId || "");
+    setSubmitted(false);
+  }, [userDetail.id, updatedUserDetails, linkedRoles]);
 
-  const handleSelect = (val, i) => {
-    // if (val.display === 'None') {
-    //   let arr1 = [...dummyList];
-    //   arr1[i] = '';
-    //   setDummyList(arr1);
-    //   let arr2 = [];
-    //   if (i === 0 && dataList?.length === 0) {
-    //     return;
-    //   } else if (i === 0) {
-    //     arr2 = arr2.concat(dataList.slice(1));
-    //   } else if (i === dataList?.length - 1) {
-    //     arr2 = arr2.concat(dataList.slice(0, -1));
-    //   } else {
-    //     arr2 = arr2.concat(dataList.slice(0, i), dataList.slice(i + 1));
-    //   }
-    //   setDataList(arr2);
-    // } else {
-    let obj = { siteId: siteList[i].value, roleId: val.value };
-    let arr1 = dummyList;
-    arr1[i] = val.display;
-    setDummyList(arr1);
-    let arr2 = [...dataList];
-    if (arr2?.length - 1 < i) {
-      arr2.push(obj);
-    } else {
-      arr2[i] = obj;
-    }
-    setDataList(arr2);
-    // }
-  };
-
+  /** Saves a full membership replacement, with one role shared by every selected site. */
   const handleUpdate = async () => {
-    setLoading(true);
-
-    const newDataList = dataList.map((role) => {
-      if (!role.roleId) {
-        return { ...role, roleId: null };
-      } else {
-        return role;
-      }
-    });
-
+    if (saving) return;
+    setSubmitted(true);
+    const selectedRole = roleList.find((role) => Number(role.value) === Number(roleId));
+    const hasActiveSite = siteList.some((site) => siteIds.includes(Number(site.value)));
+    if (!selectedRole || (!selectedRole.accessAllSites && !hasActiveSite)) return;
+    setSaving(true);
     try {
-      let newData = {
+      const { data } = await linkRoleToUser({
         defaultTemplateId: defaultTemplateId ? Number(defaultTemplateId) : null,
-        userId: userDetail.id,
-        siteRoleList: newDataList,
-      };
-      const { data } = await linkRoleToUser(newData);
+        userId: userDetail.id, roleId: Number(roleId), siteIds,
+      });
       if (data.success) {
-        handleUpdateRole(userDetail.id, true);
+        toast.success("User access updated successfully.");
+        await fetchUsers();
+        const currentUser = JSON.parse(window.localStorage.getItem("userDetails") || "{}");
+        if (Number(currentUser.id) === Number(userDetail.id)) {
+          // Refresh persisted UI data before reloading; reload alone would reuse stale localStorage.
+          try {
+            const profile = await userProfile();
+            window.localStorage.setItem("userDetails", JSON.stringify(profile.data));
+            window.dispatchEvent(new Event("siteChanged"));
+            window.location.reload();
+          } catch {
+            toast.warning("Access was saved. Refresh the page to reload your permissions.");
+          }
+        } else {
+          await handleUpdateRole(userDetail.id, true);
+        }
       } else {
-        toast.error("Something went wrong, please try again later.");
+        toast.error(data.message || data.error?.message || "Unable to save access. Check the role and site selections.");
       }
-      setLoading(false);
     } catch (error) {
-      setLoading(false);
-      toast.error("Something went wrong please check console.");
-      console.error(error);
+      toast.error(error?.response?.data?.message || "Unable to save user access. Please try again.");
+    } finally {
+      setSaving(false);
     }
-  };
-
-  const correspondingRole = (siteId, mapVal = "") => {
-    let data = linkedRoles.filter((d) => d.siteId === siteId);
-    if (data && data?.length > 0) {
-      let roleId = data[0].roleId;
-      let val = roleList.filter((r) => r.value === roleId);
-
-      if (mapVal) {
-        return val && val?.length > 0 ? val[0][mapVal] : "";
-      }
-      return val && val?.length > 0 ? val[0].display : "";
-    }
-
-    return "";
   };
 
   return (
@@ -117,18 +87,13 @@ const UpdateUser = (props) => {
         <Button
           color="danger"
           className="mx-2 d-flex"
-          onClick={handleCloseRight}
+          onClick={handleCloseRight} disabled={saving}
         >
           <AiOutlineClose size={18} />
         </Button>
       </div>
       <div className="addUser-bodyDiv">
-        {/* <div className='addUser-personDiv'>
-          <p className='addUser-person'>
-            Add Person <span>*</span>
-          </p>
-          <input type='text' className='addUser-searchPerson' />
-        </div> */}
+
 
         <div className="addUser-details">
           <label className="mb-0">Username : </label>
@@ -170,58 +135,15 @@ const UpdateUser = (props) => {
             // invalidMessage='Please enter a valid Default Letter Head'
           />
         </div>
-        <div className="addUser-roleDiv">
-          <p className="">Update User Role</p>
-          <div className="addUser-roleContainer">
-            <div className="addUser-roleHead border">
-              {/* <input
-                type="checkbox"
-                className="addUser-roleHeadCheck hide"
-              /> */}
-              <p className="addUser-siteHeadPara mb-0">Site</p>
-              <p className="addUser-roleHeadPara mb-0">Roles</p>
-            </div>
-            <div className="addUser-roleList border">
-              {siteList?.map((site, i) => (
-                <div className="addUser-role pe-cursor" key={site.value}>
-                  {/* <input type='checkbox' className='addUser-check' /> */}
-                  <p className="addUser-roleName">{site.display}</p>
-                  <div className="addUser-option position-relative">
-                    <CustomDropDown
-                      name="role"
-                      label="Role"
-                      fieldVal={
-                        dummyList[i]
-                          ? dummyList[i]
-                          : correspondingRole(site.value)
-                      }
-                      selected={
-                        dataList?.[i]?.roleId
-                          ? dataList[i].roleId
-                          : correspondingRole(site.value, "value")
-                      }
-                      optionArray={
-                        roleList
-                          ? [{ display: "None", value: "" }, ...roleList]
-                          : []
-                      }
-                      onSelectFunc={(val) => handleSelect(val, i)}
-                      width="85%"
-                      small={true}
-                      maxLength={null}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+        <UserAccessFields siteList={siteList} roleList={roleList} siteIds={siteIds} roleId={roleId}
+          onSitesChange={setSiteIds} onRoleChange={setRoleId} submitted={submitted} disabled={saving}
+          requiresRoleSelection={updatedUserDetails?.requiresRoleSelection} />
       </div>
       <div className="d-flex my-2 mx-3">
-        <Button className="mx-1" color="success" onClick={handleUpdate}>
-          Update User
+        <Button className="mx-1" color="success" onClick={handleUpdate} disabled={saving}>
+          {saving ? "Saving..." : "Update User"}
         </Button>
-        <Button className="mx-1" color="danger" onClick={handleCloseRight}>
+        <Button className="mx-1" color="danger" onClick={handleCloseRight} disabled={saving}>
           Cancel
         </Button>
       </div>
