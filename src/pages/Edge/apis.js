@@ -1395,3 +1395,7 @@ export const fetchSettlementSheet = (matterId, requestConfig = {}) =>
   API.get(`/api/matter/${matterId}/settlement-sheet`, requestConfig);
 export const saveSettlementSheet = (matterId, sheet) =>
   API.put(`/api/matter/${matterId}/settlement-sheet`, sheet);
+
+// Active site's GST setting. Saves include the displayed site ID to guard against a site switch.
+export const fetchGstSettings = (requestConfig = {}) => API.get("/api/settings/gst", requestConfig);
+export const saveGstSettings = (settings) => API.put("/api/settings/gst", settings);
