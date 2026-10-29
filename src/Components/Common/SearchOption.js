@@ -76,7 +76,10 @@ const SearchOption = () => {
 
         timerRef.current = setTimeout(() => runSearch(term), DEBOUNCE_MS);
 
-        return () => clearTimeout(timerRef.current);
+        return () => {
+            clearTimeout(timerRef.current);
+            requestRef.current += 1;
+        };
     }, [term, runSearch]);
 
     const go = (href, searched) => {
@@ -204,7 +207,7 @@ const SearchOption = () => {
                                     {section.results.map((result) => (
                                         <a
                                             href={resultHref(result, term)}
-                                            key={`${section.section}-${result.id}`}
+                                            key={`${section.section}-${result.recordType || ""}-${result.id}-${result.siteId || ""}`}
                                             className="dropdown-item notify-item"
                                             onClick={(e) => handleResultClick(e, result)}
                                         >
@@ -212,6 +215,7 @@ const SearchOption = () => {
                                                 className={`${SECTION_ICON[section.section] || 'ri-search-line'} align-middle fs-16 text-muted me-2`}
                                             ></i>
                                             <span>{result.title}</span>
+                                            {result.siteId != null && <span className="badge bg-light text-dark border ms-2">{result.siteName || `Office ${result.siteId}`}</span>}
                                             {result.subtitle && (
                                                 <span className="text-muted fs-12 ms-1">
                                                     &mdash; {result.subtitle}

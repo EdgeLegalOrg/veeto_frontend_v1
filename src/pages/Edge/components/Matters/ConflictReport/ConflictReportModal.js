@@ -25,7 +25,7 @@ import { formatDateTimeFunc } from "../../../utils/utilFunc";
 const ConflictReportModal = ({ isOpen, toggle, matter, onSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [actionType, setActionType] = useState(null); // 'APPROVED' or 'DECLINED'
+  const [actionType, setActionType] = useState(null); // APPROVED, DECLINED or FOR_REVIEW
   const [reportData, setReportData] = useState(null);
   const [error, setError] = useState(null);
   const [notes, setNotes] = useState("");
@@ -75,6 +75,7 @@ const ConflictReportModal = ({ isOpen, toggle, matter, onSuccess }) => {
     }
   }, [isOpen, matter?.id]);
 
+  /** Saves the report PDF with the selected decision or pending review status. */
   const handleSignOff = async (status) => {
     if (!matter?.id || submitting) return;
     setSubmitting(true);
@@ -86,7 +87,7 @@ const ConflictReportModal = ({ isOpen, toggle, matter, onSuccess }) => {
       };
       const res = await signOffMatterConflictReport(matter.id, payload);
       if (res?.data?.success) {
-        const actionLabel = status === "APPROVED" ? "approved" : "declined";
+        const actionLabel = status === "FOR_REVIEW" ? "marked for review" : status === "APPROVED" ? "approved" : "declined";
         toast.success(
           `Conflict report ${actionLabel} successfully and saved to matter attachments.`
         );
@@ -96,14 +97,14 @@ const ConflictReportModal = ({ isOpen, toggle, matter, onSuccess }) => {
         toggle();
       } else {
         toast.error(
-          res?.data?.message || `Failed to ${status.toLowerCase()} conflict report.`
+          res?.data?.message || "Failed to save conflict report."
         );
       }
     } catch (err) {
       console.error(`Error submitting conflict report sign-off (${status}):`, err);
       toast.error(
         err?.response?.data?.message ||
-          `An error occurred while signing off the conflict report.`
+          "An error occurred while saving the conflict report."
       );
     } finally {
       setSubmitting(false);
@@ -471,6 +472,8 @@ const ConflictReportModal = ({ isOpen, toggle, matter, onSuccess }) => {
                 Marking as <strong>Approve</strong> or <strong>Decline</strong> will
                 digitally sign this report and automatically generate a formal PDF
                 saved directly into this matter's <strong>Attachments</strong> section.
+                {" "}Choose <strong>FOR REVIEW</strong> to save a PDF with a pending
+                decision and a filename ending in <strong>_For_Review.pdf</strong>.
               </small>
             </div>
           </div>
@@ -490,6 +493,26 @@ const ConflictReportModal = ({ isOpen, toggle, matter, onSuccess }) => {
         </div>
 
         <div className="d-flex align-items-center gap-2">
+
+           <Button
+            color="success"
+            onClick={() => handleSignOff("FOR_REVIEW")}
+            disabled={loading || submitting || !!error || !reportData}
+            className="d-flex align-items-center gap-1"
+          >
+            {submitting && actionType === "FOR_REVIEW" ? (
+              <>
+                <Spinner size="sm" className="me-1" />
+                Saving for Review...
+              </>
+            ) : (
+              <>
+                <i className="ri-checkbox-circle-line font-size-15 align-middle"></i>
+                FOR REVIEW
+              </>
+            )}
+          </Button>
+          
           <Button
             color="danger"
             onClick={() => handleSignOff("DECLINED")}

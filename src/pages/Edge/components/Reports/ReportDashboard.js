@@ -8,6 +8,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { checkHasPermission } from "../../utils/utilFunc";
 import {
   VIEWFEESBILLEDREPORT,
+  VIEWOWNFEESONLY,
   VIEWMATTERSOPENEDREPORT,
   VIEWOUTSTANDINGINVOICESREPORT,
   VIEWSETTLEMENTSDUEREPORT,
@@ -132,7 +133,8 @@ const ReportDashboard = () => {
   const navigate = useNavigate();
 
   const permittedTabs = useMemo(() => {
-    return ALL_REPORT_TABS.filter((tab) => checkHasPermission(tab.right));
+    return ALL_REPORT_TABS.filter((tab) => checkHasPermission(tab.right)
+      || (tab.id === "fees-billed" && checkHasPermission(VIEWOWNFEESONLY)));
   }, []);
 
   const activeTab = useMemo(
@@ -210,6 +212,7 @@ const ReportDashboard = () => {
   const [staffList, setStaffList] = useState([]);
   const [isExporting, setIsExporting] = useState(false);
   const [settlementExportFilters, setSettlementExportFilters] = useState({});
+  const [feesExportFilters, setFeesExportFilters] = useState({});
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // Load sites and staff metadata for dropdowns
@@ -308,6 +311,7 @@ const ReportDashboard = () => {
 
       const payload = {
         ...(activeTab === "settlements-due" ? settlementExportFilters : {}),
+        ...(activeTab === "fees-billed" ? feesExportFilters : {}),
         startDate: dateRange && dateRange[0] ? formatDate(dateRange[0]) : null,
         endDate: dateRange && dateRange[1] ? formatDate(dateRange[1]) : null,
         siteId: selectedSite || null,
@@ -406,7 +410,8 @@ const ReportDashboard = () => {
                   comparisonRange={comparisonRange}
                   staffList={staffList}
                   refreshTrigger={refreshTrigger}
-                  onExportFiltersChange={tab.id === "settlements-due" ? setSettlementExportFilters : undefined}
+                  onExportFiltersChange={tab.id === "settlements-due" ? setSettlementExportFilters
+                    : tab.id === "fees-billed" ? setFeesExportFilters : undefined}
                 />
               );
             })

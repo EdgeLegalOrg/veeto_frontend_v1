@@ -1,3 +1,4 @@
+import { normalizeInvoiceServiceLine } from "./utils/invoiceServiceLines";
 import axios from "axios";
 import Cookies from "js-cookie";
 import { jwtDecode } from "jwt-decode";
@@ -318,7 +319,9 @@ export const getInvoiceById = (id) =>
 export const addOrPreviewInvoice = (formData, preview) =>
   API.post(`/api/invoice?preview=${preview}`, {
     requestId: uuidv1(),
-    data: formData,
+    data: { ...formData,
+      serviceLineList: Array.isArray(formData.serviceLineList)
+        ? formData.serviceLineList.map(normalizeInvoiceServiceLine) : formData.serviceLineList },
   });
 
 export const addReceivedPayment = (formData) =>
@@ -330,7 +333,9 @@ export const addReceivedPayment = (formData) =>
 export const editOrPreviewInvoice = (formData, preview) =>
   API.put(`/api/invoice?preview=${preview}`, {
     requestId: uuidv1(),
-    data: formData,
+    data: { ...formData,
+      serviceLineList: Array.isArray(formData.serviceLineList)
+        ? formData.serviceLineList.map(normalizeInvoiceServiceLine) : formData.serviceLineList },
   });
 
 export const printMatterInvoice = (id) => API.get(`/api/invoice/${id}/print`);
@@ -426,20 +431,30 @@ export const updateMatterChecklistTaskAction = (formData) =>
   });
 
 // Contacts
-export const allContacts = (filterData) =>
-  API.get(
-    `/api/contacts?requestId=${uuidv1()}&page=${filterData.pageNo}&pageSize=${
-      filterData.pageSize
-    }&contactType=${
-      filterData.contactType ? filterData.contactType.toUpperCase() : ""
-    }&role=${filterData.role}&firstName=${filterData.firstName}&organisation=${
-      filterData.organisation
-    }&lastName=${filterData.lastName}&emailAddress=${
-      filterData.emailAddress
-    }&telephoneNumber=${filterData.telephoneNumber}&sortOn=${
-      filterData.sortField
-    }&sortType=${filterData.sortOrder}`
-  );
+/** Encodes contact filters so email addresses, phone prefixes and names retain their values. */
+export const allContacts = (filterData = {}) => {
+  const params = new URLSearchParams({
+    requestId: uuidv1(),
+    page: filterData.pageNo ?? 0,
+    pageSize: filterData.pageSize ?? 25,
+  });
+  const criteria = {
+    contactCode: filterData.contactCode,
+    contactType: filterData.contactType?.toUpperCase(),
+    role: filterData.role,
+    firstName: filterData.firstName,
+    organisation: filterData.organisation,
+    lastName: filterData.lastName,
+    emailAddress: filterData.emailAddress,
+    telephoneNumber: filterData.telephoneNumber,
+    sortOn: filterData.sortField,
+    sortType: filterData.sortOrder?.toUpperCase(),
+  };
+  Object.entries(criteria).forEach(([key, value]) => {
+    if (value != null && String(value).trim() !== "") params.set(key, String(value).trim());
+  });
+  return API.get(`/api/contacts?${params.toString()}`);
+};
 
 export const fetchAllContactsWithoutFilter = () =>
   API.get(`/api/contacts?requestId=${uuidv1()}&textField=&type=`);
@@ -1409,3 +1424,9 @@ export const postExportOutstandingInvoicesCsv = (filterData) =>
   API.post(`/api/reports/outstanding-invoices/export-csv?requestId=${uuidv1()}`, filterData, {
     responseType: "blob",
   });
+
+// Settlement Figures: one versioned worksheet per matter, calculated authoritatively by the backend.
+export const fetchSettlementSheet = (matterId, requestConfig = {}) =>
+  API.get(`/api/matter/${matterId}/settlement-sheet`, requestConfig);
+export const saveSettlementSheet = (matterId, sheet) =>
+  API.put(`/api/matter/${matterId}/settlement-sheet`, sheet);

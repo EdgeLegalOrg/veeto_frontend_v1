@@ -54,6 +54,7 @@ import LinkedList from '../pages/Edge/components/Admin/LinkToMatter/LinkedList';
 import NotificationList from '../pages/Edge/components/Admin/Notifications/NotificationList';
 import TaskGroupList from '../pages/Edge/components/Admin/TaskGroups/TaskGroupList';
 import SearchResults from '../pages/Edge/components/Search/SearchResults';
+import SearchResultOpen from '../pages/Edge/components/Search/SearchResultOpen';
 import LoggedInUsers from '../pages/Edge/components/Admin/Sessions/LoggedInUsers';
 import FeedbackReview from '../pages/Edge/components/Admin/Feedback/FeedbackReview';
 import GiveFeedback from '../pages/Edge/components/Feedback/GiveFeedback';
@@ -122,6 +123,7 @@ const authProtectedRoutes = [
   { path: '/admin-feedback-review', component: <FeedbackReview /> },
   { path: '/feedback', component: <GiveFeedback /> },
   { path: '/search', component: <SearchResults /> },
+  { path: '/search/open', outsideLayout: true, component: <SearchResultOpen /> },
 
   // User Profile
   { path: '/profile', component: <UserProfile /> },

@@ -4,6 +4,8 @@ import { Table } from "reactstrap";
 import CustomSideDrawer from "../../customComponents/CustomSideDrawer";
 import { TextInputField } from "pages/Edge/components/InputField";
 
+import { newInvoiceServiceLine } from "../../../utils/invoiceServiceLines";
+
 const ItemsList = (props) => {
   const [serviceList, setServiceList] = useState([]);
   const [filteredList, setFilteredList] = useState([]);
@@ -42,8 +44,7 @@ const ItemsList = (props) => {
     let arr = [...selected];
 
     if (val) {
-      const obj = { ...val, uid: uuidv4() };
-      delete obj.id;
+      const obj = newInvoiceServiceLine({ ...val, uid: uuidv4() });
       arr.push(obj);
     }
 

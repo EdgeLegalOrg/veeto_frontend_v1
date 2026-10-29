@@ -267,15 +267,33 @@ const AttachmentList = (props) => {
   // );
   // navigate("/Documents");
 
-  const handleDownload = (d) => {
+  /** Downloads an attachment with feedback while fetching and when handed to the browser. */
+  const handleDownload = async (d) => {
     let filename = d.name;
     if (d.type && !filename.toLowerCase().endsWith(`.${d.type.toLowerCase()}`)) {
       filename = `${filename}.${d.type}`;
     }
 
-    downloadMatterAttach(d.id).then((res) => {
+    const toastId = toast.loading(`Preparing download: ${filename}`);
+    try {
+      const res = await downloadMatterAttach(d.id);
       fileDownload(res.data, filename);
-    });
+      toast.update(toastId, {
+        render: `Download started: ${filename}`,
+        type: "success",
+        isLoading: false,
+        autoClose: 4000,
+        closeButton: true,
+      });
+    } catch (error) {
+      toast.update(toastId, {
+        render: `Unable to download ${filename}. Please try again.`,
+        type: "error",
+        isLoading: false,
+        autoClose: 6000,
+        closeButton: true,
+      });
+    }
   };
 
   const handleDeleteAlert = () => {
@@ -371,10 +389,12 @@ const AttachmentList = (props) => {
         if (emailMap.has(subjectKey)) {
           emailMap.get(subjectKey).children.push(item);
         } else {
-          const primaryItem = item.uploadGroupId
-            ? attachList.find((member) => member.uploadGroupId === item.uploadGroupId
-              && (member.type?.toLowerCase() === "msg" || member.name?.toLowerCase().endsWith(".msg"))) || item
-            : item;
+          // The upload saves the original message before its extracted files. Use the
+          // earliest message ID so sorting/filtering cannot select a nested email instead.
+          const messageItem = attachList.filter((member) => emailGroupKey(member) === subjectKey
+            && (["msg", "eml"].includes(member.type?.toLowerCase()) || /\.(msg|eml)$/i.test(member.name || "")))
+            .reduce((original, member) => !original || Number(member.id) < Number(original.id) ? member : original, null);
+          const primaryItem = messageItem || item;
           const group = {
             isGroup: true,
             groupKey: subjectKey,
@@ -387,6 +407,7 @@ const AttachmentList = (props) => {
             uploadDate: primaryItem.uploadDate,
             uploadedBy: primaryItem.uploadedBy || primaryItem.sender,
             primaryItem,
+            messageItem,
             children: [item],
           };
           emailMap.set(subjectKey, group);
@@ -401,7 +422,11 @@ const AttachmentList = (props) => {
       }
     });
 
-    return groups;
+    // Hide only the message represented by the heading; retain any nested emails.
+    return groups.map((group) => group.isGroup ? {
+      ...group,
+      children: group.children.filter((child) => child.id !== group.messageItem?.id),
+    } : group);
   }, [filteredList, attachList]);
 
   const renderStorageBadge = (storageType) => {
@@ -672,13 +697,24 @@ const AttachmentList = (props) => {
                   <td className="pe-cursor" style={{ verticalAlign: "top", paddingTop: "10px" }}>
                     <div>
                       {/* Email Subject Header */}
-                      <div
-                        className="fw-medium"
-                        style={{ color: "#1e40af", fontSize: "14px" }}
-
-                      >
-                        {entry.subject}
-                      </div>
+                      {entry.messageItem ? (
+                        <button
+                          type="button"
+                          className="btn btn-link fw-medium text-start p-0 border-0 text-decoration-none"
+                          style={{ color: "#1e40af", fontSize: "14px" }}
+                          title="Download original email"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDownload(entry.messageItem);
+                          }}
+                        >
+                          {entry.subject}
+                        </button>
+                      ) : (
+                        <div className="fw-medium" style={{ color: "#1e40af", fontSize: "14px" }}>
+                          {entry.subject}
+                        </div>
+                      )}
                       <div className="d-flex align-items-center mt-1 flex-wrap gap-2">
                         <span
                           style={{
@@ -703,7 +739,7 @@ const AttachmentList = (props) => {
                       </div>
 
                       {/* Tree Branch Children */}
-                      <div className="mt-2" style={{ paddingLeft: "8px" }}>
+                      {entry.children.length > 0 && <div className="mt-2" style={{ paddingLeft: "8px" }}>
                         {entry.children.map((child, idx) => {
                           const isLast = idx === entry.children.length - 1;
                           return (
@@ -754,7 +790,7 @@ const AttachmentList = (props) => {
                             </div>
                           );
                         })}
-                      </div>
+                      </div>}
                     </div>
                   </td>
                   <td style={{ verticalAlign: "top", paddingTop: "12px" }}>

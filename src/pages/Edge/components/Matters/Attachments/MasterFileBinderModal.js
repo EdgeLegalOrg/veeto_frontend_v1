@@ -1,4 +1,5 @@
 import DocxAttachmentPreview from "./DocxAttachmentPreview";
+import BrowserAttachmentPreview from "./BrowserAttachmentPreview";
 import React, { useEffect, useState, useMemo, useRef, useCallback } from "react";
 import { Modal, Spinner } from "reactstrap";
 import fileDownload from "js-file-download";
@@ -13,6 +14,15 @@ import { formatDateFunc } from "../../../utils/utilFunc";
 import "./MasterFileBinderModal.css";
 
 const EMPTY_ITEMS = [];
+
+/** Uses the stored extension with a filename fallback, independent of backend preview classification. */
+const browserPreviewKind = (item) => {
+  const extension = (item?.fileExtension || item?.name?.match(/\.([^.]+)$/)?.[1] || "")
+    .replace(/^\./, "").trim().toLowerCase();
+  if (["heic", "heif"].includes(extension)) return "heic";
+  if (["xls", "xlsx"].includes(extension)) return "spreadsheet";
+  return null;
+};
 
 /**
  * Builds the avatar initials displayed beside an email participant.
@@ -91,6 +101,14 @@ const MasterFileBinderModal = ({
   const [docError, setDocError] = useState(null);
 
   const blobUrlRef = useRef(null);
+  const imagePreviewCache = useRef(new Map());
+
+  // Cache only within one matter's open viewer session; previews never enter browser storage.
+  useEffect(() => {
+    imagePreviewCache.current.clear();
+    const cache = imagePreviewCache.current;
+    return () => cache.clear();
+  }, [isOpen, matterId]);
 
   // Never deliver a previous matter's export after closing or reopening the modal.
   useEffect(() => {
@@ -294,7 +312,7 @@ const MasterFileBinderModal = ({
 
   // Load preview data when currentIndex or currentItem changes
   useEffect(() => {
-    if (!currentItem) {
+    if (!isOpen || !currentItem) {
       revokeCurrentBlob();
       setDocBlobUrl(null);
       setEmailContent(null);
@@ -312,7 +330,10 @@ const MasterFileBinderModal = ({
     const previewType = currentItem.previewType;
     const attId = currentItem.attachmentId;
 
-    if (previewType === "EMAIL_MSG") {
+    if (browserPreviewKind(currentItem)) {
+      // Browser previews own their download, worker, cancellation and loading state.
+      setLoadingDoc(false);
+    } else if (previewType === "EMAIL_MSG") {
       fetchAttachmentEmailContent(attId)
         .then((res) => {
           if (!isSubscribed) return;
@@ -358,7 +379,7 @@ const MasterFileBinderModal = ({
       isSubscribed = false;
       revokeCurrentBlob();
     };
-  }, [currentItem, revokeCurrentBlob]);
+  }, [currentItem, isOpen, revokeCurrentBlob]);
 
   // Navigation handlers
   /**
@@ -394,7 +415,7 @@ const MasterFileBinderModal = ({
      * @returns {void}
      */
     const handleKeyDown = (e) => {
-      if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") {
+      if (["INPUT", "TEXTAREA", "SELECT"].includes(e.target.tagName) || e.target.closest?.(".binder-sheet-scroll")) {
         return;
       }
       if (e.key === "ArrowLeft") {
@@ -458,25 +479,30 @@ const MasterFileBinderModal = ({
     return formatDateFunc(date);
   };
 
-  // Render badge helper
-  /**
-   * Builds the existing preview-type badge for a binder index row.
-   *
-   * @param {string} type Backend preview category such as PDF or EMAIL_MSG.
-   * @returns {React.ReactElement} Styled format badge.
-   */
-  const renderTypeBadge = (type) => {
-    switch (type) {
+  /** Labels the uploaded format independently of whether an inline preview is available. */
+  const renderTypeBadge = (item) => {
+    const extension = (item.fileExtension || item.name?.match(/\.([^.]+)$/)?.[1] || "")
+      .replace(/^\./, "").trim().toLowerCase();
+    if (["doc", "docx", "docm", "dot", "dotx", "dotm"].includes(extension)) {
+      return <span className="binder-badge binder-badge-word"><i className="ri-file-word-2-line" aria-hidden="true" />Word</span>;
+    }
+    if (["xls", "xlsx", "xlsm", "xlsb", "xlt", "xltx", "xltm"].includes(extension)) {
+      return <span className="binder-badge binder-badge-excel"><i className="ri-file-excel-2-line" aria-hidden="true" />Excel</span>;
+    }
+    if (["heic", "heif"].includes(extension)) {
+      return <span className="binder-badge binder-badge-image"><i className="ri-image-line" aria-hidden="true" />{extension.toUpperCase()}</span>;
+    }
+    switch (item.previewType) {
       case "PDF":
-        return <span className="binder-badge binder-badge-pdf">PDF</span>;
+        return <span className="binder-badge binder-badge-pdf"><i className="ri-file-pdf-line" aria-hidden="true" />PDF</span>;
       case "EMAIL_MSG":
-        return <span className="binder-badge binder-badge-msg">EMAIL</span>;
+        return <span className="binder-badge binder-badge-msg"><i className="ri-mail-line" aria-hidden="true" />EMAIL</span>;
       case "IMAGE":
-        return <span className="binder-badge binder-badge-image">IMAGE</span>;
+        return <span className="binder-badge binder-badge-image"><i className="ri-image-line" aria-hidden="true" />IMAGE</span>;
       case "OFFICE_DOC":
-        return <span className="binder-badge binder-badge-office">OFFICE</span>;
+        return <span className="binder-badge binder-badge-office"><i className="ri-file-line" aria-hidden="true" />OFFICE</span>;
       default:
-        return <span className="binder-badge binder-badge-other">FILE</span>;
+        return <span className="binder-badge binder-badge-other"><i className="ri-file-line" aria-hidden="true" />FILE</span>;
     }
   };
 
@@ -522,6 +548,16 @@ const MasterFileBinderModal = ({
           <p className="text-muted">No documents found in this matter.</p>
         </div>
       );
+    }
+
+    const localPreviewKind = browserPreviewKind(currentItem);
+    if (localPreviewKind) {
+      return <BrowserAttachmentPreview
+        key={`${matterId}:${currentItem.attachmentId}`}
+        item={currentItem} kind={localPreviewKind}
+        title={getDocumentDisplayTitle(currentItem)} imageCache={imagePreviewCache}
+        onDownload={() => handleDownload(currentItem)}
+      />;
     }
 
     // 1. PDF
@@ -896,7 +932,7 @@ const MasterFileBinderModal = ({
                         {displayTitle}
                       </div>
                       <div className="binder-item-meta">
-                        {renderTypeBadge(item.previewType)}
+                        {renderTypeBadge(item)}
                         <span>{renderItemDate(item.effectiveDate)}</span>
                         {item.previewType === "EMAIL_MSG" ? (
                           <span className="text-truncate" style={{ maxWidth: "140px" }}>
@@ -946,7 +982,7 @@ const MasterFileBinderModal = ({
                 <span className="badge bg-light text-dark border" style={{ fontSize: "11px", flexShrink: 0 }}>
                   Doc {currentIndex + 1} of {items.length}
                 </span>
-                {renderTypeBadge(currentItem.previewType)}
+                {renderTypeBadge(currentItem)}
                 <span className="binder-doc-title" title={getDocumentDisplayTitle(currentItem)}>
                   {getDocumentDisplayTitle(currentItem)}
                 </span>
@@ -970,7 +1006,7 @@ const MasterFileBinderModal = ({
 
           {/* Central Document Display Canvas */}
           <div className="binder-canvas">
-            {renderCanvasContent()}
+            {isOpen && renderCanvasContent()}
           </div>
 
           {/* Bottom Floating Navigation Toolbar */}

@@ -4,6 +4,7 @@ import { Button } from "reactstrap";
 import BillTo from "./BillTo";
 import Address from "./Address";
 import LoadingPage from "../../../utils/LoadingPage";
+import moment from "moment";
 import {
   addOrPreviewInvoice,
   getInvoiceTemplate,
@@ -17,6 +18,8 @@ import TimedList from "./TimedList";
 import SelectedTimedList from "./SelectedTimedList";
 import { AiOutlineClose } from "react-icons/ai";
 import { toast } from "react-toastify";
+
+import { invoiceServiceLineError } from "../../../utils/invoiceServiceLines";
 
 const initialData = {
   invoiceNumber: "",
@@ -248,20 +251,6 @@ const AddNewInvoice = (props) => {
     }
   };
 
-  const validateServiceItem = () => {
-    let valid = true;
-    if (formData.serviceLineList.length) {
-      for (let item of formData.serviceLineList) {
-        if (item.billingFrequency?.toLowerCase() === "hourly" && !item.units) {
-          valid = false;
-          break;
-        }
-      }
-    }
-
-    return valid;
-  };
-
   const validateServiceItemDesc = () => {
     let valid = true;
 
@@ -334,15 +323,9 @@ const AddNewInvoice = (props) => {
       return;
     }
 
-    const isServiceItemValid = validateServiceItem();
-
-    if (!isServiceItemValid) {
-      toast.error(
-        "Unit for hourly service is required and must be greater than zero",
-        {
-          autoClose: 5000,
-        }
-      );
+    const serviceLineError = invoiceServiceLineError(invoiceData.serviceLineList);
+    if (serviceLineError) {
+      toast.error(serviceLineError, { autoClose: 5000 });
       return;
     }
 
@@ -367,7 +350,7 @@ const AddNewInvoice = (props) => {
       setLoading(false);
     } catch (error) {
       console.error(error);
-      toast.error("Something went wrong, please try later.");
+      toast.error(error?.response?.data?.message || "Something went wrong, please try later.");
       setLoading(false);
     }
   };

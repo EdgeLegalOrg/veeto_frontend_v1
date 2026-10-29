@@ -17,7 +17,7 @@ export const matterTabName = {
 export const settlementApplicable = [
   "BUSINESS_SALE_PURCHASE",
   "CONVEYANCING",
-  "ESTATES",
+  "FAMILY_LAW",
 ];
 
 export const datesToShow = ["BUSINESS_SALE_PURCHASE", "CONVEYANCING"];

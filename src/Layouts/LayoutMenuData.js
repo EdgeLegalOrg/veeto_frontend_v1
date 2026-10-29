@@ -6,6 +6,7 @@ import {
   VIEWADMINTAB,
   VIEWFEEDBACKREVIEW,
   VIEWFEESBILLEDREPORT,
+  VIEWOWNFEESONLY,
   VIEWMATTERSOPENEDREPORT,
   VIEWOUTSTANDINGINVOICESREPORT,
   VIEWSETTLEMENTSDUEREPORT,
@@ -73,7 +74,7 @@ const Navdata = () => {
       id: "feesBilled",
       label: "Fees Billed",
       link: "/reports/fees-billed",
-      show: checkHasPermission(VIEWFEESBILLEDREPORT),
+      show: checkHasPermission(VIEWFEESBILLEDREPORT) || checkHasPermission(VIEWOWNFEESONLY),
       parentId: "reports",
     },
     {

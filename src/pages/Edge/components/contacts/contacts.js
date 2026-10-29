@@ -43,6 +43,10 @@ const filterFields = {
   telephoneNumber: "",
 };
 
+/** Displays the first populated contact value, using a dash for missing or blank data. */
+const contactDisplayValue = (...values) =>
+  values.find((value) => typeof value === "string" && value.trim())?.trim() || "-";
+
 const ConfirmationPopup = (props) => {
   const { ids, types, closeForm, setBoolVal, setAllInitial } = props;
   const contactIds = ids.join(",");
@@ -138,6 +142,7 @@ function Contacts(props) {
 
   const handleClearFilter = () => {
     setFilterInput(filterFields);
+    setPageNo(0);
     fetchContactListByPage(0, filterFields);
   };
 
@@ -268,13 +273,13 @@ function Contacts(props) {
   };
 
   const handleFilter = (e) => {
-    const { name } = e.target;
-    setFilterInput({ ...filterInput, [name]: e.target.value });
-    setTimeout(() => {
-      if (name === "contactType") {
-        fetchContactListByPage(0, { ...filterInput, [name]: e.target.value });
-      }
-    }, 10);
+    const { name, value } = e.target;
+    const nextFilters = { ...filterInput, [name]: value };
+    setFilterInput(nextFilters);
+    if (name === "contactType") {
+      setPageNo(0);
+      fetchContactListByPage(0, nextFilters);
+    }
   };
 
   const fetchContactList = () => {
@@ -1056,6 +1061,11 @@ function Contacts(props) {
                       ) : (
                         <>
                           {filteredData.map((contact, index) => {
+                            const firstName = contactDisplayValue(contact.firstName);
+                            const lastName = contactDisplayValue(contact.lastName);
+                            const company = contactDisplayValue(contact.organisation);
+                            const email = contactDisplayValue(contact.emailId1, contact.emailId2, contact.emailAddress);
+                            const phone = contactDisplayValue(contact.phoneNumber1, contact.phoneNumber2, contact.telephoneNumber);
                             if (index % 2 == 0)
                               return (
                                 <tr
@@ -1077,16 +1087,12 @@ function Contacts(props) {
                                     />
                                   </td>
                                   <td>
-                                    {contact.contactType === "PERSON"
-                                      ? contact.firstName
-                                      : ""}
+                                    {firstName}
                                   </td>
                                   <td>
-                                    {contact.contactType === "PERSON"
-                                      ? contact.lastName
-                                      : ""}
+                                    {lastName}
                                   </td>
-                                  <td>{contact.organisation}</td>
+                                  <td>{company}</td>
                                   <td>
                                     <OverlayTrigger
                                       key="bottom"
@@ -1141,24 +1147,19 @@ function Contacts(props) {
                                             style={{ textAlign: "left" }}
                                             className="mb-0"
                                           >
-                                            {contact.emailAddress}
+                                            {email}
                                           </p>
                                         </Tooltip>
                                       }
                                     >
                                       <p className="mb-0">
-                                        {contact.emailAddress
-                                          ? contact.emailAddress.substring(
-                                              0,
-                                              15
-                                            )
-                                          : ""}
+                                        {convertSubstring(email, 15)}
                                       </p>
                                     </OverlayTrigger>
                                   </td>
                                   <td>
                                     <p className="mb-0">
-                                      {contact.telephoneNumber}
+                                      {phone}
                                     </p>
                                   </td>
                                   <td></td>
@@ -1186,21 +1187,17 @@ function Contacts(props) {
                                   </td>
                                   <td>
                                     <p className="mb-0">
-                                      {contact.contactType === "PERSON"
-                                        ? contact.firstName
-                                        : ""}
+                                      {firstName}
                                     </p>
                                   </td>
                                   <td>
                                     <p className="mb-0">
-                                      {contact.contactType === "PERSON"
-                                        ? contact.lastName
-                                        : ""}
+                                      {lastName}
                                     </p>
                                   </td>
                                   <td>
                                     <p className="mb-0">
-                                      {contact.organisation}
+                                      {company}
                                     </p>
                                   </td>
                                   <td>
@@ -1257,19 +1254,19 @@ function Contacts(props) {
                                             style={{ textAlign: "left" }}
                                             className="mb-0"
                                           >
-                                            {contact.emailAddress}
+                                            {email}
                                           </p>
                                         </Tooltip>
                                       }
                                     >
                                       <p className="mb-0">
-                                        {convertSubstring(contact.emailAddress)}
+                                        {convertSubstring(email, 15)}
                                       </p>
                                     </OverlayTrigger>
                                   </td>
                                   <td>
                                     <p className="mb-0">
-                                      {contact.telephoneNumber}
+                                      {phone}
                                     </p>
                                   </td>
                                   <th></th>

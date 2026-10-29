@@ -59,7 +59,7 @@ const getInvoiceStatusBadge = (status) => {
   }
 };
 
-const FeesBilledTable = ({ rows, isLoading }) => {
+const FeesBilledTable = ({ rows, isLoading, ownFeesOnly = false }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(25);
@@ -149,7 +149,7 @@ const FeesBilledTable = ({ rows, isLoading }) => {
               <th scope="col">Client / Bill-To</th>
               <th scope="col">Reference / Subject</th>
               <th scope="col">Type</th>
-              <th scope="col">Fee Earner</th>
+                  <th scope="col">{ownFeesOnly ? "Billed By" : "Fee Earner"}</th>
               <th scope="col">Acting Staff</th>
               <th scope="col" className="text-end">Fees (Excl. GST)</th>
               <th scope="col" className="text-end">GST</th>

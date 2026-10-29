@@ -88,16 +88,12 @@ const ManageUserPage = () => {
     try {
       const { data } = await getCompanyInfo();
       if (data.success) {
-        let sites = data?.data?.siteInfoList;
-        if (sites && sites?.length > 0) {
-          let arr = [];
-          sites.forEach((s) => {
-            if (s.activeStatus) {
-              arr.push({ display: s.siteName, value: s.siteId });
-            }
-          });
-          setSiteList(arr);
-        }
+        const sites = Array.isArray(data?.data?.siteInfoList) ? data.data.siteInfoList : [];
+        // Empty site records must not appear as selectable, unlabelled checkboxes.
+        setSiteList(sites.filter((site) => site.activeStatus
+          && typeof site.siteName === "string" && site.siteName.trim()
+          && Number.isInteger(Number(site.siteId)) && Number(site.siteId) > 0)
+          .map((site) => ({ display: site.siteName.trim(), value: Number(site.siteId) })));
       } else {
         toast.error("Something went wrong, please try later.");
       }
@@ -114,7 +110,8 @@ const ManageUserPage = () => {
         if (roles && roles?.length > 0) {
           let arr = [];
           roles.forEach((r) => {
-            arr.push({ display: r.roleName, value: r.id });
+            arr.push({ display: r.roleName, value: r.id,
+              accessAllSites: r.applicationRightDetailsList?.some((right) => right.rightName === "AccessAllSites") === true });
           });
           setRoleList(arr);
         }

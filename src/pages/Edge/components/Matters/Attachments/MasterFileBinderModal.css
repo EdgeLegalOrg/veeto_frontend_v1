@@ -319,20 +319,28 @@
 
 /* Light Theme Badges matching standard Bootstrap style */
 .binder-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   font-size: 9.5px;
   font-weight: 700;
-  padding: 1px 5px;
-  border-radius: 3px;
+  padding: 2px 6px;
+  border-radius: 4px;
   letter-spacing: 0.3px;
   text-transform: uppercase;
   flex-shrink: 0;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
 }
 
-.binder-badge-pdf { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
-.binder-badge-msg { background: #dbeafe; color: #1d4ed8; border: 1px solid #bfdbfe; }
-.binder-badge-image { background: #d1fae5; color: #047857; border: 1px solid #a7f3d0; }
-.binder-badge-office { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
-.binder-badge-other { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+.binder-badge i { font-size: 13px; line-height: 1; }
+.binder-badge-pdf { background: #fef2f2; color: #b91c1c; border-color: #fecaca; }
+.binder-badge-msg { background: #fffbeb; color: #92400e; border-color: #fde68a; }
+.binder-badge-image { background: #f5f3ff; color: #6d28d9; border-color: #ddd6fe; }
+.binder-badge-office { color: #475569; }
+.binder-badge-word { background: #eff6ff; color: #005a9e; border-color: #bfdbfe; }
+.binder-badge-excel { background: #ecfdf5; color: #166534; border-color: #bbf7d0; }
+.binder-badge-other { color: #64748b; }
 
 /* Stage Viewer */
 .binder-stage {
@@ -727,3 +735,17 @@
   .binder-header { flex-wrap: wrap; gap: 10px; }
   .binder-header-actions { flex-wrap: wrap; }
 }
+
+/* Minimal browser previews share the existing stage without changing the binder layout. */
+.binder-browser-preview { display: flex; flex: 1; flex-direction: column; min-width: 0; min-height: 0; width: 100%; height: 100%; overflow: hidden; }
+.binder-sheet-toolbar { display: flex; align-items: center; gap: 12px; padding: 10px 16px; background: #fff; border-bottom: 1px solid #e2e8f0; flex-wrap: wrap; }
+.binder-sheet-toolbar label { margin: 0; font-weight: 600; font-size: 13px; }
+.binder-sheet-toolbar select { width: auto; max-width: min(320px, 100%); }
+.binder-sheet-toolbar span { font-size: 12px; }
+.binder-sheet-notice { padding: 8px 16px; margin: 0; font-size: 12px; color: #64748b; background: #f8fafc; }
+.binder-sheet-scroll { flex: 1; min-height: 0; overflow: auto; background: #fff; }
+.binder-sheet-table { border-collapse: separate; border-spacing: 0; font-size: 12px; color: #334155; }
+.binder-sheet-table th, .binder-sheet-table td { border-right: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; padding: 6px 10px; min-width: 90px; max-width: 320px; white-space: pre-wrap; overflow-wrap: anywhere; vertical-align: top; }
+.binder-sheet-table thead th { position: sticky; top: 0; z-index: 2; text-align: center; background: #f1f5f9; }
+.binder-sheet-table tbody th { position: sticky; left: 0; z-index: 1; min-width: 48px; text-align: right; background: #f1f5f9; }
+.binder-sheet-table thead th:first-child { left: 0; z-index: 3; min-width: 48px; }

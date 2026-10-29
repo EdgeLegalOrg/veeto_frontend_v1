@@ -5,6 +5,8 @@ import FeesByTypeBreakdown from "../components/FeesByTypeBreakdown";
 import FeesBilledFilterBar from "../components/FeesBilledFilterBar";
 import FeesBilledTable from "../components/FeesBilledTable";
 import { postFeesBilledReport } from "../../../apis";
+import { checkHasPermission } from "../../../utils/utilFunc";
+import { VIEWOWNFEESONLY, VIEWFEESBILLEDREPORT } from "../../../utils/RightConstants";
 
 const formatDate = (d) => {
   if (!d) return null;
@@ -24,6 +26,7 @@ const FeesBilledReportView = ({
   comparisonRange,
   staffList,
   refreshTrigger,
+  onExportFiltersChange,
 }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [reportData, setReportData] = useState({
@@ -32,12 +35,19 @@ const FeesBilledReportView = ({
   });
   const [showBreakdown, setShowBreakdown] = useState(false);
   const [selectedCard, setSelectedCard] = useState("total");
+  const ownFeesOnly = reportData.ownFeesOnly ??
+    (checkHasPermission(VIEWOWNFEESONLY) && !checkHasPermission(VIEWFEESBILLEDREPORT));
 
   const [filters, setFilters] = useState({
     status: "ALL",
     matterType: null,
     feeEarnerId: null,
   });
+
+  // Export the same criteria used to calculate the report rows and summary.
+  useEffect(() => {
+    onExportFiltersChange?.(filters);
+  }, [filters, onExportFiltersChange]);
 
   const startDateStr = useMemo(
     () => (dateRange && dateRange[0] ? formatDate(dateRange[0]) : null),
@@ -80,10 +90,10 @@ const FeesBilledReportView = ({
       setIsLoading(true);
       try {
         const payload = {
+          ...filters,
           startDate: startDateStr,
           endDate: endDateStr,
           siteId: selectedSite || null,
-          feeEarnerId: filters.feeEarnerId,
         };
 
         const response = await postFeesBilledReport(payload);
@@ -120,30 +130,15 @@ const FeesBilledReportView = ({
     startDateStr,
     endDateStr,
     selectedSite,
-    filters.feeEarnerId,
+    filters,
     refreshTrigger,
   ]);
 
-  // Client-side filtering of rows for table view based on status and matterType
-  const filterComparisonRows = useCallback((rows) => {
-    return (rows || []).filter((r) => {
-      if (
-        filters.status &&
-        filters.status !== "ALL" &&
-        r.invoiceStatus !== filters.status
-      ) {
-        return false;
-      }
-      if (filters.matterType && r.matterType !== filters.matterType) {
-        return false;
-      }
-      return true;
-    });
-  }, [filters.status, filters.matterType]);
-  const filteredRows = useMemo(() => filterComparisonRows(reportData.rows), [reportData.rows, filterComparisonRows]);
-
   return (
     <div>
+      {ownFeesOnly && <p className="text-muted mb-3" role="status">
+        Showing your time billing and fixed fees on matters where you are the Fee Earner.
+      </p>}
       {/* Metric Cards - Selectable with high contrast & toggleable breakdown */}
       <FeesBilledMetrics
         summary={reportData.summary}
@@ -171,6 +166,7 @@ const FeesBilledReportView = ({
         onFilterChange={handleFilterChange}
         onResetFilters={handleResetFilters}
         staffList={staffList}
+        ownFeesOnly={ownFeesOnly}
       />
 
       {/* Comparison reuses this report's API, filters, and detail table. */}
@@ -180,17 +176,17 @@ const FeesBilledReportView = ({
         comparisonRange={comparisonRange}
         fetchReport={postFeesBilledReport}
         payload={{
+          ...filters,
           siteId: selectedSite || null,
-          feeEarnerId: filters.feeEarnerId,
         }}
         summary={reportData.summary}
         isPrimaryLoading={isLoading}
         refreshTrigger={refreshTrigger}
-        renderDetails={(rows) => <FeesBilledTable rows={filterComparisonRows(rows)} isLoading={false} />}
+        renderDetails={(rows) => <FeesBilledTable rows={rows} isLoading={false} ownFeesOnly={ownFeesOnly} />}
       />
 
       {/* Data Table */}
-      <FeesBilledTable rows={filteredRows} isLoading={isLoading} />
+      <FeesBilledTable rows={reportData.rows} isLoading={isLoading} ownFeesOnly={ownFeesOnly} />
     </div>
   );
 };
