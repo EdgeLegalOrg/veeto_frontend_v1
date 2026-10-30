@@ -11,6 +11,13 @@ const PreviewInvoiceTemplate = (props) => {
   const [taxType, setTaxType] = useState([]);
   let { invoiceId } = useParams();
 
+  // Saved lines can retain older GST rates alongside newly added items.
+  const serviceGstRates = [...new Set((formData.serviceLineList || [])
+    .filter((line) => line.taxType !== "NO_TAX")
+    .map((line) => Number(line.taxPercent))
+    .filter(Number.isFinite))];
+  const serviceGstLabel = serviceGstRates.length > 1 ? "Mixed rates" : `${serviceGstRates[0] ?? 0}%`;
+
   const fetchEnums = () => {
     let enums = JSON.parse(window.localStorage.getItem("enumList"));
 
@@ -169,7 +176,7 @@ const PreviewInvoiceTemplate = (props) => {
                 <div className="pre-tm-taxDetails">
                   <div className="pre-tm-tax bgf2">
                     <p className="w-50">Service Items Tax GST </p>
-                    <p className="w-25">10%</p>
+                    <p className="w-25">{serviceGstLabel}</p>
                     <p className="w-25">
                       $
                       {formData.serviceLineTax

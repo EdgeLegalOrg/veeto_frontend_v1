@@ -41,6 +41,7 @@ import TrustMonthEndPage from '../pages/Edge/components/Trust/TrustMonthEndPage'
 import TrustStatementsPage from '../pages/Edge/components/Trust/TrustStatementsPage';
 import TrustCompliancePage from '../pages/Edge/components/Trust/TrustCompliancePage';
 import SettingPage from '../pages/Edge/components/Admin/Settings/SettingPage';
+import SystemSettingsPage from '../pages/Edge/components/Admin/Settings/SystemSettingsPage';
 import ManageStaffPage from '../pages/Edge/components/Admin/Staff/ManageStaffPage';
 import ManageRolePage from '../pages/Edge/components/Admin/Roles/ManageRolePage';
 import ManageUserPage from '../pages/Edge/components/Admin/Users/ManageUserPage';
@@ -105,6 +106,7 @@ const authProtectedRoutes = [
   { path: '/trust-compliance', component: <TrustCompliancePage /> },
 
   { path: '/admin-system-numerals', component: <SettingPage /> },
+  { path: '/admin-system-settings', component: <SystemSettingsPage /> },
   { path: '/admin-storage-type', component: <StorageTypePage /> },
   { path: '/admin-manage-staff', component: <ManageStaffPage /> },
   { path: '/admin-manage-roles', component: <ManageRolePage /> },

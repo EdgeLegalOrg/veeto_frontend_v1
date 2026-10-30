@@ -523,6 +523,13 @@ const Navdata = () => {
           parentId: "admin",
         },
         {
+          id: "systemSettings",
+          label: "System Settings",
+          link: "/admin-system-settings",
+          show: checkHasPermission(VIEWADMINTAB),
+          parentId: "admin",
+        },
+        {
           id: "systemNumerals",
           label: "System Numerals",
           link: "/admin-system-numerals",
