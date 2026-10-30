@@ -368,15 +368,50 @@ export const deleteMatterAttach = (ids) =>
     config
   );
 
+/**
+ * Fetches chronological binder metadata and current export capabilities for a matter.
+ *
+ * @param {number|string} matterId Matter identifier.
+ * @param {"ASC"|"DESC"} [sortOrder="DESC"] Oldest-first or newest-first sequence order.
+ * @returns {Promise<import("axios").AxiosResponse>} Wrapped binder index response.
+ */
 export const fetchMatterBinderSequence = (matterId, sortOrder = "DESC") =>
   API.get(`/api/matter/${matterId}/binder/sequence?requestId=${uuidv1()}&sortOrder=${sortOrder}`);
 
+/**
+ * Requests one PDF containing the selected attachments in the submitted order.
+ * Uses the shared authenticated client and returns a blob for both PDF and error responses.
+ *
+ * @param {number|string} matterId Matter owning the selected files.
+ * @param {number[]} attachmentIds Distinct attachment IDs in desired binder order.
+ * @param {import("axios").AxiosRequestConfig} [requestConfig={}] Optional cancellation and request settings.
+ * @returns {Promise<import("axios").AxiosResponse<Blob>>} PDF blob response or rejected error response.
+ */
+export const exportMatterBinder = (matterId, attachmentIds, requestConfig = {}) =>
+  API.post(`/api/matter/${matterId}/binder/export`, { attachmentIds }, {
+    ...requestConfig,
+    responseType: "blob",
+  });
+
+/**
+ * Fetches an original attachment as a blob for the existing inline preview.
+ *
+ * @param {number|string} attachmentId Attachment identifier.
+ * @param {import("axios").AxiosRequestConfig} [requestConfig] Optional request settings.
+ * @returns {Promise<import("axios").AxiosResponse<Blob>>} Preview bytes and content headers.
+ */
 export const fetchAttachmentInlinePreview = (attachmentId, requestConfig) =>
   API.get(`/api/matter/attachment/${attachmentId}/preview?requestId=${uuidv1()}`, {
     ...requestConfig,
     responseType: "blob",
   });
 
+/**
+ * Retrieves the parsed headers and readable body used by the binder's email preview.
+ *
+ * @param {number|string} attachmentId Stored MSG attachment identifier.
+ * @returns {Promise<import("axios").AxiosResponse>} Wrapped parsed email metadata.
+ */
 export const fetchAttachmentEmailContent = (attachmentId) =>
   API.get(`/api/matter/attachment/${attachmentId}/email-content?requestId=${uuidv1()}`);
 

@@ -8,9 +8,12 @@ import {
   fetchAttachmentInlinePreview,
   fetchAttachmentEmailContent,
   downloadMatterAttach,
+  exportMatterBinder,
 } from "../../../apis";
 import { formatDateFunc } from "../../../utils/utilFunc";
 import "./MasterFileBinderModal.css";
+
+const EMPTY_ITEMS = [];
 
 /** Uses the stored extension with a filename fallback, independent of backend preview classification. */
 const browserPreviewKind = (item) => {
@@ -21,6 +24,12 @@ const browserPreviewKind = (item) => {
   return null;
 };
 
+/**
+ * Builds the avatar initials displayed beside an email participant.
+ *
+ * @param {string|null|undefined} name Participant display name.
+ * @returns {string} Up to two initials, or the existing fallback for missing names.
+ */
 const getInitials = (name) => {
   if (!name) return "LD";
   const trimmed = name.trim();
@@ -31,6 +40,12 @@ const getInitials = (name) => {
   return trimmed.slice(0, 2).toUpperCase();
 };
 
+/**
+ * Resolves a document label using the upload group, email subject, or stored name.
+ *
+ * @param {Object|null|undefined} item Binder sequence item from the backend.
+ * @returns {string} Nonempty label for previews, index rows, and selection controls.
+ */
 const getDocumentDisplayTitle = (item) => {
   if (!item) return "Untitled Document";
   const isEmail = item.previewType === "EMAIL_MSG";
@@ -46,6 +61,18 @@ const getDocumentDisplayTitle = (item) => {
   return isEmail ? "Email Message" : "Attachment Document";
 };
 
+/**
+ * Matter attachment reader with chronological previews and selected PDF/DOCX export.
+ * Selection is separate from preview navigation and follows the full sequence order.
+ *
+ * @param {Object} props Component properties.
+ * @param {boolean} props.isOpen Whether the binder modal is visible.
+ * @param {Function} props.toggle Parent callback that opens or closes the modal.
+ * @param {number|string} props.matterId Matter whose attachments are displayed.
+ * @param {Object} [props.matterData] Matter display metadata used while loading the index.
+ * @param {number|string} [props.initialAttachmentId] Attachment to focus after loading.
+ * @returns {React.ReactElement} Binder modal with index, preview, and download controls.
+ */
 const MasterFileBinderModal = ({
   isOpen,
   toggle,
@@ -60,6 +87,12 @@ const MasterFileBinderModal = ({
   const [searchQuery, setSearchQuery] = useState("");
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [selectedIds, setSelectedIds] = useState(() => new Set());
+  const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState("");
+  const [sequenceError, setSequenceError] = useState("");
+  const exportAbortRef = useRef(null);
+  const exportGenerationRef = useRef(0);
 
   // Active document preview states
   const [loadingDoc, setLoadingDoc] = useState(false);
@@ -77,7 +110,25 @@ const MasterFileBinderModal = ({
     return () => cache.clear();
   }, [isOpen, matterId]);
 
+  // Never deliver a previous matter's export after closing or reopening the modal.
+  useEffect(() => {
+    exportGenerationRef.current += 1;
+    exportAbortRef.current?.abort();
+    setSelectedIds(new Set());
+    setExportError("");
+    setExporting(false);
+    return () => {
+      exportGenerationRef.current += 1;
+      exportAbortRef.current?.abort();
+    };
+  }, [isOpen, matterId]);
+
   // Revoke blob URL cleanly
+  /**
+   * Releases the active preview object URL before replacing or leaving its document.
+   *
+   * @returns {void}
+   */
   const revokeCurrentBlob = useCallback(() => {
     if (blobUrlRef.current) {
       URL.revokeObjectURL(blobUrlRef.current);
@@ -91,6 +142,8 @@ const MasterFileBinderModal = ({
 
     let isSubscribed = true;
     setLoadingSequence(true);
+    setSequenceError("");
+    setBinderData(null);
 
     fetchMatterBinderSequence(matterId, sortOrder)
       .then((res) => {
@@ -98,6 +151,10 @@ const MasterFileBinderModal = ({
         if (res?.data?.success && res?.data?.data) {
           const data = res.data.data;
           setBinderData(data);
+          // Sorting preserves selection; deleted or newly unsupported files cannot remain selected.
+          const eligible = new Set(data.items?.filter((item) => item.exportSupported)
+            .map((item) => item.attachmentId));
+          setSelectedIds((previous) => new Set([...previous].filter((id) => eligible.has(id))));
 
           if (initialAttachmentId && data.items && data.items.length > 0) {
             const foundIdx = data.items.findIndex(
@@ -113,12 +170,17 @@ const MasterFileBinderModal = ({
           }
         } else {
           setBinderData(null);
+          setSequenceError("Unable to load this matter's binder.");
+          setSelectedIds(new Set());
         }
         setLoadingSequence(false);
       })
       .catch((err) => {
         if (!isSubscribed) return;
         console.error("Error loading binder sequence:", err);
+        setBinderData(null);
+        setSequenceError("Unable to load this matter's binder. Please reopen it to retry.");
+        setSelectedIds(new Set());
         setLoadingSequence(false);
       });
 
@@ -128,8 +190,109 @@ const MasterFileBinderModal = ({
   }, [isOpen, matterId, sortOrder, initialAttachmentId]);
 
   // Current active item
-  const items = binderData?.items || [];
+  const items = useMemo(() => (
+    isOpen && String(binderData?.matterId) === String(matterId)
+      ? binderData?.items || EMPTY_ITEMS : EMPTY_ITEMS
+  ), [isOpen, binderData, matterId]);
   const currentItem = items[currentIndex] || null;
+  const exportEnabled = binderData?.exportEnabled === true;
+  const maxExportAttachments = binderData?.maxExportAttachments || 200;
+  const eligibleItems = useMemo(() => items.filter((item) => item.exportSupported), [items]);
+  const selectedItems = useMemo(() => items.filter(
+    (item) => item.exportSupported && selectedIds.has(item.attachmentId)
+  ), [items, selectedIds]);
+  const selectionTooLarge = selectedItems.length > maxExportAttachments;
+  const uploadGroups = useMemo(() => {
+    const groups = new Map();
+    items.forEach((item) => {
+      if (!item.uploadGroupId) return;
+      if (!groups.has(item.uploadGroupId)) groups.set(item.uploadGroupId, []);
+      groups.get(item.uploadGroupId).push(item);
+    });
+    return groups;
+  }, [items]);
+
+  /**
+   * Toggles one eligible attachment without changing the currently previewed document.
+   *
+   * @param {number} id Attachment identifier from the current binder sequence.
+   * @returns {void}
+   */
+  const toggleSelection = (id) => {
+    setSelectedIds((previous) => {
+      const next = new Set(previous);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+    setExportError("");
+  };
+
+  /**
+   * Selects or clears every eligible member of an upload group, including hidden rows.
+   * Partially selected groups become fully selected; fully selected groups are cleared.
+   *
+   * @param {string} groupId Nonempty upload group identifier, independent of its label.
+   * @returns {void}
+   */
+  const toggleGroupSelection = (groupId) => {
+    const members = (uploadGroups.get(groupId) || []).filter((item) => item.exportSupported);
+    setSelectedIds((previous) => {
+      const next = new Set(previous);
+      const allSelected = members.every((item) => previous.has(item.attachmentId));
+      members.forEach((item) => {
+        if (allSelected) next.delete(item.attachmentId);
+        else next.add(item.attachmentId);
+      });
+      return next;
+    });
+    setExportError("");
+  };
+
+  /**
+   * Downloads selected documents as one PDF in the current chronological sequence.
+   * Ignores stale responses after a matter change or modal close and decodes blob errors.
+   *
+   * @returns {Promise<void>} Resolves after download delivery or user-visible failure handling.
+   */
+  const handleExportBinder = async () => {
+    if (exporting || loadingSequence || !exportEnabled || !selectedItems.length || selectionTooLarge) return;
+    const generation = exportGenerationRef.current;
+    const controller = new AbortController();
+    exportAbortRef.current = controller;
+    setExporting(true);
+    setExportError("");
+    try {
+      // Use the full sequence, not filtered search results or checkbox click order.
+      const response = await exportMatterBinder(matterId,
+        selectedItems.map((item) => item.attachmentId), { signal: controller.signal });
+      if (generation !== exportGenerationRef.current || controller.signal.aborted) return;
+      if (!response.headers["content-type"]?.includes("application/pdf")) {
+        throw new Error("Server did not return a PDF binder.");
+      }
+      const number = binderData?.matterNumber || matterData?.matterNumber || matterId;
+      fileDownload(response.data, `Matter-${number}-Binder.pdf`);
+    } catch (error) {
+      if (generation !== exportGenerationRef.current || controller.signal.aborted) return;
+      let message = "Binder export failed. Please retry or select fewer files.";
+      if (error.response?.data instanceof Blob) {
+        try {
+          const body = JSON.parse(await error.response.data.text());
+          message = body.message || message;
+        } catch (_) {
+          // A proxy timeout may contain HTML rather than the backend's JSON error.
+        }
+      } else if (!error.response && error.message) {
+        message = error.message;
+      }
+      if (generation === exportGenerationRef.current) setExportError(message);
+    } finally {
+      if (generation === exportGenerationRef.current) {
+        setExporting(false);
+        exportAbortRef.current = null;
+      }
+    }
+  };
 
   // Filtered TOC list
   const filteredItems = useMemo(() => {
@@ -153,6 +316,7 @@ const MasterFileBinderModal = ({
       revokeCurrentBlob();
       setDocBlobUrl(null);
       setEmailContent(null);
+      setLoadingDoc(false);
       return;
     }
 
@@ -218,12 +382,22 @@ const MasterFileBinderModal = ({
   }, [currentItem, isOpen, revokeCurrentBlob]);
 
   // Navigation handlers
+  /**
+   * Moves preview focus to the preceding document when one exists.
+   *
+   * @returns {void}
+   */
   const handlePrev = useCallback(() => {
     if (currentIndex > 0) {
       setCurrentIndex((prev) => prev - 1);
     }
   }, [currentIndex]);
 
+  /**
+   * Moves preview focus to the next document when one exists.
+   *
+   * @returns {void}
+   */
   const handleNext = useCallback(() => {
     if (currentIndex < items.length - 1) {
       setCurrentIndex((prev) => prev + 1);
@@ -234,6 +408,12 @@ const MasterFileBinderModal = ({
   useEffect(() => {
     if (!isOpen) return;
 
+    /**
+     * Handles binder navigation shortcuts without intercepting text or checkbox input.
+     *
+     * @param {KeyboardEvent} e Browser key event.
+     * @returns {void}
+     */
     const handleKeyDown = (e) => {
       if (["INPUT", "TEXTAREA", "SELECT"].includes(e.target.tagName) || e.target.closest?.(".binder-sheet-scroll")) {
         return;
@@ -257,6 +437,12 @@ const MasterFileBinderModal = ({
   }, [isOpen, handlePrev, handleNext, toggle]);
 
   // Download handler
+  /**
+   * Downloads one original attachment and retains its extension in the browser filename.
+   *
+   * @param {Object|null} [itemToDownload=currentItem] Binder item to download.
+   * @returns {void}
+   */
   const handleDownload = (itemToDownload = currentItem) => {
     if (!itemToDownload) return;
     downloadMatterAttach(itemToDownload.attachmentId).then((res) => {
@@ -272,11 +458,22 @@ const MasterFileBinderModal = ({
   };
 
   // Toggle sort order between ASC and DESC
+  /**
+   * Switches between newest-first and oldest-first binder sequence requests.
+   *
+   * @returns {void}
+   */
   const handleToggleSort = () => {
     setSortOrder((prev) => (prev === "ASC" ? "DESC" : "ASC"));
   };
 
   // Format date helper
+  /**
+   * Formats an optional attachment date using the application's existing date formatter.
+   *
+   * @param {string|number|Date|null|undefined} date Stored attachment or email date.
+   * @returns {string} Formatted date, or empty text when no date exists.
+   */
   const renderItemDate = (date) => {
     if (!date) return "";
     return formatDateFunc(date);
@@ -310,6 +507,12 @@ const MasterFileBinderModal = ({
   };
 
   // Render active preview canvas
+  /**
+   * Renders the active document preview, loading state, or original-download fallback.
+   * Export selection does not change the existing PDF, image, email, or DOCX preview flow.
+   *
+   * @returns {React.ReactElement} Current preview canvas contents.
+   */
   const renderCanvasContent = () => {
     if (loadingDoc) {
       return (
@@ -567,10 +770,21 @@ const MasterFileBinderModal = ({
         </div>
 
         <div className="binder-header-actions">
+          <button
+            type="button"
+            className="binder-btn-action binder-btn-export"
+            onClick={handleExportBinder}
+            disabled={exporting || loadingSequence || !exportEnabled || !selectedItems.length || selectionTooLarge}
+            title={exportEnabled ? "Download selected documents as one PDF" : "Binder export is unavailable"}
+          >
+            {exporting ? <Spinner size="sm" /> : <i className="ri-download-2-line"></i>}
+            <span>{exporting ? "Preparing Binder…" : "Download Binder"}</span>
+          </button>
           {/* Chronological order toggle */}
           <button
             className="binder-btn-action"
             onClick={handleToggleSort}
+            disabled={exporting || loadingSequence}
             title="Toggle chronological sequence order"
           >
             <i className={sortOrder === "ASC" ? "ri-sort-asc" : "ri-sort-desc"}></i>
@@ -603,6 +817,17 @@ const MasterFileBinderModal = ({
         </div>
       </div>
 
+      {(exportError || sequenceError || selectionTooLarge) && (
+        <div className="binder-export-feedback" role="alert">
+          {exportError || sequenceError || `Select no more than ${maxExportAttachments} attachments per binder.`}
+        </div>
+      )}
+      {exporting && (
+        <div className="binder-export-progress" role="status">
+          Preparing {selectedItems.length} documents. Larger binders can take several minutes.
+        </div>
+      )}
+
       {/* Body */}
       <div className="binder-body">
         {/* Left: Collapsible Table of Contents Sidebar */}
@@ -621,6 +846,24 @@ const MasterFileBinderModal = ({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
+            <div className="binder-export-selection">
+              <button type="button" className="btn btn-sm btn-light"
+                disabled={exporting || loadingSequence || !eligibleItems.length}
+                onClick={() => { setSelectedIds(new Set(eligibleItems.map((item) => item.attachmentId))); setExportError(""); }}>
+                Select All
+              </button>
+              <button type="button" className="btn btn-sm btn-light"
+                disabled={exporting || !selectedIds.size}
+                onClick={() => { setSelectedIds(new Set()); setExportError(""); }}>
+                Clear
+              </button>
+              <span aria-live="polite">{selectedItems.length} selected</span>
+            </div>
+            {!loadingSequence && binderData && (
+              <div className="binder-export-help">
+                {exportEnabled ? "Select PDF and DOCX files to include in the download." : "Binder export is unavailable."}
+              </div>
+            )}
           </div>
 
           {loadingSequence ? (
@@ -632,17 +875,55 @@ const MasterFileBinderModal = ({
             </div>
           ) : (
             <ul className="binder-toc-list">
-              {filteredItems.map((item) => {
+              {filteredItems.map((item, visibleIndex) => {
                 const globalIndex = items.findIndex((it) => it.attachmentId === item.attachmentId);
                 const isActive = globalIndex === currentIndex;
                 const displayTitle = getDocumentDisplayTitle(item);
+                const groupMembers = (uploadGroups.get(item.uploadGroupId) || []).filter((member) => member.exportSupported);
+                const selectedInGroup = groupMembers.filter((member) => selectedIds.has(member.attachmentId)).length;
+                const showGroup = item.uploadGroupId && filteredItems.findIndex(
+                  (member) => member.uploadGroupId === item.uploadGroupId
+                ) === visibleIndex;
 
                 return (
+                  <React.Fragment key={item.attachmentId}>
+                  {showGroup && (
+                    <li className="binder-group-selection">
+                      <label>
+                        <input type="checkbox"
+                          checked={groupMembers.length > 0 && selectedInGroup === groupMembers.length}
+                          ref={(element) => {
+                            if (element) element.indeterminate = selectedInGroup > 0 && selectedInGroup < groupMembers.length;
+                          }}
+                          disabled={exporting || !groupMembers.length}
+                          onChange={() => toggleGroupSelection(item.uploadGroupId)}
+                          aria-label={`Include eligible files from ${item.uploadGroupName || "this upload group"}`}
+                        />
+                        <span title={item.uploadGroupName || "Email upload group"}>
+                          {item.uploadGroupName || "Email upload group"}
+                        </span>
+                      </label>
+                    </li>
+                  )}
                   <li
-                    key={item.attachmentId}
                     className={`binder-toc-item ${isActive ? "active" : ""}`}
                     onClick={() => setCurrentIndex(globalIndex)}
+                    tabIndex={0}
+                    onKeyDown={(event) => {
+                      if (event.target === event.currentTarget && (event.key === "Enter" || event.key === " ")) {
+                        event.preventDefault();
+                        setCurrentIndex(globalIndex);
+                      }
+                    }}
                   >
+                    <input type="checkbox" className="binder-item-checkbox"
+                      checked={Boolean(item.exportSupported && selectedIds.has(item.attachmentId))}
+                      disabled={!item.exportSupported || exporting}
+                      aria-label={`Include ${displayTitle} in binder`}
+                      title={item.exportUnsupportedReason || "Include in PDF binder"}
+                      onClick={(event) => event.stopPropagation()}
+                      onChange={() => toggleSelection(item.attachmentId)}
+                    />
                     <div className="binder-item-seq">
                       {item.sequenceIndex || globalIndex + 1}
                     </div>
@@ -675,8 +956,12 @@ const MasterFileBinderModal = ({
                           )
                         )}
                       </div>
+                      {exportEnabled && !item.exportSupported && (
+                        <div className="binder-export-unsupported">{item.exportUnsupportedReason}</div>
+                      )}
                     </div>
                   </li>
+                  </React.Fragment>
                 );
               })}
               {filteredItems.length === 0 && (
