@@ -1,0 +1,365 @@
+/* System admin portal. Self-contained: nothing here is shared with the application's themes. */
+.ap-root {
+  min-height: 100vh;
+  background: #f4f6fa;
+  color: #1f2a44;
+  font-size: 14px;
+}
+
+.ap-topbar {
+  background: #14213d;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 0 24px;
+  height: 56px;
+}
+
+.ap-brand {
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+}
+
+.ap-brand small {
+  font-weight: 500;
+  opacity: 0.7;
+  margin-left: 8px;
+}
+
+.ap-nav {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+}
+
+.ap-nav a {
+  color: #c9d3ea;
+  text-decoration: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+}
+
+.ap-nav a:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.ap-nav a.active {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+}
+
+.ap-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  white-space: nowrap;
+}
+
+.ap-user a,
+.ap-user button {
+  color: #c9d3ea;
+  background: none;
+  border: 0;
+  padding: 0;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.ap-notice {
+  background: #fff4d6;
+  border-bottom: 1px solid #f0dd9f;
+  color: #6b5200;
+  padding: 6px 24px;
+  font-size: 12.5px;
+}
+
+.ap-main {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.ap-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.ap-title h1 {
+  font-size: 22px;
+  margin: 0;
+}
+
+.ap-title p {
+  margin: 2px 0 0;
+  color: #5b6784;
+}
+
+.ap-card {
+  background: #fff;
+  border: 1px solid #e3e8f2;
+  border-radius: 10px;
+  padding: 18px 20px;
+  margin-bottom: 18px;
+}
+
+.ap-card h2 {
+  font-size: 16px;
+  margin: 0 0 12px;
+}
+
+.ap-card h3 {
+  font-size: 14px;
+  margin: 16px 0 8px;
+  color: #3a4766;
+}
+
+.ap-hint {
+  color: #6b7691;
+  font-size: 12.5px;
+}
+
+.ap-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.ap-table th {
+  text-align: left;
+  font-weight: 600;
+  color: #5b6784;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  padding: 8px 10px;
+  border-bottom: 1px solid #e3e8f2;
+}
+
+.ap-table td {
+  padding: 10px;
+  border-bottom: 1px solid #eef1f7;
+  vertical-align: middle;
+}
+
+.ap-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.ap-table .ap-actions {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.ap-table .ap-actions .btn {
+  margin-left: 6px;
+}
+
+.ap-badge {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.ap-badge-ok {
+  background: #dff5e6;
+  color: #1c6b3a;
+}
+
+.ap-badge-bad {
+  background: #fde3e3;
+  color: #9b2222;
+}
+
+.ap-badge-warn {
+  background: #fff1d1;
+  color: #7a5a00;
+}
+
+.ap-loading {
+  padding: 24px;
+  color: #5b6784;
+}
+
+.ap-alert {
+  margin-bottom: 16px;
+}
+
+.ap-secret {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: #f1f4fa;
+  border: 1px dashed #b9c4de;
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+
+.ap-secret code {
+  font-size: 16px;
+  color: #14213d;
+  word-break: break-all;
+}
+
+.ap-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.ap-fn {
+  border: 1px solid #e3e8f2;
+  border-radius: 8px;
+  padding: 12px 14px;
+  background: #fbfcfe;
+}
+
+.ap-fn strong {
+  display: block;
+}
+
+.ap-fn p {
+  margin: 4px 0 8px;
+  color: #5b6784;
+  font-size: 12.5px;
+}
+
+.ap-fn a {
+  font-size: 12.5px;
+}
+
+.ap-stat {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.ap-stat > div {
+  flex: 1 1 140px;
+  background: #fff;
+  border: 1px solid #e3e8f2;
+  border-radius: 10px;
+  padding: 14px 18px;
+}
+
+.ap-stat b {
+  display: block;
+  font-size: 26px;
+  line-height: 1.1;
+}
+
+.ap-stat span {
+  color: #5b6784;
+  font-size: 12.5px;
+}
+
+.ap-tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid #dde3f0;
+  margin-bottom: 18px;
+}
+
+.ap-tabs button {
+  background: none;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  padding: 10px 16px;
+  color: #5b6784;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ap-tabs button.active {
+  color: #14213d;
+  border-bottom-color: #2f6fed;
+}
+
+.ap-rights {
+  max-height: 260px;
+  overflow: auto;
+  border: 1px solid #e3e8f2;
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+
+.ap-rights h4 {
+  font-size: 12px;
+  text-transform: uppercase;
+  color: #5b6784;
+  margin: 10px 0 4px;
+}
+
+.ap-rights label {
+  display: block;
+  margin: 2px 0;
+}
+
+.ap-block {
+  border: 1px solid #e3e8f2;
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  background: #fbfcfe;
+}
+
+.ap-block-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.ap-login {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(160deg, #14213d 0%, #24396a 100%);
+  padding: 16px;
+}
+
+.ap-login-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 32px 34px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+}
+
+.ap-login-card h1 {
+  font-size: 20px;
+  margin: 0 0 4px;
+}
+
+.ap-login-card p {
+  color: #5b6784;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 760px) {
+  .ap-topbar {
+    flex-wrap: wrap;
+    height: auto;
+    padding: 10px 16px;
+  }
+
+  .ap-nav {
+    flex-basis: 100%;
+    order: 3;
+    overflow-x: auto;
+  }
+
+  .ap-main {
+    padding: 16px;
+  }
+}

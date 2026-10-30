@@ -9,10 +9,16 @@ import VerticalLayout from '../Layouts/index';
 import { authProtectedRoutes, publicRoutes } from './allRoutes';
 import { AuthProtected } from './AuthProtected';
 
+// The system admin portal has its own sign-in, token and layout, so it is
+// mounted here directly rather than through authProtectedRoutes, which are
+// guarded by the application's own session.
+import AdminPortalApp from '../pages/AdminPortal/AdminPortalApp';
+
 const Index = () => {
   return (
     <React.Fragment>
       <Routes>
+        <Route path='/admin-portal/*' element={<AdminPortalApp />} />
         <Route>
           {publicRoutes.map((route, idx) => (
             <Route
