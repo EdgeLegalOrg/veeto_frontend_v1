@@ -1,4 +1,6 @@
-// Shared report options use the backend MatterType enum values.
+// Shared report options use the matter type codes the backend stores.
+// The list below is only what shows if the matter types have not been loaded; normally
+// getReportMatterTypeOptions() builds it from the matter types the system admin maintains.
 export const REPORT_MATTER_TYPE_OPTIONS = [
   { value: null, label: "All Types" },
   { value: "CONVEYANCING", label: "Conveyancing" },
@@ -18,3 +20,27 @@ export const REPORT_MATTER_TYPE_OPTIONS = [
   { value: "SEPCIALIST_AREAS", label: "Specialist Areas" },
   { value: "MISCELLANEOUS", label: "Miscellaneous" },
 ];
+
+/**
+ * The matter type filter for a report: "all", then every matter type the backend
+ * knows (cached with the other enums when the app starts), by name. Falls back to the
+ * fixed list when they have not loaded.
+ */
+export const getReportMatterTypeOptions = (allLabel = "All Types") => {
+  let types = [];
+  try {
+    const enumList = JSON.parse(window.localStorage.getItem("enumList"));
+    types = (enumList && enumList["MatterType"]) || [];
+  } catch (e) {
+    types = [];
+  }
+  if (types.length === 0) {
+    return [{ value: null, label: allLabel }, ...REPORT_MATTER_TYPE_OPTIONS.slice(1)];
+  }
+  return [
+    { value: null, label: allLabel },
+    ...[...types]
+      .sort((a, b) => a.display.localeCompare(b.display))
+      .map((t) => ({ value: t.value, label: t.display })),
+  ];
+};
