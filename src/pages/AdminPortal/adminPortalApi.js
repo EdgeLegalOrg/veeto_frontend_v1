@@ -136,3 +136,13 @@ export const createCompanyUser = (id, body) => data(portal.post(`${A}/companies/
 export const updateCompanyUser = (id, userId, body) => data(portal.put(`${A}/companies/${id}/users/${userId}`, body));
 export const resetCompanyUserPassword = (id, userId) =>
   data(portal.post(`${A}/companies/${id}/users/${userId}/reset-password`));
+
+// ---- matter types and sub types (shared by every company)
+export const getMatterCatalog = () => data(portal.get(`${A}/matter-types`));
+export const createMatterType = (body) => data(portal.post(`${A}/matter-types`, body));
+export const updateMatterType = (code, body) => data(portal.put(`${A}/matter-types/${encodeURIComponent(code)}`, body));
+export const deleteMatterType = (code) => data(portal.delete(`${A}/matter-types/${encodeURIComponent(code)}`));
+export const createMatterSubType = (body) => data(portal.post(`${A}/matter-sub-types`, body));
+export const updateMatterSubType = (code, body) =>
+  data(portal.put(`${A}/matter-sub-types/${encodeURIComponent(code)}`, body));
+export const deleteMatterSubType = (code) => data(portal.delete(`${A}/matter-sub-types/${encodeURIComponent(code)}`));

@@ -10,6 +10,7 @@ import CompaniesPage from "./CompaniesPage";
 import CreateCompanyPage from "./CreateCompanyPage";
 import CompanyDetailPage from "./CompanyDetailPage";
 import AdminsPage from "./AdminsPage";
+import MatterTypesPage from "./MatterTypesPage";
 import AuditPage from "./AuditPage";
 
 /**
@@ -51,6 +52,7 @@ const Shell = ({ children }) => {
               Dashboard
             </NavLink>
             <NavLink to={`${PORTAL_BASE}/companies`}>Companies</NavLink>
+            <NavLink to={`${PORTAL_BASE}/matter-types`}>Matter Types</NavLink>
             <NavLink to={`${PORTAL_BASE}/admins`}>System Admins</NavLink>
             <NavLink to={`${PORTAL_BASE}/audit`}>Audit Log</NavLink>
           </nav>
@@ -113,6 +115,14 @@ const AdminPortalApp = () => {
         element={
           <Shell>
             <CompanyDetailPage />
+          </Shell>
+        }
+      />
+      <Route
+        path="matter-types"
+        element={
+          <Shell>
+            <MatterTypesPage />
           </Shell>
         }
       />
