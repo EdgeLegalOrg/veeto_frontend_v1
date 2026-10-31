@@ -136,3 +136,27 @@ export const createCompanyUser = (id, body) => data(portal.post(`${A}/companies/
 export const updateCompanyUser = (id, userId, body) => data(portal.put(`${A}/companies/${id}/users/${userId}`, body));
 export const resetCompanyUserPassword = (id, userId) =>
   data(portal.post(`${A}/companies/${id}/users/${userId}/reset-password`));
+
+// ---- matter types and sub types (shared by every company)
+export const getMatterCatalog = () => data(portal.get(`${A}/matter-types`));
+export const createMatterType = (body) => data(portal.post(`${A}/matter-types`, body));
+export const updateMatterType = (code, body) => data(portal.put(`${A}/matter-types/${encodeURIComponent(code)}`, body));
+export const deleteMatterType = (code) => data(portal.delete(`${A}/matter-types/${encodeURIComponent(code)}`));
+export const createMatterSubType = (body) => data(portal.post(`${A}/matter-sub-types`, body));
+export const updateMatterSubType = (code, body) =>
+  data(portal.put(`${A}/matter-sub-types/${encodeURIComponent(code)}`, body));
+export const deleteMatterSubType = (code) => data(portal.delete(`${A}/matter-sub-types/${encodeURIComponent(code)}`));
+
+// ---- billing: per-user rates, role tiers and monthly cost records
+export const getBillingRates = (companyId) => data(portal.get(`${A}/companies/${companyId}/billing-rates`));
+export const setBillingRates = (companyId, body) => data(portal.put(`${A}/companies/${companyId}/billing-rates`, body));
+export const setRoleTier = (companyId, roleId, tier) =>
+  data(portal.put(`${A}/companies/${companyId}/roles/${roleId}/tier`, { tier }));
+export const listCompanyBillingRecords = (companyId) => data(portal.get(`${A}/companies/${companyId}/billing-records`));
+export const generateBillingRecord = (companyId, year, month) =>
+  data(portal.post(`${A}/companies/${companyId}/billing-records`, { year, month }));
+export const getBillingPeriod = (year, month) => data(portal.get(`${A}/billing-records`, { params: { year, month } }));
+export const generateAllBilling = (year, month) => data(portal.post(`${A}/billing-records/generate-all`, { year, month }));
+export const getBillingRecord = (id) => data(portal.get(`${A}/billing-records/${id}`));
+export const finaliseBillingRecord = (id) => data(portal.post(`${A}/billing-records/${id}/finalise`));
+export const deleteBillingRecord = (id) => data(portal.delete(`${A}/billing-records/${id}`));

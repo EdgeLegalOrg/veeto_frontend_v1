@@ -1,6 +1,7 @@
 import React from "react";
 import { Row, Col, Card, CardBody, Button } from "reactstrap";
 import Select from "react-select";
+import { getReportMatterTypeOptions } from "../utils/reportMatterTypes";
 
 const STATUS_OPTIONS = [
   { value: "ALL", label: "All Invoice Statuses" },
@@ -8,27 +9,6 @@ const STATUS_OPTIONS = [
   { value: "UNPAID", label: "Unpaid" },
   { value: "PARTIAL_PAID", label: "Partially Paid" },
 ];
-
-const TYPE_OPTIONS = [
-  { value: null, label: "All Practice Areas" },
-  { value: "CONVEYANCING", label: "Conveyancing" },
-  { value: "FAMILY_LAW", label: "Family Law" },
-  { value: "ESTATES", label: "Estates" },
-  { value: "LEASES", label: "Leases" },
-  { value: "BUSINESS_SALE_PURCHASE", label: "Business Sale/Purchase" },
-  { value: "COMPANIES_TRUST_AND_PARTNERSHIP", label: "Companies, Trusts & Partnerships" },
-  { value: "LITIGATION_GENERALLY", label: "Litigation Generally" },
-  { value: "INSOLVENCY_LIQUIDATION", label: "Insolvency/Liquidation" },
-  { value: "WILLS_POWER_OF_ATTORNEYS_AND_ENDURING_GUARDIANS", label: "Wills, POA & Enduring Guardians" },
-  { value: "PERSONAL_INJURY", label: "Personal Injury" },
-  { value: "GENERAL", label: "General" },
-  { value: "NOTARY", label: "Notary" },
-  { value: "REVENUE_NSW", label: "Revenue NSW" },
-  { value: "VOI_CLIENT_AUTHORITIES", label: "VOI & Client Authorities" },
-  { value: "SEPCIALIST_AREAS", label: "Specialist Areas" },
-  { value: "MISCELLANEOUS", label: "Miscellaneous" },
-];
-
 const selectCustomStyles = {
   menuPortal: (base) => ({ ...base, zIndex: 9999 }),
   menu: (base) => ({ ...base, zIndex: 9999 }),
@@ -41,6 +21,7 @@ const FeesBilledFilterBar = ({
   staffList,
   ownFeesOnly = false,
 }) => {
+  const TYPE_OPTIONS = getReportMatterTypeOptions("All Practice Areas");
   const safeStaffList = Array.isArray(staffList) ? staffList : (staffList ? [staffList] : []);
 
   const staffOptions = ownFeesOnly ? [{ value: "OWN", label: "My billing only" }] : [

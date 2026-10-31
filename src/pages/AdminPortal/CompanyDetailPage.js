@@ -10,6 +10,7 @@ import {
   deleteRole,
   getCompany,
   listRights,
+  setRoleTier,
   resetCompanyUserPassword,
   updateCompany,
   updateCompanyUser,
@@ -25,9 +26,10 @@ import {
   siteFromView,
   siteProblem,
 } from "./forms";
+import CompanyBillingTab from "./CompanyBillingTab";
 import { ConfirmModal, ErrorAlert, Loading, SecretModal, StatusBadge, useLoad } from "./shared";
 
-const TABS = ["Details", "Sites", "Roles", "Users"];
+const TABS = ["Details", "Sites", "Roles", "Users", "Billing"];
 
 const CompanyDetailPage = () => {
   const { companyId } = useParams();
@@ -74,6 +76,7 @@ const CompanyDetailPage = () => {
       {tab === "Sites" && <SitesTab {...common} />}
       {tab === "Roles" && <RolesTab {...common} rights={rights.data} />}
       {tab === "Users" && <UsersTab {...common} />}
+      {tab === "Billing" && <CompanyBillingTab {...common} />}
 
       <SecretModal
         title={secret && secret.title}
@@ -227,14 +230,16 @@ const SitesTab = ({ data, companyId, reload }) => {
 
 // -------------------------------------------------------------------- roles
 
+const TIER_LABEL = { STANDARD: "Standard user", POWER: "Power user" };
+
 const RolesTab = ({ data, companyId, reload, rights }) => {
   const [editing, setEditing] = useState(null);
-  const [form, setForm] = useState({ roleName: "", description: "", rightIds: [] });
+  const [form, setForm] = useState({ roleName: "", description: "", rightIds: [], tier: "STANDARD" });
   const [removing, setRemoving] = useState(null);
   const { busy, problem, setProblem, run } = useAction(reload);
 
   const open = (role) => {
-    setForm(role ? { roleName: role.roleName, description: role.description || "", rightIds: role.rightIds } : { roleName: "", description: "", rightIds: [] });
+    setForm(role ? { roleName: role.roleName, description: role.description || "", rightIds: role.rightIds, tier: role.tier || "STANDARD" } : { roleName: "", description: "", rightIds: [], tier: "STANDARD" });
     setProblem(null);
     setEditing(role || {});
   };
@@ -247,6 +252,8 @@ const RolesTab = ({ data, companyId, reload, rights }) => {
     );
     if (outcome.ok) setEditing(null);
   };
+
+  const changeTier = (role, tier) => run(() => setRoleTier(companyId, role.id, tier), `${role.roleName} is now billed as a ${TIER_LABEL[tier].toLowerCase()}`);
 
   const remove = async () => {
     const outcome = await run(() => deleteRole(companyId, removing.id), "Role deleted");
@@ -269,6 +276,7 @@ const RolesTab = ({ data, companyId, reload, rights }) => {
             <th>Role</th>
             <th>Rights</th>
             <th>Users</th>
+            <th>Billed as</th>
             <th />
           </tr>
         </thead>
@@ -281,6 +289,20 @@ const RolesTab = ({ data, companyId, reload, rights }) => {
               </td>
               <td>{r.rightIds.length}</td>
               <td>{r.userCount}</td>
+              <td>
+                <Input
+                  type="select"
+                  bsSize="sm"
+                  value={r.tier || "STANDARD"}
+                  disabled={busy}
+                  aria-label={`Billing tier of ${r.roleName}`}
+                  onChange={(e) => changeTier(r, e.target.value)}
+                  style={{ minWidth: 140 }}
+                >
+                  <option value="STANDARD">{TIER_LABEL.STANDARD}</option>
+                  <option value="POWER">{TIER_LABEL.POWER}</option>
+                </Input>
+              </td>
               <td className="ap-actions">
                 <Button size="sm" color="light" onClick={() => open(r)}>
                   Edit
@@ -315,6 +337,14 @@ const RolesTab = ({ data, companyId, reload, rights }) => {
                 </FormGroup>
               </Col>
             </Row>
+            <FormGroup>
+              <Label>Billed as</Label>
+              <Input type="select" value={form.tier} onChange={(e) => setForm({ ...form, tier: e.target.value })}>
+                <option value="STANDARD">{TIER_LABEL.STANDARD}</option>
+                <option value="POWER">{TIER_LABEL.POWER}</option>
+              </Input>
+              <div className="ap-hint">The company is charged its rate for this tier for each active user in this role.</div>
+            </FormGroup>
             <Label>Rights</Label>
             <RightsPicker rights={rights} selected={form.rightIds} onChange={(ids) => setForm({ ...form, rightIds: ids })} />
           </ModalBody>
