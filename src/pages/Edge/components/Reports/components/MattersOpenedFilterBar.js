@@ -1,4 +1,4 @@
-import { REPORT_MATTER_TYPE_OPTIONS as TYPE_OPTIONS } from "../utils/reportMatterTypes";
+import { getReportMatterTypeOptions } from "../utils/reportMatterTypes";
 import React from "react";
 import { Row, Col, Card, CardBody, Button } from "reactstrap";
 import Select from "react-select";
@@ -27,6 +27,7 @@ const MattersOpenedFilterBar = ({
   onResetFilters,
   staffList,
 }) => {
+  const TYPE_OPTIONS = getReportMatterTypeOptions();
   const safeStaffList = Array.isArray(staffList) ? staffList : (staffList ? [staffList] : []);
 
   const staffOptions = [
