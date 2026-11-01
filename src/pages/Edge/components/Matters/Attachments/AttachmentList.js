@@ -149,13 +149,12 @@ const AttachmentList = (props) => {
       setExtraButtons(
         <div className="d-flex align-items-center">
           <Button
-            color="primary"
+            color="warning"
             onClick={() => {
               setSelectedBinderAttachId(null);
               setOpenBinder(true);
             }}
             className="d-flex mx-2"
-            style={{ backgroundColor: "#002b5c", borderColor: "#002b5c" }}
             title="Read all documents and emails in continuous chronological file reader"
           >
             <span className="plusdiv">
