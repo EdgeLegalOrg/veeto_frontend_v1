@@ -169,6 +169,7 @@ export const calculateSettlement = (sheet) => {
 export const settlementInput = (sheet) => ({
   version: sheet.version ?? null,
   settlementDate: sheet.settlementDate || null,
+  calculationDateSource: sheet.calculationDateSource || null,
   settlementDayOwner: sheet.settlementDayOwner,
   purchasePrice: String(sheet.purchasePrice ?? ""),
   deposit: String(sheet.deposit ?? ""),

@@ -16,6 +16,11 @@ import {
   settlementInput,
 } from "./settlementCalculations";
 import "../../../stylesheets/Settlement.css";
+import SettlementCurrencyInput from "./SettlementCurrencyInput";
+
+const dateLabel = (date) => date ? `${date.slice(8, 10)}/${date.slice(5, 7)}/${date.slice(0, 4)}` : "Not set";
+const DATE_SOURCES = { SETTLEMENT_DATE: "Settlement Date", ADJUSTMENT_DATE: "Adjustment Date" };
+const matterDate = (sheet, source) => source === "SETTLEMENT_DATE" ? sheet.matterSettlementDate : sheet.matterAdjustmentDate;
 
 const message = (error) =>
   error.response?.data?.message ||
@@ -39,6 +44,8 @@ const SettlementDetails = ({ data, isArchived = false, onClose }) => {
   );
   const dirty = Boolean(input && JSON.stringify(input) !== savedInput);
   const editable = Boolean(sheet?.editable && !isArchived);
+  const dateMatchesSource = Boolean(sheet?.calculationDateSource && sheet.settlementDate
+    && sheet.settlementDate === matterDate(sheet, sheet.calculationDateSource));
 
   useEffect(() => {
     let current = true;
@@ -100,6 +107,14 @@ const SettlementDetails = ({ data, isArchived = false, onClose }) => {
         at === index ? { ...row, [name]: value } : row,
       ),
     }));
+  const selectDate = (source) => {
+    setSheet((previous) => previous ? {
+      ...previous,
+      calculationDateSource: source,
+      settlementDate: matterDate(previous, source),
+      dateSourceChanged: false,
+    } : previous);
+  };
   const confirmDiscard = () =>
     !dirty || window.confirm("Discard unsaved settlement figures?");
   const save = async () => {
@@ -198,6 +213,15 @@ const SettlementDetails = ({ data, isArchived = false, onClose }) => {
           {error}
         </div>
       )}
+      {sheet.settlementDate && !dateMatchesSource && (
+        <div className="alert alert-warning" role="status">
+          {sheet.calculationDateSource
+            ? `The matter's ${DATE_SOURCES[sheet.calculationDateSource]} is now ${dateLabel(matterDate(sheet, sheet.calculationDateSource))}.`
+            : "The saved calculation date no longer matches either date in Matter Summary."}
+          {" "}Calculations still use the saved date, {dateLabel(sheet.settlementDate)}.
+          Select an available matter date below only if you want to recalculate.
+        </div>
+      )}
       {totals.errors.length > 0 && (
         <div className="alert alert-warning" role="status">
           {totals.errors[0]}
@@ -218,56 +242,57 @@ const SettlementDetails = ({ data, isArchived = false, onClose }) => {
               <label className="form-label" htmlFor="sheet-date">
                 Adjustments as at
               </label>
-              <input
-                id="sheet-date"
-                className="form-control"
-                type="date"
-                min="1900-01-01"
-                max="2200-12-31"
-                value={sheet.settlementDate || ""}
-                onChange={(e) => change("settlementDate", e.target.value)}
-              />
-            </div>
-            <div className="col-md-4">
-              <label className="form-label" htmlFor="sheet-day-owner">
-                Settlement day belongs to
-              </label>
               <select
-                id="sheet-day-owner"
+                id="sheet-date"
                 className="form-select"
-                value={sheet.settlementDayOwner}
-                onChange={(e) => change("settlementDayOwner", e.target.value)}
+                value={dateMatchesSource ? sheet.calculationDateSource : ""}
+                onChange={(e) => selectDate(e.target.value)}
+                aria-describedby="sheet-date-used sheet-date-help"
               >
-                <option value="VENDOR">Vendor / transferor</option>
-                <option value="PURCHASER">Purchaser / transferee</option>
+                {!dateMatchesSource && <option value="" disabled>
+                  {sheet.settlementDate ? `Saved date — ${dateLabel(sheet.settlementDate)}` : "No matter dates available"}
+                </option>}
+                {Object.entries(DATE_SOURCES).map(([source, label]) => (
+                  <option key={source} value={source} disabled={!matterDate(sheet, source)}>
+                    {label} — {dateLabel(matterDate(sheet, source))}
+                  </option>
+                ))}
               </select>
+              <p id="sheet-date-used" className="small mt-2 mb-0" aria-live="polite">
+                Calculation date used: <strong>{dateLabel(sheet.settlementDate)}</strong>
+              </p>
+              <p id="sheet-date-help" className="small text-muted mb-0">
+                Dates come from Matter Summary. Selecting a different date recalculates the worksheet.
+              </p>
             </div>
-            <div className="col-md-4">
-              <label className="form-label">Matter</label>
-              <div className="form-control bg-light">#{data.matterNumber}</div>
+            <div className="col-md-8 align-self-center">
+              {!sheet.matterSettlementDate && !sheet.matterAdjustmentDate && (
+                <p className="text-warning mb-0" role="status">
+                  Add a Settlement Date or Adjustment Date in Matter Summary, then reload this worksheet.
+                  {sheet.settlementDate ? " The saved calculation date is retained." : " A date is required before saving."}
+                </p>
+              )}
             </div>
             <div className="col-md-4">
               <label className="form-label" htmlFor="sheet-price">
                 Purchase / agreed transfer price ($)
               </label>
-              <input
+              <SettlementCurrencyInput
                 id="sheet-price"
                 className="form-control"
-                inputMode="decimal"
                 value={sheet.purchasePrice}
-                onChange={(e) => change("purchasePrice", e.target.value)}
+                onChange={(value) => change("purchasePrice", value)}
               />
             </div>
             <div className="col-md-4">
               <label className="form-label" htmlFor="sheet-deposit">
                 Deposit paid ($)
               </label>
-              <input
+              <SettlementCurrencyInput
                 id="sheet-deposit"
                 className="form-control"
-                inputMode="decimal"
                 value={sheet.deposit}
-                onChange={(e) => change("deposit", e.target.value)}
+                onChange={(value) => change("deposit", value)}
               />
             </div>
             <div className="col-md-4">
@@ -286,7 +311,7 @@ const SettlementDetails = ({ data, isArchived = false, onClose }) => {
 
         <section className="settlement-section">
           <div className="d-flex justify-content-between align-items-center mb-2">
-            <h6 className="mb-0">Rates, Interest &amp; Allowances</h6>
+            <h6 className="mb-0">Adjustments</h6>
             {editable && (
               <Button
                 color="light"
@@ -405,13 +430,12 @@ const SettlementDetails = ({ data, isArchived = false, onClose }) => {
                           ? "Total period cost ($)"
                           : "Fixed amount ($)"}
                     </label>
-                    <input
+                    <SettlementCurrencyInput
                       id={`amount-${index}`}
                       className="form-control"
-                      inputMode="decimal"
                       value={row.amount ?? ""}
-                      onChange={(e) =>
-                        changeRow(index, "amount", e.target.value)
+                      onChange={(value) =>
+                        changeRow(index, "amount", value)
                       }
                     />
                     {row.mode === "INTEREST" && editable && (
@@ -639,13 +663,12 @@ const SettlementDetails = ({ data, isArchived = false, onClose }) => {
                       />
                     </td>
                     <td>
-                      <input
+                      <SettlementCurrencyInput
                         className="form-control"
                         aria-label={`Payee ${index + 1} amount`}
-                        inputMode="decimal"
                         value={payee.amount}
-                        onChange={(e) =>
-                          changePayee(index, "amount", e.target.value)
+                        onChange={(value) =>
+                          changePayee(index, "amount", value)
                         }
                       />
                     </td>
