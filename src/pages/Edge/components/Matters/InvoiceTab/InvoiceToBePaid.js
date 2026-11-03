@@ -101,14 +101,15 @@ const InvoiceToBePaid = (props) => {
         matterId: inv.matterId || matchedMatter.id,
       }));
 
-      const updatedFormList = [
-        ...(formData.invoicePaymentList || []),
-        ...newFormEntries,
-      ];
-
       setList(updatedList);
       props.setList(updatedList);
-      setFormData({ ...formData, invoicePaymentList: updatedFormList });
+      setFormData((prev) => ({
+        ...prev,
+        invoicePaymentList: [
+          ...(prev?.invoicePaymentList || []),
+          ...newFormEntries,
+        ],
+      }));
       setOtherMatterNo("");
       toast.success(
         `Added ${newInvoices.length} invoice(s) from matter ${matchedMatter.matterNumber}.`
@@ -153,19 +154,23 @@ const InvoiceToBePaid = (props) => {
     }
 
     setList(newList);
-    setTimeout(() => {
+    if (props.setList) {
       props.setList(newList);
-    }, 10);
-
-    if (formData?.invoicePaymentList?.length > 0) {
-      newArr = [...formData.invoicePaymentList];
     }
 
-    if (newArr.length > 0) {
-      newArr[index].amount = enteredAmt;
-
-      setFormData({ ...formData, invoicePaymentList: newArr });
-    }
+    setFormData((prev) => {
+      let currentInvList = [...(prev?.invoicePaymentList || [])];
+      if (currentInvList[index]) {
+        currentInvList[index] = {
+          ...currentInvList[index],
+          amount: enteredAmt,
+        };
+      }
+      return {
+        ...prev,
+        invoicePaymentList: currentInvList,
+      };
+    });
   };
 
   const paymentValue = (index) => {

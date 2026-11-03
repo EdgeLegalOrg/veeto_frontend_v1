@@ -2,6 +2,8 @@ import React, { Fragment, useEffect, useState } from "react";
 import {
   Button,
   Input,
+  Label,
+  FormFeedback,
   Modal,
   ModalBody,
   ModalFooter,
@@ -15,11 +17,12 @@ import { toast } from "react-toastify";
 import { TextInputField } from "pages/Edge/components/InputField";
 import { formatDateFunc } from "pages/Edge/utils/utilFunc";
 
-const initialData = {
+/** Build a fresh office-calendar date each time the payment form opens. */
+const createInitialData = () => ({
   paymentType: "CARD",
   paymentSubType: "CARD",
   amount: "",
-  paymentDate: new Date(),
+  paymentDate: formatDateFunc(new Date(), "YYYY-MM-DD"),
   bSB: "",
   accountName: "",
   accountNumber: "",
@@ -30,10 +33,10 @@ const initialData = {
   createdBy: "",
   createdOn: "",
   invoicePaymentList: [],
-};
+});
 
 const ReceivePayment = (props) => {
-  const [formData, setFormData] = useState(initialData);
+  const [formData, setFormData] = useState(createInitialData);
   const [requiredFields, setRequiredFields] = useState([]);
   const [paymentType, setPaymentType] = useState([]);
   const [paymentSubType, setPaymentSubType] = useState([]);
@@ -44,6 +47,14 @@ const ReceivePayment = (props) => {
   useEffect(() => {
     fetchEnumList();
   }, []);
+
+  useEffect(() => {
+    if (props.isOpen) {
+      setFormData(createInitialData());
+      setSubmitted(false);
+      setLoading(false);
+    }
+  }, [props.isOpen]);
 
   const parseList = (arg) => {
     let arr = [];
@@ -61,7 +72,7 @@ const ReceivePayment = (props) => {
       formArr.push({ invoiceId: item.id, amount: 0, matterId: item.matterId});
     }
     setList(arr);
-    setFormData({ ...formData, invoicePaymentList: formArr });
+    setFormData((prev) => ({ ...prev, invoicePaymentList: formArr }));
   };
 
   const fetchEnumList = () => {
@@ -93,7 +104,11 @@ const ReceivePayment = (props) => {
       value = value ? parseFloat(value) : 0;
     }
 
-    setFormData({ ...formData, [name]: value });
+    if (name === "paymentDate") {
+      value = value ? formatDateFunc(value, "YYYY-MM-DD") : "";
+    }
+
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const labelReq = (fieldName) => {
@@ -116,18 +131,17 @@ const ReceivePayment = (props) => {
 
   const handleRadioBtn = (arg, name) => {
     let { value } = arg;
-    let inputData = { ...formData };
     if (name === "paymentType") {
       let sub = arg.subType ? arg.subType : [];
-      if (sub.length > 0) {
-        inputData.paymentSubType = sub[0].value;
-        setTimeout(() => {
-          setPaymentSubType(sub);
-        }, 10);
-      }
+      setPaymentSubType(sub);
+      setFormData((prev) => ({
+        ...prev,
+        paymentType: value,
+        paymentSubType: sub.length > 0 ? sub[0].value : "",
+      }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
     }
-
-    setFormData({ ...inputData, [name]: value });
   };
 
   const dueValidInList = () => {
@@ -164,19 +178,20 @@ const ReceivePayment = (props) => {
       try {
         const { data } = await addReceivedPayment(arg);
         if (data.success) {
+          toast.success("Payment Received Successfully!");
           if (props.refresh) {
             props.refresh();
-            setTimeout(() => {
-              props.close();
-            }, 1);
           }
+          setTimeout(() => {
+            props.close();
+          }, 300);
         } else {
           toast.error("Something went wrong, please try again later.");
         }
-        setLoading(false);
       } catch (error) {
         toast.error("Something went wrong, please try again later.");
         console.error(error);
+      } finally {
         setLoading(false);
       }
     } else {
@@ -186,11 +201,16 @@ const ReceivePayment = (props) => {
   };
 
   const handleSubmit = () => {
-    let invoiceList = [...formData.invoicePaymentList];
+    let invoiceList = [...(formData.invoicePaymentList || [])];
     invoiceList = invoiceList.filter((ls) => ls.amount > 0);
+
+    const formattedPaymentDate = formData.paymentDate
+      ? formatDateFunc(formData.paymentDate, "YYYY-MM-DD")
+      : null;
 
     let d = {
       ...formData,
+      paymentDate: formattedPaymentDate,
       invoicePaymentList: invoiceList,
       // matterId: props.matterData.id,
     };
@@ -356,17 +376,21 @@ const ReceivePayment = (props) => {
 
             <div className="row mt-3">
               <div className="col-md-6">
-                <TextInputField
-                  label="Payment Date"
-                  name="paymentDate"
-                  placeholder="Payment Date"
-                  type="date"
-                  value={formData.paymentDate}
-                  onChange={handleChange}
-                  required={isRequired("paymentDate")}
-                  invalid={submitted && isRequired("paymentDate")}
-                  invalidMessage="Payment Date is required"
-                />
+                <div className="mb-3">
+                  <Label htmlFor="receive-payment-date">
+                    Payment Date {isRequired("paymentDate") && <span className="input-error">*</span>}
+                  </Label>
+                  <Input
+                    id="receive-payment-date"
+                    name="paymentDate"
+                    type="date"
+                    value={formData.paymentDate}
+                    onChange={handleChange}
+                    required={isRequired("paymentDate")}
+                    invalid={submitted && isRequired("paymentDate") && !formData.paymentDate}
+                  />
+                  <FormFeedback>Payment Date is required</FormFeedback>
+                </div>
               </div>
               <div className="col-md-6">
                 <TextInputField
