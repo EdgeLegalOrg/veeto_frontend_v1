@@ -1431,6 +1431,15 @@ export const fetchSettlementSheet = (matterId, requestConfig = {}) =>
 export const saveSettlementSheet = (matterId, sheet) =>
   API.put(`/api/matter/${matterId}/settlement-sheet`, sheet);
 
+// Settlement PDFs use the persisted worksheet version; revision downloads retain prior file copies.
+export const downloadSettlementPdf = (matterId, version) =>
+  API.get(`/api/matter/${matterId}/settlement-sheet/pdf`, { params: { version }, responseType: "blob" });
+export const saveSettlementPdf = (matterId, version) =>
+  API.post(`/api/matter/${matterId}/settlement-sheet/pdf-attachment`, null, { params: { version } });
+export const fetchSettlementPdfRevisions = (matterId) => API.get(`/api/matter/${matterId}/settlement-sheet/pdf-revisions`);
+export const downloadSettlementPdfRevision = (matterId, revision) =>
+  API.get(`/api/matter/${matterId}/settlement-sheet/pdf-revisions/${revision}/download`, { responseType: "blob" });
+
 // Active site's GST setting. Saves include the displayed site ID to guard against a site switch.
 export const fetchGstSettings = (requestConfig = {}) => API.get("/api/settings/gst", requestConfig);
 export const saveGstSettings = (settings) => API.put("/api/settings/gst", settings);
