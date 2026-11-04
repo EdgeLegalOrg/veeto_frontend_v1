@@ -28,6 +28,7 @@ import {
 } from "./forms";
 import CompanyBillingTab from "./CompanyBillingTab";
 import CompanyStaffTab from "./CompanyStaffTab";
+import CompanyChecklistsTab from "./CompanyChecklistsTab";
 import CompanyNumeralsTab from "./CompanyNumeralsTab";
 import CompanyStorageTab from "./CompanyStorageTab";
 import { ConfirmModal, ErrorAlert, Loading, SecretModal, StatusBadge, useLoad } from "./shared";
@@ -39,7 +40,7 @@ const matchesRole = (r, needle) => haystack(r.roleName, r.description, r.tier ==
 const matchesUser = (u, needle) =>
   haystack(u.userName, u.firstName, u.lastName, u.email, u.roleName, u.locked ? "locked" : "active").includes(needle);
 
-const TABS = ["Details", "Sites", "Roles", "Users", "Staff", "Numerals", "Storage", "Billing"];
+const TABS = ["Details", "Sites", "Roles", "Users", "Staff", "Checklists", "Numerals", "Storage", "Billing"];
 
 const CompanyDetailPage = () => {
   const { companyId } = useParams();
@@ -87,6 +88,7 @@ const CompanyDetailPage = () => {
       {tab === "Roles" && <RolesTab {...common} rights={rights.data} />}
       {tab === "Users" && <UsersTab {...common} />}
       {tab === "Staff" && <CompanyStaffTab {...common} />}
+      {tab === "Checklists" && <CompanyChecklistsTab {...common} />}
       {tab === "Numerals" && <CompanyNumeralsTab {...common} />}
       {tab === "Storage" && <CompanyStorageTab {...common} />}
       {tab === "Billing" && <CompanyBillingTab {...common} />}

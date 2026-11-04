@@ -201,3 +201,29 @@ export const saveNumerals = (companyId, siteId, body) =>
 export const getStorage = (companyId, siteId) => data(portal.get(`${A}/companies/${companyId}/sites/${siteId}/storage`));
 export const saveStorage = (companyId, siteId, body) =>
   data(portal.put(`${A}/companies/${companyId}/sites/${siteId}/storage`, body));
+
+// ---- a company's checklists: tasks, check lists, task groups and the link to matter types
+const C = (companyId) => `${A}/companies/${companyId}/checklists`;
+export const listChecklistTasks = (companyId) => data(portal.get(`${C(companyId)}/tasks`));
+export const saveChecklistTask = (companyId, taskId, body) =>
+  data(taskId ? portal.put(`${C(companyId)}/tasks/${taskId}`, body) : portal.post(`${C(companyId)}/tasks`, body));
+export const deleteChecklistTasks = (companyId, ids) =>
+  data(portal.delete(`${C(companyId)}/tasks`, { params: { ids: ids.join(",") } }));
+export const listChecklistTemplates = (companyId) => data(portal.get(`${C(companyId)}/templates`));
+export const saveChecklistTemplate = (companyId, templateId, body) =>
+  data(
+    templateId
+      ? portal.put(`${C(companyId)}/templates/${templateId}`, body)
+      : portal.post(`${C(companyId)}/templates`, body)
+  );
+export const deleteChecklistTemplates = (companyId, ids) =>
+  data(portal.delete(`${C(companyId)}/templates`, { params: { ids: ids.join(",") } }));
+export const syncChecklistTemplate = (companyId, templateId, scope, offset, limit) =>
+  data(portal.post(`${C(companyId)}/templates/${templateId}/sync`, null, { params: { scope, offset, limit } }));
+export const listChecklistGroups = (companyId) => data(portal.get(`${C(companyId)}/task-groups`));
+export const saveChecklistGroup = (companyId, groupId, body) =>
+  data(groupId ? portal.put(`${C(companyId)}/task-groups/${groupId}`, body) : portal.post(`${C(companyId)}/task-groups`, body));
+export const deleteChecklistGroup = (companyId, groupId) => data(portal.delete(`${C(companyId)}/task-groups/${groupId}`));
+export const listChecklistLinks = (companyId) => data(portal.get(`${C(companyId)}/matter-links`));
+export const setChecklistLink = (companyId, matterTypeId, templateId) =>
+  data(portal.put(`${C(companyId)}/matter-links/${matterTypeId}`, { templateId }));
