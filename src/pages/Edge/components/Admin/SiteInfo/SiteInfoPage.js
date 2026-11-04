@@ -28,7 +28,7 @@ import AddressList from "./AddressList";
 import BankAccountList from "./BankAccountList";
 import DisclaimerList from "./DisclaimerList";
 import XeroSetting from "./XeroSetting";
-import { AUSTRALIAN_TIMEZONES } from "pages/Edge/utils/Constant";
+import TimezoneSelect from "../TimezoneSelect";
 
 const initialData = {
   siteName: "",
@@ -432,15 +432,7 @@ const SiteInfoPage = () => {
                       />
                     </div>
                     <div className="col-md-3 mt-3">
-                      <TextInputField
-                        type="select"
-                        label="Timezone"
-                        name="timeZone"
-                        placeholder="Select Timezone"
-                        optionArray={AUSTRALIAN_TIMEZONES}
-                        value={siteInfo.timeZone || "Australia/Sydney"}
-                        onChange={handleFormChange}
-                      />
+                      <TimezoneSelect value={siteInfo.timeZone} onChange={handleFormChange} />
                     </div>
                     <SiteFinancialYearFields value={siteInfo} onChange={handleFormChange} />
                     {siteInfo.logoPath && !editLogo ? (

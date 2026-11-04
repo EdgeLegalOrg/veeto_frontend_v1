@@ -1,3 +1,4 @@
+import { formatDateFunc } from "../../../utils/utilFunc";
 import React, { useState, useMemo } from "react";
 import { Table, Input, Row, Col, Badge, Spinner, Pagination, PaginationItem, PaginationLink } from "reactstrap";
 import { Link } from "react-router-dom";
@@ -167,12 +168,12 @@ const OutstandingInvoicesTable = ({ rows, isLoading }) => {
                   </td>
                   <td>
                     <span className="text-muted fs-13">
-                      {row.invoiceDate ? String(row.invoiceDate).slice(0, 10) : "-"}
+                      {row.invoiceDate ? formatDateFunc(row.invoiceDate, "YYYY-MM-DD", row.timeZone) : "-"}
                     </span>
                   </td>
                   <td>
                     <span className="text-muted fs-13">
-                      {row.invoiceDueDate ? String(row.invoiceDueDate).slice(0, 10) : "-"}
+                      {row.invoiceDueDate ? formatDateFunc(row.invoiceDueDate, "YYYY-MM-DD", row.timeZone) : "-"}
                     </span>
                   </td>
                   <td>{getAgingBadge(row.daysOverdue)}</td>

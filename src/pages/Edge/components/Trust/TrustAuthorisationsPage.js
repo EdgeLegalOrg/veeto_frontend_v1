@@ -39,7 +39,7 @@ import {
   errorMessage,
   money,
   shortDate,
-  toApiDate,
+  getOfficeToday,
 } from "./TrustShared";
 
 /**
@@ -417,7 +417,7 @@ const PrepareTransferForm = ({ trustAccountId, ledgers, onClose, onSaved }) => {
     fromTrustLedgerId: "",
     toTrustLedgerId: "",
     amount: "",
-    transferDate: toApiDate(new Date()),
+    transferDate: getOfficeToday(),
     reason: "",
   });
 

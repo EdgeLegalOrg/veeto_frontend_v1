@@ -1,23 +1,27 @@
 import Cookies from "js-cookie";
 import { API_BASE_URL } from "../apis";
-import moment from "moment";
 import momentTimezone from "moment-timezone";
-export const formatDateFunc = (date, format = "DD-MM-YYYY") => {
+/** Business dates stay calendar-only; timestamps are displayed in the owning office's zone. */
+export const formatDateFunc = (date, format = "DD-MM-YYYY", timeZone = getActiveSiteTimeZone()) => {
   if (!date) return null;
-  const timeZone = getActiveSiteTimeZone();
-  // Formats in site's local timezone
-  return momentTimezone(date).tz
-    ? momentTimezone(date).tz(timeZone).format(format)
-    : momentTimezone(date).format(format);
+  if (typeof date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    return momentTimezone.utc(date, "YYYY-MM-DD", true).format(format);
+  }
+  const zone = momentTimezone.tz.zone(timeZone) ? timeZone : "Australia/Sydney";
+  return momentTimezone(date).tz(zone).format(format);
 };
 
-export const formatDateTimeFunc = (date, format = "DD-MM-YYYY hh:mm A") => {
+export const formatDateTimeFunc = (date, format = "DD-MM-YYYY hh:mm A", timeZone = getActiveSiteTimeZone()) => {
   if (!date) return null;
-  const timeZone = getActiveSiteTimeZone();
-  return momentTimezone(date).tz
-    ? momentTimezone(date).tz(timeZone).format(format)
-    : momentTimezone(date).format(format);
+  const zone = momentTimezone.tz.zone(timeZone) ? timeZone : "Australia/Sydney";
+  if (typeof date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(date))
+    return momentTimezone.tz(date, "YYYY-MM-DD", true, zone).format(format);
+  return momentTimezone(date).tz(zone).format(format);
 };
+
+/** Current business date is independent of the browser's timezone. */
+export const getOfficeToday = (timeZone = getActiveSiteTimeZone()) =>
+  momentTimezone().tz(momentTimezone.tz.zone(timeZone) ? timeZone : "Australia/Sydney").format("YYYY-MM-DD");
 
 export const convertSubstring = (word, limit = 15) => {
   if (word) {

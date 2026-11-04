@@ -40,6 +40,7 @@ import {
   saveBlobAsFile,
   shortDate,
   toApiDate,
+  getOfficeToday,
 } from "./TrustShared";
 
 /**
@@ -404,7 +405,7 @@ const GenerateForm = ({ preset, ledgers, onClose, onSaved }) => {
     trustLedgerId: preset.trustLedgerId || "",
     reason: preset.reason || "ON_REQUEST",
     fromDate: preset.fromDate || "",
-    toDate: preset.toDate || toApiDate(new Date()),
+    toDate: preset.toDate || getOfficeToday(),
   });
 
   const set = (field, value) => setForm((prev) => ({ ...prev, [field]: value }));
@@ -528,7 +529,7 @@ const GenerateForm = ({ preset, ledgers, onClose, onSaved }) => {
 const DeliveryForm = ({ statement, onClose, onSaved }) => {
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
-    deliveredDate: toApiDate(new Date()),
+    deliveredDate: getOfficeToday(),
     deliveryMethod: "EMAIL",
     deliveredTo: "",
     notes: "",

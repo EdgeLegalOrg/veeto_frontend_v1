@@ -1443,3 +1443,6 @@ export const downloadSettlementPdfRevision = (matterId, revision) =>
 // Active site's GST setting. Saves include the displayed site ID to guard against a site switch.
 export const fetchGstSettings = (requestConfig = {}) => API.get("/api/settings/gst", requestConfig);
 export const saveGstSettings = (settings) => API.put("/api/settings/gst", settings);
+
+// Server-supported named office timezones; selections retain daylight-saving rules.
+export const fetchSiteTimezones = () => API.get("/api/site-timezones");

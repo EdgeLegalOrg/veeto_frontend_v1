@@ -11,21 +11,9 @@ import {
   Spinner,
 } from "reactstrap";
 import { Link } from "react-router-dom";
-import moment from "moment";
+import { formatDateFunc } from "../../../utils/utilFunc";
 
-const formatDate = (dateStr) => {
-  if (!dateStr) return "-";
-  const cleanStr = String(dateStr).trim().slice(0, 10);
-  const parts = cleanStr.split("-");
-  if (parts.length === 3 && parts[0].length === 4) {
-    return `${parts[2]}-${parts[1]}-${parts[0]}`;
-  }
-  const m = moment(dateStr);
-  if (m.isValid()) {
-    return m.format("DD-MM-YYYY");
-  }
-  return dateStr;
-};
+const formatDate = (value, timeZone) => value ? formatDateFunc(value, "DD-MM-YYYY", timeZone) : "-";
 
 const getSettlementStatusBadge = (status) => {
   switch (status) {
@@ -162,7 +150,7 @@ const SettlementsDueTable = ({ rows, isLoading }) => {
                   <td>
                     <div className="d-flex flex-column">
                       <span className="fw-medium text-dark fs-13">
-                        {formatDate(row.settlementDate)}
+                        {formatDate(row.settlementDate, row.timeZone)}
                       </span>
                       {row.settlementTime && (
                         <span className="text-muted fs-11">
@@ -216,12 +204,12 @@ const SettlementsDueTable = ({ rows, isLoading }) => {
                   </td>
                   <td>
                     <span className="text-muted fs-13">
-                      {formatDate(row.exchangeDate)}
+                      {formatDate(row.exchangeDate, row.timeZone)}
                     </span>
                   </td>
                   <td>
                     <span className="text-muted fs-13">
-                      {formatDate(row.coolingOffDate)}
+                      {formatDate(row.coolingOffDate, row.timeZone)}
                     </span>
                   </td>
                   <td>
