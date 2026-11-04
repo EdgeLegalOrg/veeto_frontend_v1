@@ -1,0 +1,32 @@
+<h1>The company page</h1>
+<p class="lead">Everything about one company, in tabs.</p>
+
+<p>Open a company from the <a href="#/admin/companies">companies list</a>. The heading shows the company's name and, underneath, its number and how many sites, roles and users it has.</p>
+
+<h2>The tabs</h2>
+<table>
+  <thead><tr><th>Tab</th><th>For</th><th>Help</th></tr></thead>
+  <tbody>
+    <tr><td>Details</td><td>The company's name, address and contact details.</td><td>Below</td></tr>
+    <tr><td>Sites</td><td>Its offices.</td><td><a href="#/admin/sites">Sites</a></td></tr>
+    <tr><td>Roles</td><td>What each kind of user may do, and which billing tier.</td><td><a href="#/admin/roles">Roles</a></td></tr>
+    <tr><td>Users</td><td>Logins: role, sites, lock, reset password.</td><td><a href="#/admin/users">Users</a></td></tr>
+    <tr><td>Staff</td><td>The people who work there, with or without a login.</td><td><a href="#/admin/staff">Staff</a></td></tr>
+    <tr><td>Checklists</td><td>Check lists, tasks, task groups and which matter types use them.</td><td><a href="#/admin/check-lists">Check lists</a></td></tr>
+    <tr><td>Numerals</td><td>The number ranges for each site.</td><td><a href="#/admin/numerals">System numerals</a></td></tr>
+    <tr><td>Storage</td><td>Where each site keeps its documents.</td><td><a href="#/admin/storage">Storage type</a></td></tr>
+    <tr><td>Billing</td><td>The company's rates and its monthly cost records.</td><td><a href="#/admin/billing-rates">Setting rates and tiers</a></td></tr>
+  </tbody>
+</table>
+
+<h2>The Details tab</h2>
+<ol class="steps">
+  <li>Open the <strong>Details</strong> tab.</li>
+  <li>Change the company's name, address, contact details, DX details or disclaimer. The name is required.</li>
+  <li>Choose <strong>Save</strong>. A message confirms <em>Company saved</em>.</li>
+</ol>
+<p>The change is recorded in the <a href="#/admin/audit-log">audit log</a> (<code>COMPANY_UPDATED</code>).</p>
+
+<div class="note">
+  <p>Everything on these tabs belongs to the company in the heading. You cannot reach another company's sites, roles, users or settings from here, even by changing an address.</p>
+</div>

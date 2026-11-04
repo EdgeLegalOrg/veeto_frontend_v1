@@ -1,0 +1,57 @@
+<h1>Audit log</h1>
+<p class="lead">Every sign-in and every change made in this portal, newest first. It cannot be edited from here.</p>
+
+<h2>The columns</h2>
+<table>
+  <thead><tr><th>Column</th><th>Meaning</th></tr></thead>
+  <tbody>
+    <tr><td>When</td><td>The date and time.</td></tr>
+    <tr><td>Admin</td><td>The system admin who did it.</td></tr>
+    <tr><td>Action</td><td>What was done, as a code (see below).</td></tr>
+    <tr><td>Target</td><td>What it was done to: a company, a site, a role, a system admin and so on.</td></tr>
+    <tr><td>Detail</td><td>A short description. Passwords and secrets are never written here.</td></tr>
+    <tr><td>From</td><td>The network address the request came from.</td></tr>
+  </tbody>
+</table>
+
+<h2>Finding entries</h2>
+<ul>
+  <li>The <strong>search box</strong> looks in the admin, action, target, detail and address.</li>
+  <li><strong>From</strong> and <strong>To</strong> limit the list to a range of dates. If From is after To, the dates are ignored and the page says so.</li>
+  <li><strong>Clear all</strong> removes the search and the dates.</li>
+</ul>
+<p>See also <a href="#/admin/searching-and-paging">Searching and paging lists</a>.</p>
+
+<h2>Exporting</h2>
+<ol class="steps">
+  <li>Set the search and dates so the list shows what you need.</li>
+  <li>Choose <strong>Export</strong>, then <strong>Excel (.xlsx)</strong> or <strong>CSV (.csv)</strong>.</li>
+  <li>The file downloads. A message tells you how many rows it holds.</li>
+</ol>
+<p>The file holds every row that matches the search and dates, not just the page you are looking at. Its columns are When, Admin, Action, Target type, Target id, Detail and From.</p>
+<div class="warning">
+  <p>An export holds at most the newest 20,000 matching rows. If there are more, the message says <em>Exported the newest 20000 rows. Narrow the dates to export the rest.</em> Export in date ranges to get everything. If nothing matches, you are told there is nothing to export.</p>
+</div>
+
+<h2>The actions you will see</h2>
+<table>
+  <thead><tr><th>Group</th><th>Actions</th></tr></thead>
+  <tbody>
+    <tr><td>Signing in</td><td><code>LOGIN</code>, <code>LOGIN_FAILED</code> (also for an unknown username), <code>LOGIN_LOCKOUT</code>, <code>LOGIN_REFUSED</code></td></tr>
+    <tr><td>Your password</td><td><code>PASSWORD_CHANGED</code>, <code>PASSWORD_CHANGE_REFUSED</code></td></tr>
+    <tr><td>System admins</td><td><code>ADMIN_CREATED</code>, <code>ADMIN_UPDATED</code>, <code>ADMIN_LOCKED</code>, <code>ADMIN_UNLOCKED</code>, <code>ADMIN_PASSWORD_RESET</code>, <code>ADMIN_DELETED</code></td></tr>
+    <tr><td>Companies</td><td><code>COMPANY_CREATED</code>, <code>COMPANY_UPDATED</code></td></tr>
+    <tr><td>Sites</td><td><code>SITE_CREATED</code>, <code>SITE_UPDATED</code></td></tr>
+    <tr><td>Roles</td><td><code>ROLE_CREATED</code>, <code>ROLE_UPDATED</code>, <code>ROLE_DELETED</code>, <code>ROLE_TIER_CHANGED</code></td></tr>
+    <tr><td>Company users</td><td><code>COMPANY_USER_CREATED</code>, <code>COMPANY_USER_UPDATED</code>, <code>COMPANY_USER_PASSWORD_RESET</code></td></tr>
+    <tr><td>Staff</td><td><code>STAFF_CREATED</code>, <code>STAFF_UPDATED</code></td></tr>
+    <tr><td>Check lists</td><td><code>CHECKLIST_CREATED</code>, <code>_UPDATED</code>, <code>_DELETED</code>; <code>CHECKLIST_TASK_*</code>; <code>CHECKLIST_GROUP_*</code>; <code>CHECKLIST_LINK_CHANGED</code>; <code>CHECKLIST_SYNC_STARTED</code></td></tr>
+    <tr><td>Numerals and storage</td><td><code>NUMERALS_UPDATED</code>, <code>STORAGE_UPDATED</code></td></tr>
+    <tr><td>Matter types</td><td><code>MATTER_TYPE_CREATED</code>, <code>_UPDATED</code>, <code>_DELETED</code>; <code>MATTER_SUB_TYPE_*</code></td></tr>
+    <tr><td>Billing</td><td><code>BILLING_RATES_UPDATED</code>, <code>BILLING_GENERATED</code>, <code>BILLING_FINALISED</code>, <code>BILLING_DELETED</code></td></tr>
+  </tbody>
+</table>
+
+<div class="note">
+  <p>A refused or failed attempt is recorded as well as a successful one, so the log shows wrong passwords and attempts that were turned away.</p>
+</div>

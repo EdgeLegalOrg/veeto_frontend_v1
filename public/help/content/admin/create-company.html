@@ -1,0 +1,53 @@
+<h1>Creating a company</h1>
+<p class="lead">Set up a new firm in one go: its details, its sites, its roles and its first administrator. Everything is created together, or none of it is.</p>
+
+<h2>To create a company</h2>
+<ol class="steps">
+  <li>Choose <strong>Companies</strong>, then <strong>Create company</strong>.</li>
+  <li>Fill in the four parts of the form (below).</li>
+  <li>Choose <strong>Create company</strong> at the bottom.</li>
+  <li>A window shows the first administrator's <a href="#/admin/temporary-passwords">temporary password</a>. Copy it and give it to them: it is shown only this once.</li>
+</ol>
+
+<h2>1. Company</h2>
+<p>The firm's name (required), address, contact details, DX details and disclaimer. These can be changed later on the <a href="#/admin/company-page">Details tab</a>.</p>
+
+<h2>2. Sites</h2>
+<p>A site is one office. Records, staff and numbering are kept per site. The first site is where the administrator is based, and it must be active.</p>
+<ul>
+  <li>Give each site a name (required), and optionally a code, ABN, email, website and time zone.</li>
+  <li><strong>GST rate</strong>: leave it blank and the company must set it itself before it can invoice.</li>
+  <li><strong>Financial year starts</strong>: choose a day and a month, or leave both blank for 1 July to 30 June. The end date is worked out for you.</li>
+  <li>Choose <strong>Add another site</strong> for each further office. <strong>Remove</strong> takes one off the form.</li>
+</ul>
+<p>More about these fields in <a href="#/admin/sites">Sites</a>.</p>
+
+<h2>3. Roles</h2>
+<p>Choose how the company's roles start:</p>
+<ul>
+  <li><strong>One Administrator role with every right.</strong> The company can add more roles itself afterwards.</li>
+  <li><strong>Define the roles now.</strong> Add each role with a name, description and the rights it grants.</li>
+</ul>
+<p>You can also <strong>copy the roles of an existing company</strong>. Each role is copied with its rights and its billing tier; a role with the same name as one you defined is skipped.</p>
+
+<h2>4. First administrator</h2>
+<p>This person is created as a staff member at the first site, with access to every site you listed.</p>
+<ul>
+  <li><strong>Username</strong> (required): 3 to 100 letters, numbers or the symbols <code>. _ @ + -</code>. It must not already be used by anyone.</li>
+  <li><strong>First name</strong> and <strong>Last name</strong> (required), <strong>Email</strong> (optional).</li>
+  <li><strong>Role</strong>: which of the roles above they hold.</li>
+  <li><strong>Temporary password</strong> (optional): 8 to 20 characters. Leave blank to have one generated.</li>
+</ul>
+<p>They must choose their own password the first time they sign in to Veeto.</p>
+
+<h2>After it is created</h2>
+<ul>
+  <li>The company appears in the <a href="#/admin/companies">companies list</a> and its page opens.</li>
+  <li>The standard <a href="#/admin/billing-rates">billing rates</a> are not set for a new company. Set them before generating a cost record.</li>
+  <li>The company's checklists, numerals and storage start empty. Set them on the company page, or let the company do it.</li>
+  <li>The creation is recorded in the <a href="#/admin/audit-log">audit log</a> (<code>COMPANY_CREATED</code>).</li>
+</ul>
+
+<div class="warning">
+  <p>If anything is wrong (a missing name, a username already taken), nothing is created and the form tells you what to fix. You will not be left with half a company.</p>
+</div>

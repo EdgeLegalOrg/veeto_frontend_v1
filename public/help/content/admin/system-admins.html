@@ -1,0 +1,48 @@
+<h1>System admins</h1>
+<p class="lead">The people who can sign in to this portal. They belong to no company.</p>
+
+<h2>The list</h2>
+<table>
+  <thead><tr><th>Column</th><th>Meaning</th></tr></thead>
+  <tbody>
+    <tr><td>Username</td><td>Their username, with <em>(you)</em> against your own and their email underneath.</td></tr>
+    <tr><td>Name</td><td>Their display name.</td></tr>
+    <tr><td>Status</td><td>Active or Locked, plus <strong>Password change pending</strong> if they must choose a new password.</td></tr>
+    <tr><td>Last sign-in</td><td>When they last signed in.</td></tr>
+  </tbody>
+</table>
+
+<h2>Adding a system admin</h2>
+<ol class="steps">
+  <li>Choose <strong>Add system admin</strong>.</li>
+  <li>Type a <strong>Username</strong>: 3 to 50 letters, numbers or the symbols <code>. _ @ -</code>. It cannot be changed later.</li>
+  <li>Type their <strong>Name</strong> and, if you like, an <strong>Email</strong>.</li>
+  <li>Optionally type a <strong>Temporary password</strong> that meets the <a href="#/admin/your-account">admin password rule</a>. Leave it blank to have one generated.</li>
+  <li>Choose <strong>Save</strong>, then copy the temporary password from the window and give it to them. It is shown only once.</li>
+</ol>
+<p>They must change the password at their first sign-in. See <a href="#/admin/temporary-passwords">Temporary passwords</a>.</p>
+
+<h2>What you can do to an admin</h2>
+<table>
+  <thead><tr><th>Button</th><th>What it does</th></tr></thead>
+  <tbody>
+    <tr><td>Edit</td><td>Change their name or email.</td></tr>
+    <tr><td>Reset password</td><td>Gives them a new temporary password. They are signed out and must choose their own at next sign-in.</td></tr>
+    <tr><td>Lock</td><td>Signs them out immediately. They cannot sign in until unlocked.</td></tr>
+    <tr><td>Unlock</td><td>Lets them sign in again.</td></tr>
+    <tr><td>Remove</td><td>Removes them permanently. Their past actions stay in the audit log.</td></tr>
+  </tbody>
+</table>
+
+<h2>Safeguards</h2>
+<ul>
+  <li>You cannot lock, remove or reset your own account. Use <strong>Account</strong> to change your own password. If you try you are told <em>You cannot do that to your own account. Ask another system admin.</em></li>
+  <li>The last active system admin can never be locked or removed, so someone can always sign in. You are told <em>That would leave no active system admin, so nobody could sign in to the portal.</em></li>
+  <li>A username that is already taken is refused: <em>That username is already taken.</em></li>
+</ul>
+
+<div class="note">
+  <p>Five wrong passwords in a row lock an account for 15 minutes on their own. See <a href="#/admin/signing-in">Signing in</a>. Another system admin can use <strong>Lock</strong> and <strong>Unlock</strong>, or <strong>Reset password</strong>, to help someone back in.</p>
+</div>
+
+<p>All of these actions are recorded in the <a href="#/admin/audit-log">audit log</a>.</p>

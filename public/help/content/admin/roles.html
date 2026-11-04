@@ -1,0 +1,43 @@
+<h1>Roles</h1>
+<p class="lead">A role is a named set of rights. Every user of a company holds one role, and the role also decides which billing tier the user is charged at.</p>
+
+<h2>The list</h2>
+<table>
+  <thead><tr><th>Column</th><th>Meaning</th></tr></thead>
+  <tbody>
+    <tr><td>Role</td><td>The name, with its description underneath.</td></tr>
+    <tr><td>Rights</td><td>How many rights the role grants.</td></tr>
+    <tr><td>Users</td><td>How many users hold the role.</td></tr>
+    <tr><td>Billed as</td><td>The billing tier: <strong>Standard user</strong> or <strong>Power user</strong>.</td></tr>
+  </tbody>
+</table>
+<p>Search by role name or description.</p>
+
+<h2>Adding a role</h2>
+<ol class="steps">
+  <li>Open the company's <strong>Roles</strong> tab and choose <strong>Add role</strong>.</li>
+  <li>Type a <strong>Role name</strong> (required) and, if you like, a <strong>Description</strong>.</li>
+  <li>Choose what the role is <strong>Billed as</strong>.</li>
+  <li>Tick the <strong>Rights</strong> the role grants (see below).</li>
+  <li>Choose <strong>Save</strong>.</li>
+</ol>
+
+<h2>Choosing rights</h2>
+<p>Rights are grouped by category. The counter above the list reads, for example, <em>12 of 40 rights selected</em>.</p>
+<ul>
+  <li>Tick a right to grant it. Hover over its name to see its description.</li>
+  <li>Choose <strong>toggle all</strong> beside a category heading to tick or clear the whole category.</li>
+</ul>
+
+<h2>Editing a role</h2>
+<p>Choose <strong>Edit</strong> on the role's row, change what you need and choose <strong>Save</strong>. Changes to rights apply to everyone who holds the role.</p>
+
+<h2>Setting the billing tier</h2>
+<p>You can change the tier straight from the list: use the <strong>Billed as</strong> menu on the role's row. It saves at once and a message confirms it. The company is charged its rate for that tier for each active user in the role. See <a href="#/admin/billing-how-it-works">How billing works</a>.</p>
+
+<h2>Deleting a role</h2>
+<p>Choose <strong>Delete</strong> and confirm. A role that still has users cannot be deleted: the button is disabled, and if you try anyway you are told <em>That role is still assigned to users, so it cannot be deleted</em>. Move the users to another role first, on the <a href="#/admin/users">Users tab</a>.</p>
+
+<div class="note">
+  <p>Every change here is recorded in the <a href="#/admin/audit-log">audit log</a>, including tier changes.</p>
+</div>

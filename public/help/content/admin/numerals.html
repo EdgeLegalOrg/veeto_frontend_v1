@@ -1,0 +1,32 @@
+<h1>System numerals</h1>
+<p class="lead">The range each kind of number is drawn from, for one site.</p>
+
+<h2>The numbers you can set</h2>
+<ul>
+  <li>Matter numbers</li>
+  <li>Archived matter numbers</li>
+  <li>Packet numbers</li>
+  <li>Invoice numbers</li>
+  <li>Payment numbers</li>
+</ul>
+
+<h2>To set a range</h2>
+<ol class="steps">
+  <li>Open the company's <strong>Numerals</strong> tab and choose the <strong>site</strong>. Numbers are kept per site.</li>
+  <li>For each kind of number you want to control, tick <strong>Use a range</strong>.</li>
+  <li>Type where it starts in <strong>From</strong> and where it ends in <strong>Up to</strong>.</li>
+  <li>Choose <strong>Save numerals</strong>. A message confirms <em>System numerals saved</em>.</li>
+</ol>
+
+<h2>The rules</h2>
+<ul>
+  <li>Use whole numbers from 0 up, with up to 9 digits.</li>
+  <li>When <strong>Use a range</strong> is ticked, <strong>From</strong> must be 1 or more, and <strong>Up to</strong> must be the same as or after it.</li>
+  <li>When it is not ticked, numbers carry on from the highest already used.</li>
+</ul>
+
+<div class="warning">
+  <p>The numbers already used are not checked here. If a range ends below the highest number in use, the application reports that series as used up when someone next needs a number. Set <strong>Up to</strong> above anything already issued.</p>
+</div>
+
+<p>Each save is recorded in the <a href="#/admin/audit-log">audit log</a> (<code>NUMERALS_UPDATED</code>).</p>

@@ -1,0 +1,97 @@
+{
+  "title": "Veeto Help",
+  "books": [
+    {
+      "id": "admin",
+      "title": "System administration",
+      "status": "published",
+      "sections": [
+        {
+          "title": "Getting started",
+          "pages": [
+            { "slug": "overview", "title": "About the System Admin Portal", "file": "content/admin/overview.html" },
+            { "slug": "signing-in", "title": "Signing in", "file": "content/admin/signing-in.html" },
+            { "slug": "your-account", "title": "Your account and password", "file": "content/admin/your-account.html" },
+            { "slug": "tour", "title": "A tour of the portal", "file": "content/admin/tour.html" }
+          ]
+        },
+        {
+          "title": "Companies",
+          "pages": [
+            { "slug": "companies", "title": "The companies list", "file": "content/admin/companies.html" },
+            { "slug": "create-company", "title": "Creating a company", "file": "content/admin/create-company.html" },
+            { "slug": "company-page", "title": "The company page", "file": "content/admin/company-page.html" },
+            { "slug": "sites", "title": "Sites", "file": "content/admin/sites.html" },
+            { "slug": "roles", "title": "Roles", "file": "content/admin/roles.html" },
+            { "slug": "users", "title": "Users", "file": "content/admin/users.html" },
+            { "slug": "staff", "title": "Staff", "file": "content/admin/staff.html" }
+          ]
+        },
+        {
+          "title": "Company settings",
+          "pages": [
+            { "slug": "check-lists", "title": "Check lists", "file": "content/admin/check-lists.html" },
+            { "slug": "tasks", "title": "Tasks", "file": "content/admin/tasks.html" },
+            { "slug": "groups-and-links", "title": "Task groups and linking to matters", "file": "content/admin/groups-and-links.html" },
+            { "slug": "numerals", "title": "System numerals", "file": "content/admin/numerals.html" },
+            { "slug": "storage", "title": "Storage type", "file": "content/admin/storage.html" }
+          ]
+        },
+        {
+          "title": "Billing",
+          "pages": [
+            { "slug": "billing-how-it-works", "title": "How billing works", "file": "content/admin/billing-how-it-works.html" },
+            { "slug": "billing-rates", "title": "Setting rates and tiers", "file": "content/admin/billing-rates.html" },
+            { "slug": "billing-records", "title": "Cost records", "file": "content/admin/billing-records.html" }
+          ]
+        },
+        {
+          "title": "Across the platform",
+          "pages": [
+            { "slug": "matter-types", "title": "Matter types and sub types", "file": "content/admin/matter-types.html" },
+            { "slug": "logged-in-users", "title": "Logged in users", "file": "content/admin/logged-in-users.html" },
+            { "slug": "feedback", "title": "Feedback review", "file": "content/admin/feedback.html" },
+            { "slug": "system-admins", "title": "System admins", "file": "content/admin/system-admins.html" },
+            { "slug": "audit-log", "title": "Audit log", "file": "content/admin/audit-log.html" }
+          ]
+        },
+        {
+          "title": "Reference",
+          "pages": [
+            { "slug": "searching-and-paging", "title": "Searching and paging lists", "file": "content/admin/searching-and-paging.html" },
+            { "slug": "temporary-passwords", "title": "Temporary passwords", "file": "content/admin/temporary-passwords.html" },
+            { "slug": "messages", "title": "Messages and what they mean", "file": "content/admin/messages.html" },
+            { "slug": "troubleshooting", "title": "Troubleshooting", "file": "content/admin/troubleshooting.html" },
+            { "slug": "glossary", "title": "Glossary", "file": "content/admin/glossary.html" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "app",
+      "title": "Using Veeto",
+      "status": "planned",
+      "sections": [
+        {
+          "title": "The application",
+          "pages": [
+            { "slug": "index", "title": "The standard application functions", "file": "content/app/index.html" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "about",
+      "title": "About this help",
+      "status": "published",
+      "sections": [
+        {
+          "title": "",
+          "pages": [
+            { "slug": "adding-to-help", "title": "Adding to the help", "file": "content/about/adding-to-help.html" }
+          ]
+        }
+      ]
+    }
+  ]
+}

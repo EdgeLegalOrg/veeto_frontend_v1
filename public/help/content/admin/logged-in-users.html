@@ -1,0 +1,48 @@
+<h1>Logged in users</h1>
+<p class="lead">Who is signed in to the application, and the history of sign-ins, across every company.</p>
+
+<h2>Filtering</h2>
+<ol class="steps">
+  <li>Choose a <strong>Company</strong>, or leave it on <em>All companies</em>.</li>
+  <li>Choose a <strong>Site</strong> of that company, or <em>All sites</em>. The site menu is available only once a company is chosen, and shows that company's sites (inactive ones are marked).</li>
+  <li>Use the <strong>search box</strong> to find a user, site or address.</li>
+  <li>Choose one of the three tabs:
+    <ul>
+      <li><strong>Signed in now</strong>: sessions that are still open.</li>
+      <li><strong>Signed out</strong>: sessions that have ended.</li>
+      <li><strong>All</strong>: both.</li>
+    </ul>
+  </li>
+</ol>
+<p>Changing the company clears the site. Choose <strong>Refresh</strong> to reload the list.</p>
+
+<h2>The columns</h2>
+<table>
+  <thead><tr><th>Column</th><th>Meaning</th></tr></thead>
+  <tbody>
+    <tr><td>Company</td><td>The company the user belongs to.</td></tr>
+    <tr><td>User</td><td>The person's name, with their username underneath.</td></tr>
+    <tr><td>Site</td><td>The site they signed in at.</td></tr>
+    <tr><td>Signed in</td><td>When they signed in.</td></tr>
+    <tr><td>Length</td><td>How long the session lasted, or has lasted so far if it is still open. Shown in minutes, or hours and minutes.</td></tr>
+    <tr><td>Status</td><td><strong>Signed in</strong>, or why it ended, with the time it ended.</td></tr>
+    <tr><td>From</td><td>The network address the sign-in came from.</td></tr>
+  </tbody>
+</table>
+
+<h2>Why a session ended</h2>
+<table>
+  <thead><tr><th>Shown as</th><th>Meaning</th></tr></thead>
+  <tbody>
+    <tr><td>Signed out</td><td>The user signed out.</td></tr>
+    <tr><td>Timed out</td><td>The session timed out.</td></tr>
+    <tr><td>Expired</td><td>The login could no longer be valid, so the session was closed automatically.</td></tr>
+    <tr><td>Forced out</td><td>The user was forced out.</td></tr>
+  </tbody>
+</table>
+
+<div class="note">
+  <p>A session is closed when someone signs out, times out or is forced out. One that never reported, for example because the browser was closed, is closed automatically once its login could no longer be valid. It may therefore show as signed in for a while after the person has gone.</p>
+</div>
+
+<p>This page is read-only. To stop a person signing in, lock the user on the company's <a href="#/admin/users">Users tab</a>.</p>

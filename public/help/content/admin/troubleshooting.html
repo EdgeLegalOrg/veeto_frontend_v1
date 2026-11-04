@@ -1,0 +1,58 @@
+<h1>Troubleshooting</h1>
+<p class="lead">Common problems and how to sort them out. For the exact wording of a message, see <a href="#/admin/messages">Messages and what they mean</a>.</p>
+
+<h2>I cannot sign in</h2>
+<ul>
+  <li>Check the username and password. The portal gives the same answer for an unknown username and a wrong password.</li>
+  <li>Five wrong passwords in a row lock the account for 15 minutes. Wait, or ask another system admin to unlock you.</li>
+  <li>If the page says the portal is not enabled, it is switched off on that server and needs changing in its configuration.</li>
+  <li>If you are sent back to sign in while working, your sign-in has ended. It lasts 2 hours, and ends sooner if your password was changed or reset on another computer.</li>
+</ul>
+
+<h2>I am only allowed to change my password</h2>
+<p>This is expected for a new account or after a reset. Choose a new password; the other pages open as soon as you have. See <a href="#/admin/your-account">Your account and password</a>.</p>
+
+<h2>I cannot find a company, user or setting</h2>
+<ul>
+  <li>Clear the search box and any filters. The search may be hiding it.</li>
+  <li>Check the page of results. The default is 20 rows a page.</li>
+  <li>Make sure you are in the right company. Everything on a company page belongs to that one company only.</li>
+</ul>
+
+<h2>The Add user button is not available</h2>
+<p>A company needs at least one role before it can have users. Add a role on the <a href="#/admin/roles">Roles tab</a> first.</p>
+
+<h2>I cannot delete something</h2>
+<table>
+  <thead><tr><th>What</th><th>Why</th><th>Fix</th></tr></thead>
+  <tbody>
+    <tr><td>A role</td><td>Users still hold it.</td><td>Move them to another role.</td></tr>
+    <tr><td>A task</td><td>It is in a check list.</td><td>Remove it from the check list first.</td></tr>
+    <tr><td>A task group</td><td>A check list has tasks in it.</td><td>Move or remove those tasks.</td></tr>
+    <tr><td>A check list</td><td>It is linked to a matter type.</td><td>Unlink it on the Link to matter tab.</td></tr>
+    <tr><td>A matter type or sub type</td><td>Matters, templates or settings use it.</td><td>It can be renamed, not removed.</td></tr>
+    <tr><td>A cost record</td><td>It is finalised.</td><td>It cannot be removed.</td></tr>
+    <tr><td>A site</td><td>Sites are never deleted.</td><td>Make it inactive.</td></tr>
+  </tbody>
+</table>
+
+<h2>A cost record will not generate</h2>
+<p>The company has users on a tier whose rate is not set. Open the company's Billing tab and fill in the missing rate. A role on the Power tier with no Power rate is the usual cause. See <a href="#/admin/billing-rates">Setting rates and tiers</a>.</p>
+
+<h2>The cost record does not show the change I just made</h2>
+<p>Records are snapshots. Choose <strong>Regenerate</strong> on a draft to take a fresh one. A finalised record never changes.</p>
+
+<h2>A new matter type is not showing in the application</h2>
+<p>It appears when users next sign in or reload. Ask them to reload.</p>
+
+<h2>A user is still showing as signed in</h2>
+<p>A session that never reported, such as one whose browser was closed, is closed automatically once its login could no longer be valid. Until then it can show as signed in. To stop a person signing in, lock their user on the <a href="#/admin/users">Users tab</a>.</p>
+
+<h2>The user count looks wrong</h2>
+<p>A site's <strong>Users</strong> count includes everyone who can work there, including users whose role covers all sites. A <em>billing</em> count is different: each user is counted once, under the site of their staff record. See <a href="#/admin/billing-how-it-works">How billing works</a>.</p>
+
+<h2>The audit export stops at 20,000 rows</h2>
+<p>That is the limit. Narrow the From and To dates and export again. See <a href="#/admin/audit-log">Audit log</a>.</p>
+
+<h2>Still stuck?</h2>
+<p>Note what you were doing, the message shown and the time, then look for the matching entry in the <a href="#/admin/audit-log">audit log</a>. Give both to whoever supports the platform.</p>

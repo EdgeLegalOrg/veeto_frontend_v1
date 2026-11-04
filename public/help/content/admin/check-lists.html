@@ -1,0 +1,56 @@
+<h1>Check lists</h1>
+<p class="lead">A check list is an ordered set of tasks. It is what a matter's Workflow tab is built from.</p>
+
+<h2>How the four parts fit together</h2>
+<p>The company page's <strong>Checklists</strong> tab has four sub tabs, the same four the company has in its own Admin menu:</p>
+<table>
+  <thead><tr><th>Sub tab</th><th>What it holds</th><th>Help</th></tr></thead>
+  <tbody>
+    <tr><td>Check lists</td><td>Named lists that gather tasks in order.</td><td>This page</td></tr>
+    <tr><td>Tasks</td><td>The individual tasks, each with optional sub tasks.</td><td><a href="#/admin/tasks">Tasks</a></td></tr>
+    <tr><td>Task groups</td><td>Headings that arrange the tasks of a list.</td><td><a href="#/admin/groups-and-links">Task groups and linking to matters</a></td></tr>
+    <tr><td>Link to matter</td><td>Which check list each matter type and sub type starts with.</td><td><a href="#/admin/groups-and-links">Task groups and linking to matters</a></td></tr>
+  </tbody>
+</table>
+
+<h2>The list</h2>
+<p>Each row shows the check list's name (with its description underneath) and how many tasks it holds. Search finds a check list by name, or by the title of one of its tasks.</p>
+
+<h2>Adding a check list</h2>
+<ol class="steps">
+  <li>Open the <strong>Check lists</strong> sub tab and choose <strong>Add check list</strong>.</li>
+  <li>Type the <strong>Name</strong> (required) and, if you like, a <strong>Description</strong>.</li>
+  <li>Under <strong>Tasks, in order</strong>, choose <strong>Add a task</strong> for each row. In each row:
+    <ul>
+      <li>Choose an existing task, or <em>New task…</em> and type its title.</li>
+      <li>Optionally choose a <strong>Group</strong> (or <em>No group</em>).</li>
+      <li>Tick <strong>Required</strong> if the task must be completed.</li>
+      <li>Use the move up and move down buttons to set the order, or <strong>Remove</strong> to take the row out.</li>
+    </ul>
+  </li>
+  <li>Choose <strong>Save</strong>.</li>
+</ol>
+<p>Within each group the tasks keep the order shown in the form. A check list needs at least one task, and every row needs a task.</p>
+
+<h2>Editing a check list</h2>
+<p>Choose <strong>Edit</strong>, change the tasks or their order, and choose <strong>Save</strong>. Saving a check list does not rename a task that already exists.</p>
+
+<div class="warning">
+  <p>Saving a check list does <strong>not</strong> change matters that already use it. To pass the change on, <a href="#/admin/check-lists">sync</a> the check list (below).</p>
+</div>
+
+<h2>Syncing changes to matters</h2>
+<ol class="steps">
+  <li>Choose <strong>Sync</strong> on the check list's row.</li>
+  <li>Choose who receives the change:
+    <ul>
+      <li><strong>Matters that already have this check list</strong>, or</li>
+      <li><strong>Every matter linked to it, giving the check list to those without one.</strong></li>
+    </ul>
+  </li>
+  <li>Choose <strong>Sync</strong>. A progress bar counts through the matters in batches until it is complete.</li>
+</ol>
+<p>When it finishes you see totals: how many matters were given the check list, how many were updated, how many tasks were added, removed, moved or renamed, and how many tasks were kept because they were already under way. Choose <strong>Close</strong> when done.</p>
+
+<h2>Deleting a check list</h2>
+<p>Choose <strong>Delete</strong> and confirm. A check list that is linked to a matter type cannot be deleted: unlink it first on the <a href="#/admin/groups-and-links">Link to matter</a> sub tab. If it is still in use you are told <em>That is still in use</em>.</p>

@@ -1,0 +1,59 @@
+<h1>Adding to the help</h1>
+<p class="lead">How to add a page, a section or a whole book. The help is plain files, so there is nothing to build or install.</p>
+
+<h2>How the help is put together</h2>
+<ul>
+  <li>The help lives in the application's <code>public/help</code> folder and is served at <code>/help/</code>.</li>
+  <li><code>content/nav.json</code> lists the books, their sections and their pages. It makes the menu on the left, the previous and next links, and the search.</li>
+  <li>Each page is one HTML file in <code>content/</code>. It holds only the page's content, with no <code>&lt;html&gt;</code> or <code>&lt;body&gt;</code> around it.</li>
+  <li>The address of a page is <code>#/&lt;book&gt;/&lt;slug&gt;</code>, for example <code>#/admin/roles</code>.</li>
+</ul>
+
+<h2>To add a page</h2>
+<ol class="steps">
+  <li>Create the file, for example <code>content/app/opening-a-matter.html</code>.</li>
+  <li>Start it with one <code>&lt;h1&gt;</code> for the title, then an optional <code>&lt;p class="lead"&gt;</code> that sums it up.</li>
+  <li>Use <code>&lt;h2&gt;</code> for each main heading. These make the "On this page" list on the right.</li>
+  <li>Add a line for it in <code>nav.json</code>, in the section it belongs to:
+    <pre><code>{ "slug": "opening-a-matter", "title": "Opening a matter", "file": "content/app/opening-a-matter.html" }</code></pre>
+  </li>
+  <li>Open <code>/help/#/app/opening-a-matter</code> to check it. The menu, the pager and the search include it straight away.</li>
+</ol>
+<p>The order in <code>nav.json</code> is the order in the menu and the order of the previous and next links.</p>
+
+<h2>To add a section</h2>
+<p>In the book's <code>sections</code> list, add an object with a <code>title</code> and a list of <code>pages</code>. A section with an empty title shows its pages with no heading.</p>
+
+<h2>To add a book</h2>
+<ol class="steps">
+  <li>Add an object to <code>books</code> with an <code>id</code> (used in addresses), a <code>title</code>, a <code>status</code> and its <code>sections</code>.</li>
+  <li>Link to it from <code>content/home.html</code> if it should appear on the home page.</li>
+</ol>
+<p>A book's <code>status</code> can be <code>published</code> or <code>planned</code>. A planned book is shown in the menu with a "to be written" label. Change it to <code>published</code> when the book is ready.</p>
+
+<h2>Writing the pages</h2>
+<ul>
+  <li><strong>Links between pages:</strong> <code>&lt;a href="#/admin/roles"&gt;Roles&lt;/a&gt;</code>. Always start with <code>#/</code>.</li>
+  <li><strong>Steps:</strong> use <code>&lt;ol class="steps"&gt;</code>.</li>
+  <li><strong>Call-outs:</strong> <code>&lt;div class="note"&gt;&lt;p&gt;…&lt;/p&gt;&lt;/div&gt;</code> for a hint and <code>class="warning"</code> for something that can cause harm.</li>
+  <li><strong>Pictures:</strong> put the file in <code>img/</code> and refer to it with a relative path, for example <code>&lt;img src="img/matter-summary.png" alt="The Matter Summary tab"&gt;</code>. Always give it an <code>alt</code> text.</li>
+  <li><strong>Wording:</strong> use the names on the screen exactly, in bold, so people can find them.</li>
+  <li><strong>Accuracy:</strong> describe only what the application does. If something is not settled, leave it out rather than guess.</li>
+</ul>
+
+<h2>Checking your changes</h2>
+<p>Serve the folder with any static web server and open it in a browser. Do not open the file directly from disk (a <code>file://</code> address): the page loads its content with the browser's fetch, which a browser blocks for local files.</p>
+<pre><code>cd public/help
+python -m http.server 8080</code></pre>
+<p>Then open <code>http://localhost:8080/</code>. Check that every link works, and that searching for a word from your page finds it.</p>
+
+<h2>How it is published</h2>
+<ul>
+  <li>The help is part of the application's front end. Anything in <code>public/help</code> is copied into the build and served at <code>/help/</code>.</li>
+  <li>The web server must serve files that exist, such as <code>/help/index.html</code>, before it falls back to the application's own page. Files that exist are normally served as they are. The address <code>/help</code> (without the closing slash) must be redirected to <code>/help/</code> so the page can find its style and scripts; the <code>_redirects</code> file has a rule for this on hosts that read it, and other web servers need the equivalent.</li>
+  <li>Nothing needs to be installed, and no database or back end is involved.</li>
+</ul>
+
+<div class="warning">
+  <p>The help is public: anyone who knows the address can read it. Do not put anything confidential in a page, such as real names, addresses, secrets or customer data. Use made-up examples.</p>
+</div>

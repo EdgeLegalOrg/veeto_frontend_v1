@@ -1,0 +1,36 @@
+<h1>Setting rates and tiers</h1>
+<p class="lead">Set what each company pays per user per month, and put each role on the right tier.</p>
+
+<h2>Setting a company's rates</h2>
+<ol class="steps">
+  <li>Open the company and choose its <strong>Billing</strong> tab.</li>
+  <li>Under <strong>Monthly rate per user</strong>, type the <strong>Standard user</strong> and <strong>Power user</strong> rates in dollars per month.</li>
+  <li>Choose <strong>Save rates</strong>. A message confirms <em>Rates saved</em>.</li>
+</ol>
+<p>Below the form you can see when the rates were last changed and by whom.</p>
+
+<h2>What a rate can be</h2>
+<ul>
+  <li>A number from 0 to 100000, with at most two decimal places.</li>
+  <li>Leave a rate blank if it is not set: the field shows <em>Not set</em>.</li>
+</ul>
+<p>Anything else is refused with <em>A rate must be a number from 0 to 100000 with at most two decimal places.</em></p>
+
+<div class="warning">
+  <p>If any role is on the Power tier and the Power rate is blank, the tab warns you that a cost record cannot be generated until it is set.</p>
+</div>
+
+<h2>Changing a rate later</h2>
+<p>Records already generated keep the rate they were generated at. A new rate applies to records you generate or regenerate afterwards.</p>
+
+<h2>Putting a role on a tier</h2>
+<ol class="steps">
+  <li>Open the company's <strong>Roles</strong> tab.</li>
+  <li>In the <strong>Billed as</strong> column, choose <strong>Standard user</strong> or <strong>Power user</strong> for the role.</li>
+</ol>
+<p>It saves at once. Every user in that role moves to that tier. See <a href="#/admin/roles">Roles</a>.</p>
+
+<h2>New companies</h2>
+<p>A company created in the portal starts with no rates set. Set them before the first month's record is generated. A role copied from another company when you <a href="#/admin/create-company">create a company</a> keeps its tier, but the rates are not copied.</p>
+
+<p>Rate and tier changes are recorded in the <a href="#/admin/audit-log">audit log</a>.</p>
