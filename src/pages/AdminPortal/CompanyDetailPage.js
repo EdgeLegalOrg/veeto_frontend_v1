@@ -27,9 +27,20 @@ import {
   siteProblem,
 } from "./forms";
 import CompanyBillingTab from "./CompanyBillingTab";
+import CompanyStaffTab from "./CompanyStaffTab";
+import CompanyChecklistsTab from "./CompanyChecklistsTab";
+import CompanyNumeralsTab from "./CompanyNumeralsTab";
+import CompanyStorageTab from "./CompanyStorageTab";
 import { ConfirmModal, ErrorAlert, Loading, SecretModal, StatusBadge, useLoad } from "./shared";
+import { Pager, SearchBox, haystack, usePaging } from "./paging";
 
-const TABS = ["Details", "Sites", "Roles", "Users", "Billing"];
+const matchesSite = (s, needle) =>
+  haystack(s.siteName, s.siteCode, s.timeZone, s.id, s.active ? "active" : "inactive").includes(needle);
+const matchesRole = (r, needle) => haystack(r.roleName, r.description, r.tier === "POWER" ? "power" : "standard").includes(needle);
+const matchesUser = (u, needle) =>
+  haystack(u.userName, u.firstName, u.lastName, u.email, u.roleName, u.locked ? "locked" : "active").includes(needle);
+
+const TABS = ["Details", "Sites", "Roles", "Users", "Staff", "Checklists", "Numerals", "Storage", "Billing"];
 
 const CompanyDetailPage = () => {
   const { companyId } = useParams();
@@ -76,6 +87,10 @@ const CompanyDetailPage = () => {
       {tab === "Sites" && <SitesTab {...common} />}
       {tab === "Roles" && <RolesTab {...common} rights={rights.data} />}
       {tab === "Users" && <UsersTab {...common} />}
+      {tab === "Staff" && <CompanyStaffTab {...common} />}
+      {tab === "Checklists" && <CompanyChecklistsTab {...common} />}
+      {tab === "Numerals" && <CompanyNumeralsTab {...common} />}
+      {tab === "Storage" && <CompanyStorageTab {...common} />}
       {tab === "Billing" && <CompanyBillingTab {...common} />}
 
       <SecretModal
@@ -138,6 +153,7 @@ const SitesTab = ({ data, companyId, reload }) => {
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(EMPTY_SITE);
   const { busy, problem, setProblem, run } = useAction(reload);
+  const paging = usePaging(data.sites, { filterFn: matchesSite });
 
   const open = (site) => {
     setForm(site ? siteFromView(site) : { ...EMPTY_SITE });
@@ -168,6 +184,9 @@ const SitesTab = ({ data, companyId, reload }) => {
           Add site
         </Button>
       </div>
+      <div className="ap-toolbar">
+        <SearchBox {...paging.searchProps} placeholder="Search sites" />
+      </div>
       <table className="ap-table">
         <thead>
           <tr>
@@ -181,7 +200,7 @@ const SitesTab = ({ data, companyId, reload }) => {
           </tr>
         </thead>
         <tbody>
-          {data.sites.map((s) => (
+          {paging.pageRows.map((s) => (
             <tr key={s.id}>
               <td>
                 {s.siteName}
@@ -201,8 +220,16 @@ const SitesTab = ({ data, companyId, reload }) => {
               </td>
             </tr>
           ))}
+          {paging.totalRecords === 0 && (
+            <tr>
+              <td colSpan={7} className="ap-hint">
+                {data.sites.length === 0 ? "No sites yet." : "No sites match your search."}
+              </td>
+            </tr>
+          )}
         </tbody>
       </table>
+      <Pager {...paging.pagerProps} />
 
       <Modal isOpen={!!editing} size="lg" centered toggle={busy ? undefined : () => setEditing(null)}>
         <Form onSubmit={save}>
@@ -237,6 +264,7 @@ const RolesTab = ({ data, companyId, reload, rights }) => {
   const [form, setForm] = useState({ roleName: "", description: "", rightIds: [], tier: "STANDARD" });
   const [removing, setRemoving] = useState(null);
   const { busy, problem, setProblem, run } = useAction(reload);
+  const paging = usePaging(data.roles, { filterFn: matchesRole });
 
   const open = (role) => {
     setForm(role ? { roleName: role.roleName, description: role.description || "", rightIds: role.rightIds, tier: role.tier || "STANDARD" } : { roleName: "", description: "", rightIds: [], tier: "STANDARD" });
@@ -270,6 +298,9 @@ const RolesTab = ({ data, companyId, reload, rights }) => {
         </Button>
       </div>
       <ErrorAlert message={!editing ? problem : null} onClose={() => setProblem(null)} />
+      <div className="ap-toolbar">
+        <SearchBox {...paging.searchProps} placeholder="Search roles" />
+      </div>
       <table className="ap-table">
         <thead>
           <tr>
@@ -281,7 +312,7 @@ const RolesTab = ({ data, companyId, reload, rights }) => {
           </tr>
         </thead>
         <tbody>
-          {data.roles.map((r) => (
+          {paging.pageRows.map((r) => (
             <tr key={r.id}>
               <td>
                 {r.roleName}
@@ -313,8 +344,16 @@ const RolesTab = ({ data, companyId, reload, rights }) => {
               </td>
             </tr>
           ))}
+          {paging.totalRecords === 0 && (
+            <tr>
+              <td colSpan={5} className="ap-hint">
+                {data.roles.length === 0 ? "No roles yet." : "No roles match your search."}
+              </td>
+            </tr>
+          )}
         </tbody>
       </table>
+      <Pager {...paging.pagerProps} />
 
       <Modal isOpen={!!editing} size="lg" centered toggle={busy ? undefined : () => setEditing(null)}>
         <Form onSubmit={save}>
@@ -383,6 +422,7 @@ const UsersTab = ({ data, companyId, reload, setSecret }) => {
   const [form, setForm] = useState(EMPTY_USER);
   const [resetting, setResetting] = useState(null);
   const { busy, problem, setProblem, run } = useAction(reload);
+  const paging = usePaging(data.users, { filterFn: matchesUser });
 
   const open = (user) => {
     setForm(
@@ -434,9 +474,13 @@ const UsersTab = ({ data, companyId, reload, setSecret }) => {
 
   const siteName = (id) => (data.sites.find((s) => s.id === id) || {}).siteName || `Site ${id}`;
   const isNew = editing && !editing.id;
+  // A role that covers every site needs none to be ticked; any other role needs at least one.
+  const chosenRole = data.roles.find((r) => String(r.id) === String(form.roleId));
+  const roleCoversAllSites = !!(chosenRole && chosenRole.allSites);
+  const hasSites = form.siteIds.length > 0 || (!isNew && roleCoversAllSites);
   const canSave = isNew
-    ? form.userName.trim() && form.firstName.trim() && form.lastName.trim() && form.roleId && form.siteIds.length > 0
-    : form.roleId && form.siteIds.length > 0;
+    ? form.userName.trim() && form.firstName.trim() && form.lastName.trim() && form.roleId && hasSites
+    : form.roleId && hasSites;
 
   return (
     <div className="ap-card">
@@ -447,6 +491,9 @@ const UsersTab = ({ data, companyId, reload, setSecret }) => {
         </Button>
       </div>
       <ErrorAlert message={!editing ? problem : null} onClose={() => setProblem(null)} />
+      <div className="ap-toolbar">
+        <SearchBox {...paging.searchProps} placeholder="Search users" />
+      </div>
       <table className="ap-table">
         <thead>
           <tr>
@@ -458,14 +505,16 @@ const UsersTab = ({ data, companyId, reload, setSecret }) => {
           </tr>
         </thead>
         <tbody>
-          {data.users.map((u) => (
+          {paging.pageRows.map((u) => (
             <tr key={u.id}>
               <td>
                 {u.userName}
                 <div className="ap-hint">{[u.firstName, u.lastName].filter(Boolean).join(" ")}</div>
               </td>
               <td>{u.roleName || <span className="ap-badge ap-badge-warn">No role</span>}</td>
-              <td>{u.siteIds.map(siteName).join(", ") || "—"}</td>
+              <td>
+                {u.allSites ? <span className="ap-badge ap-badge-ok">All sites</span> : u.siteIds.map(siteName).join(", ") || "—"}
+              </td>
               <td>
                 <StatusBadge ok={!u.locked} />
               </td>
@@ -482,15 +531,16 @@ const UsersTab = ({ data, companyId, reload, setSecret }) => {
               </td>
             </tr>
           ))}
-          {data.users.length === 0 && (
+          {paging.totalRecords === 0 && (
             <tr>
               <td colSpan={5} className="ap-hint">
-                No users yet.
+                {data.users.length === 0 ? "No users yet." : "No users match your search."}
               </td>
             </tr>
           )}
         </tbody>
       </table>
+      <Pager {...paging.pagerProps} />
 
       <Modal isOpen={!!editing} centered toggle={busy ? undefined : () => setEditing(null)}>
         <Form onSubmit={save}>
@@ -530,6 +580,7 @@ const UsersTab = ({ data, companyId, reload, setSecret }) => {
             <FormGroup>
               <Label>Role *</Label>
               <Input type="select" value={form.roleId} onChange={(e) => setForm({ ...form, roleId: e.target.value })}>
+                {!form.roleId && <option value="">Choose a role</option>}
                 {data.roles.map((r) => (
                   <option key={r.id} value={r.id}>
                     {r.roleName}
@@ -538,7 +589,13 @@ const UsersTab = ({ data, companyId, reload, setSecret }) => {
               </Input>
             </FormGroup>
             <FormGroup>
-              <Label>Sites *</Label>
+              <Label>Sites {roleCoversAllSites ? "" : "*"}</Label>
+              {roleCoversAllSites && (
+                <div className="ap-hint">
+                  This role can work at every active site, so none has to be ticked. Tick sites only to record where
+                  the person is based.
+                </div>
+              )}
               {data.sites.map((s) => (
                 <div key={s.id}>
                   <label>

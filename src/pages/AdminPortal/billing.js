@@ -49,7 +49,7 @@ export const parseRateInput = (text) => {
 };
 
 /** Stops a spreadsheet running a cell that starts like a formula. */
-const csvCell = (value) => {
+export const csvCell = (value) => {
   let text = value === null || value === undefined ? "" : String(value);
   if (/^[=+\-@\t\r]/.test(text)) text = `'${text}`;
   return `"${text.replace(/"/g, '""')}"`;

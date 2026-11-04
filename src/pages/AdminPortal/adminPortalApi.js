@@ -115,8 +115,12 @@ export const resetAdminPassword = (id) => data(portal.post(`${A}/admins/${id}/re
 export const deleteAdmin = (id) => data(portal.delete(`${A}/admins/${id}`));
 
 // ---- audit and catalogue
-export const listAudit = async (page, pageSize) => {
-  const body = await call(portal.get(`${A}/audit`, { params: { page, pageSize } }));
+export const listAudit = async (page, pageSize, filter = {}) => {
+  const params = { page, pageSize };
+  if (filter.q) params.q = filter.q;
+  if (filter.from) params.from = filter.from;
+  if (filter.to) params.to = filter.to;
+  const body = await call(portal.get(`${A}/audit`, { params }));
   return { rows: body.data, page: body.metadata && body.metadata.page };
 };
 export const listFunctions = () => data(portal.get(`${A}/functions`));
@@ -160,3 +164,66 @@ export const generateAllBilling = (year, month) => data(portal.post(`${A}/billin
 export const getBillingRecord = (id) => data(portal.get(`${A}/billing-records/${id}`));
 export const finaliseBillingRecord = (id) => data(portal.post(`${A}/billing-records/${id}/finalise`));
 export const deleteBillingRecord = (id) => data(portal.delete(`${A}/billing-records/${id}`));
+
+// ---- oversight across companies: who is signed in, and feedback
+const pagedParams = (page, pageSize, filter) => {
+  const params = { page, pageSize };
+  ["companyId", "siteId", "status", "q"].forEach((key) => {
+    if (filter[key] !== null && filter[key] !== undefined && filter[key] !== "") params[key] = filter[key];
+  });
+  return params;
+};
+const paged = async (request) => {
+  const body = await call(request);
+  return { rows: body.data, page: body.metadata && body.metadata.page };
+};
+export const listSessions = (page, pageSize, filter = {}) =>
+  paged(portal.get(`${A}/sessions`, { params: pagedParams(page, pageSize, filter) }));
+export const listFeedback = (page, pageSize, filter = {}) =>
+  paged(portal.get(`${A}/feedback`, { params: pagedParams(page, pageSize, filter) }));
+
+// ---- a company's staff
+export const listStaff = (companyId, page, pageSize, filter = {}) => {
+  const params = { page, pageSize };
+  if (filter.siteId) params.siteId = filter.siteId;
+  if (filter.q) params.q = filter.q;
+  if (filter.active === true || filter.active === false) params.active = filter.active;
+  return paged(portal.get(`${A}/companies/${companyId}/staff`, { params }));
+};
+export const createStaff = (companyId, body) => data(portal.post(`${A}/companies/${companyId}/staff`, body));
+export const updateStaff = (companyId, staffId, body) =>
+  data(portal.put(`${A}/companies/${companyId}/staff/${staffId}`, body));
+
+// ---- a site's number series and storage
+export const getNumerals = (companyId, siteId) => data(portal.get(`${A}/companies/${companyId}/sites/${siteId}/numerals`));
+export const saveNumerals = (companyId, siteId, body) =>
+  data(portal.put(`${A}/companies/${companyId}/sites/${siteId}/numerals`, body));
+export const getStorage = (companyId, siteId) => data(portal.get(`${A}/companies/${companyId}/sites/${siteId}/storage`));
+export const saveStorage = (companyId, siteId, body) =>
+  data(portal.put(`${A}/companies/${companyId}/sites/${siteId}/storage`, body));
+
+// ---- a company's checklists: tasks, check lists, task groups and the link to matter types
+const C = (companyId) => `${A}/companies/${companyId}/checklists`;
+export const listChecklistTasks = (companyId) => data(portal.get(`${C(companyId)}/tasks`));
+export const saveChecklistTask = (companyId, taskId, body) =>
+  data(taskId ? portal.put(`${C(companyId)}/tasks/${taskId}`, body) : portal.post(`${C(companyId)}/tasks`, body));
+export const deleteChecklistTasks = (companyId, ids) =>
+  data(portal.delete(`${C(companyId)}/tasks`, { params: { ids: ids.join(",") } }));
+export const listChecklistTemplates = (companyId) => data(portal.get(`${C(companyId)}/templates`));
+export const saveChecklistTemplate = (companyId, templateId, body) =>
+  data(
+    templateId
+      ? portal.put(`${C(companyId)}/templates/${templateId}`, body)
+      : portal.post(`${C(companyId)}/templates`, body)
+  );
+export const deleteChecklistTemplates = (companyId, ids) =>
+  data(portal.delete(`${C(companyId)}/templates`, { params: { ids: ids.join(",") } }));
+export const syncChecklistTemplate = (companyId, templateId, scope, offset, limit) =>
+  data(portal.post(`${C(companyId)}/templates/${templateId}/sync`, null, { params: { scope, offset, limit } }));
+export const listChecklistGroups = (companyId) => data(portal.get(`${C(companyId)}/task-groups`));
+export const saveChecklistGroup = (companyId, groupId, body) =>
+  data(groupId ? portal.put(`${C(companyId)}/task-groups/${groupId}`, body) : portal.post(`${C(companyId)}/task-groups`, body));
+export const deleteChecklistGroup = (companyId, groupId) => data(portal.delete(`${C(companyId)}/task-groups/${groupId}`));
+export const listChecklistLinks = (companyId) => data(portal.get(`${C(companyId)}/matter-links`));
+export const setChecklistLink = (companyId, matterTypeId, templateId) =>
+  data(portal.put(`${C(companyId)}/matter-links/${matterTypeId}`, { templateId }));

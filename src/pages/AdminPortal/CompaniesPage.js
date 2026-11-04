@@ -3,10 +3,14 @@ import { Link } from "react-router-dom";
 import { Button } from "reactstrap";
 
 import { listCompanies } from "./adminPortalApi";
+import { Pager, SearchBox, haystack, usePaging } from "./paging";
 import { ErrorAlert, Loading, useLoad } from "./shared";
+
+const matchesCompany = (c, needle) => haystack(c.companyName, c.city, c.state, c.id).includes(needle);
 
 const CompaniesPage = () => {
   const { data, error, loading } = useLoad(listCompanies);
+  const paging = usePaging(data, { filterFn: matchesCompany });
 
   return (
     <div>
@@ -21,6 +25,9 @@ const CompaniesPage = () => {
       </div>
       <ErrorAlert message={error} />
       <div className="ap-card">
+        <div className="ap-toolbar">
+          <SearchBox {...paging.searchProps} placeholder="Search companies" />
+        </div>
         {loading && !data ? (
           <Loading />
         ) : (
@@ -36,7 +43,7 @@ const CompaniesPage = () => {
               </tr>
             </thead>
             <tbody>
-              {(data || []).map((c) => (
+              {paging.pageRows.map((c) => (
                 <tr key={c.id}>
                   <td>
                     <Link to={`/admin-portal/companies/${c.id}`}>{c.companyName}</Link>
@@ -56,16 +63,17 @@ const CompaniesPage = () => {
                   </td>
                 </tr>
               ))}
-              {data && data.length === 0 && (
+              {data && paging.totalRecords === 0 && (
                 <tr>
                   <td colSpan={6} className="ap-hint">
-                    No companies yet.
+                    {data.length === 0 ? "No companies yet." : "No companies match your search."}
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
         )}
+        {data && <Pager {...paging.pagerProps} />}
       </div>
     </div>
   );

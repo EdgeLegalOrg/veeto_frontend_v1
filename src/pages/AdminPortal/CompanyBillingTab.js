@@ -11,6 +11,10 @@ import {
 } from "./adminPortalApi";
 import { currentMonthValue, money, parseMonthValue, parseRateInput, periodLabel } from "./billing";
 import { ErrorAlert, Loading, fmtDate, useLoad } from "./shared";
+import { Pager, SearchBox, haystack, usePaging } from "./paging";
+
+const matchesRecord = (r, needle) =>
+  haystack(periodLabel(r.year, r.month), r.status === "FINAL" ? "finalised" : "draft").includes(needle);
 
 const toText = (value) => (value === null || value === undefined ? "" : Number(value).toFixed(2));
 
@@ -18,6 +22,7 @@ const toText = (value) => (value === null || value === undefined ? "" : Number(v
 const CompanyBillingTab = ({ data, companyId }) => {
   const rates = useLoad(() => getBillingRates(companyId), [companyId]);
   const records = useLoad(() => listCompanyBillingRecords(companyId), [companyId]);
+  const paging = usePaging(records.data, { filterFn: matchesRecord });
 
   const [standard, setStandard] = useState("");
   const [power, setPower] = useState("");
@@ -141,6 +146,9 @@ const CompanyBillingTab = ({ data, companyId }) => {
           </div>
         </div>
         <ErrorAlert message={records.error} />
+        <div className="ap-toolbar">
+          <SearchBox {...paging.searchProps} placeholder="Search records (month or status)" />
+        </div>
         {records.loading && !records.data ? (
           <Loading />
         ) : (
@@ -156,7 +164,7 @@ const CompanyBillingTab = ({ data, companyId }) => {
               </tr>
             </thead>
             <tbody>
-              {(records.data || []).map((r) => (
+              {paging.pageRows.map((r) => (
                 <tr key={r.id}>
                   <td>{periodLabel(r.year, r.month)}</td>
                   <td>{r.standardUsers}</td>
@@ -174,16 +182,17 @@ const CompanyBillingTab = ({ data, companyId }) => {
                   </td>
                 </tr>
               ))}
-              {records.data && records.data.length === 0 && (
+              {records.data && paging.totalRecords === 0 && (
                 <tr>
                   <td colSpan={6} className="ap-hint">
-                    No cost records yet.
+                    {records.data.length === 0 ? "No cost records yet." : "No cost records match your search."}
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
         )}
+        {records.data && <Pager {...paging.pagerProps} />}
       </div>
     </div>
   );
