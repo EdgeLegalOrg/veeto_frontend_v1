@@ -193,3 +193,11 @@ export const listStaff = (companyId, page, pageSize, filter = {}) => {
 export const createStaff = (companyId, body) => data(portal.post(`${A}/companies/${companyId}/staff`, body));
 export const updateStaff = (companyId, staffId, body) =>
   data(portal.put(`${A}/companies/${companyId}/staff/${staffId}`, body));
+
+// ---- a site's number series and storage
+export const getNumerals = (companyId, siteId) => data(portal.get(`${A}/companies/${companyId}/sites/${siteId}/numerals`));
+export const saveNumerals = (companyId, siteId, body) =>
+  data(portal.put(`${A}/companies/${companyId}/sites/${siteId}/numerals`, body));
+export const getStorage = (companyId, siteId) => data(portal.get(`${A}/companies/${companyId}/sites/${siteId}/storage`));
+export const saveStorage = (companyId, siteId, body) =>
+  data(portal.put(`${A}/companies/${companyId}/sites/${siteId}/storage`, body));
