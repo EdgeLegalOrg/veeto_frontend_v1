@@ -13,6 +13,8 @@ import AdminsPage from "./AdminsPage";
 import MatterTypesPage from "./MatterTypesPage";
 import BillingPage from "./BillingPage";
 import BillingRecordPage from "./BillingRecordPage";
+import SessionsPage from "./SessionsPage";
+import FeedbackPage from "./FeedbackPage";
 import AuditPage from "./AuditPage";
 
 /**
@@ -56,6 +58,8 @@ const Shell = ({ children }) => {
             <NavLink to={`${PORTAL_BASE}/companies`}>Companies</NavLink>
             <NavLink to={`${PORTAL_BASE}/billing`}>Billing</NavLink>
             <NavLink to={`${PORTAL_BASE}/matter-types`}>Matter Types</NavLink>
+            <NavLink to={`${PORTAL_BASE}/sessions`}>Logged In Users</NavLink>
+            <NavLink to={`${PORTAL_BASE}/feedback`}>Feedback</NavLink>
             <NavLink to={`${PORTAL_BASE}/admins`}>System Admins</NavLink>
             <NavLink to={`${PORTAL_BASE}/audit`}>Audit Log</NavLink>
           </nav>
@@ -134,6 +138,22 @@ const AdminPortalApp = () => {
         element={
           <Shell>
             <BillingRecordPage />
+          </Shell>
+        }
+      />
+      <Route
+        path="sessions"
+        element={
+          <Shell>
+            <SessionsPage />
+          </Shell>
+        }
+      />
+      <Route
+        path="feedback"
+        element={
+          <Shell>
+            <FeedbackPage />
           </Shell>
         }
       />

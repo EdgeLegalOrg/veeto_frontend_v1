@@ -164,3 +164,20 @@ export const generateAllBilling = (year, month) => data(portal.post(`${A}/billin
 export const getBillingRecord = (id) => data(portal.get(`${A}/billing-records/${id}`));
 export const finaliseBillingRecord = (id) => data(portal.post(`${A}/billing-records/${id}/finalise`));
 export const deleteBillingRecord = (id) => data(portal.delete(`${A}/billing-records/${id}`));
+
+// ---- oversight across companies: who is signed in, and feedback
+const pagedParams = (page, pageSize, filter) => {
+  const params = { page, pageSize };
+  ["companyId", "siteId", "status", "q"].forEach((key) => {
+    if (filter[key] !== null && filter[key] !== undefined && filter[key] !== "") params[key] = filter[key];
+  });
+  return params;
+};
+const paged = async (request) => {
+  const body = await call(request);
+  return { rows: body.data, page: body.metadata && body.metadata.page };
+};
+export const listSessions = (page, pageSize, filter = {}) =>
+  paged(portal.get(`${A}/sessions`, { params: pagedParams(page, pageSize, filter) }));
+export const listFeedback = (page, pageSize, filter = {}) =>
+  paged(portal.get(`${A}/feedback`, { params: pagedParams(page, pageSize, filter) }));
