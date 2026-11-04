@@ -1,0 +1,47 @@
+<h1>Staff</h1>
+<p class="lead">The people who work at a company, with or without a login. A staff member's site is where their cost is billed.</p>
+
+<h2>The list</h2>
+<table>
+  <thead><tr><th>Column</th><th>Meaning</th></tr></thead>
+  <tbody>
+    <tr><td>Name</td><td>Title, first and last name, with their occupation underneath.</td></tr>
+    <tr><td>Contact</td><td>Email, with phone and mobile underneath.</td></tr>
+    <tr><td>Site</td><td>The site they are based at.</td></tr>
+    <tr><td>Login</td><td>Their username (with a <em>Locked</em> badge if locked), or <em>No login</em>.</td></tr>
+    <tr><td>Status</td><td>Active or Inactive.</td></tr>
+  </tbody>
+</table>
+
+<h2>Filtering and searching</h2>
+<ul>
+  <li>The first menu limits the list to one <strong>site</strong>, or <em>All sites</em>.</li>
+  <li>The second shows <em>Active and inactive</em>, <em>Active only</em> or <em>Inactive only</em>.</li>
+  <li>The search box finds a name, email, phone or login.</li>
+</ul>
+<p>See also <a href="#/admin/searching-and-paging">Searching and paging lists</a>.</p>
+
+<h2>Adding a staff member</h2>
+<ol class="steps">
+  <li>Open the company's <strong>Staff</strong> tab and choose <strong>Add staff member</strong>.</li>
+  <li>Enter the <strong>First name</strong> and <strong>Last name</strong> (required). Title, middle name, emails, phones, mobile, occupation and practising certificate number are optional.</li>
+  <li>Choose the site in <strong>Based at</strong> (required). Their cost is billed under this site.</li>
+  <li>Leave <strong>Active</strong> ticked, or clear it.</li>
+  <li>Choose <strong>Save</strong>.</li>
+</ol>
+
+<h2>Editing and making inactive</h2>
+<ul>
+  <li><strong>Edit</strong> opens the same form for changes.</li>
+  <li><strong>Make inactive</strong> / <strong>Make active</strong> switches the status at once.</li>
+</ul>
+
+<div class="warning">
+  <p>Making someone inactive does <strong>not</strong> lock their login. To stop them signing in, lock the user on the <a href="#/admin/users">Users tab</a>.</p>
+</div>
+
+<h2>Logins</h2>
+<p>Logins are created on the <a href="#/admin/users">Users tab</a>, not here. If a staff member's record cannot be found in the company you are working in, you are told <em>That staff member could not be found in this company</em>.</p>
+
+<h2>Why the site matters for billing</h2>
+<p>A user is billed once, at the site of their staff record. See <a href="#/admin/billing-how-it-works">How billing works</a>.</p>

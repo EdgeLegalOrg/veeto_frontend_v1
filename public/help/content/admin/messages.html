@@ -1,0 +1,70 @@
+<h1>Messages and what they mean</h1>
+<p class="lead">The messages the portal can show you, what causes each one, and what to do.</p>
+
+<h2>Signing in and accounts</h2>
+<table>
+  <thead><tr><th>Code</th><th>Message</th><th>What to do</th></tr></thead>
+  <tbody>
+    <tr><td>500090</td><td>The system admin portal is not enabled on this server.</td><td>The portal is switched off in the server's configuration. Ask whoever runs the server.</td></tr>
+    <tr><td>500091</td><td>Invalid username or password.</td><td>Check both and try again. The same message is shown for an unknown username and a wrong password.</td></tr>
+    <tr><td>500092</td><td>This account is locked. Try again later or ask another system admin.</td><td>Wait 15 minutes, or ask another admin to unlock it. See <a href="#/admin/system-admins">System admins</a>.</td></tr>
+    <tr><td>500093</td><td>A system admin password needs at least 12 characters, with upper and lower case letters, a number and a symbol.</td><td>Choose a stronger password. See <a href="#/admin/your-account">Your account</a>.</td></tr>
+    <tr><td>500094</td><td>That username is already taken.</td><td>Choose another username.</td></tr>
+    <tr><td>500095</td><td>That system admin could not be found.</td><td>They may have been removed. Reload the list.</td></tr>
+    <tr><td>500096</td><td>That would leave no active system admin, so nobody could sign in to the portal.</td><td>Add or unlock another admin first.</td></tr>
+    <tr><td>500097</td><td>You cannot do that to your own account. Ask another system admin.</td><td>Ask a colleague, or use <strong>Account</strong> to change your own password.</td></tr>
+    <tr><td>500098</td><td>The current password is not correct.</td><td>Retype your current password.</td></tr>
+  </tbody>
+</table>
+
+<h2>Companies, sites, roles and users</h2>
+<table>
+  <thead><tr><th>Code</th><th>Message</th><th>What to do</th></tr></thead>
+  <tbody>
+    <tr><td>500099</td><td>That company could not be found.</td><td>Go back to the <a href="#/admin/companies">companies list</a>.</td></tr>
+    <tr><td>500100</td><td>The request is missing something required or is not valid.</td><td>Check the form: a required field is empty, or a value is outside its allowed range.</td></tr>
+    <tr><td>500101</td><td>That site could not be found in this company.</td><td>Reload the page. A site can be chosen only from the company you are working in.</td></tr>
+    <tr><td>500102</td><td>That role could not be found in this company.</td><td>Reload the page and choose a role again.</td></tr>
+    <tr><td>500103</td><td>That role is still assigned to users, so it cannot be deleted.</td><td>Move its users to another role first. See <a href="#/admin/roles">Roles</a>.</td></tr>
+    <tr><td>500104</td><td>That user could not be found in this company.</td><td>Reload the page.</td></tr>
+    <tr><td>500116</td><td>That staff member could not be found in this company.</td><td>Reload the page.</td></tr>
+  </tbody>
+</table>
+
+<h2>Matter types</h2>
+<table>
+  <thead><tr><th>Code</th><th>Message</th><th>What to do</th></tr></thead>
+  <tbody>
+    <tr><td>500105</td><td>That matter type or sub type could not be found.</td><td>Reload the page.</td></tr>
+    <tr><td>500106</td><td>A matter type or sub type with that name already exists.</td><td>Choose a different name.</td></tr>
+    <tr><td>500107</td><td>That matter type or sub type is still used by matters, templates or settings, so it cannot be removed.</td><td>It can be renamed but not removed while it is in use. See <a href="#/admin/matter-types">Matter types</a>.</td></tr>
+    <tr><td>500108</td><td>The application relies on that matter type or sub type, so it can be renamed but not removed.</td><td>It is one of the protected types. Rename it if you need to.</td></tr>
+    <tr><td>500034</td><td>Please provide a valid Matter Type-SubType Identifier!</td><td>Choose a type and sub type that exist together. Reload the page if the list is out of date.</td></tr>
+  </tbody>
+</table>
+
+<h2>Check lists</h2>
+<table>
+  <thead><tr><th>Code</th><th>Message</th><th>What to do</th></tr></thead>
+  <tbody>
+    <tr><td>500117</td><td>That checklist item could not be found in this company.</td><td>Reload the page.</td></tr>
+    <tr><td>500118</td><td>That is still in use (a task in a check list, a check list linked to a matter type, or a group with tasks in it), so it cannot be deleted.</td><td>Take it out of its check list, or unlink it, first. See <a href="#/admin/check-lists">Check lists</a>.</td></tr>
+  </tbody>
+</table>
+
+<h2>Billing</h2>
+<table>
+  <thead><tr><th>Code</th><th>Message</th><th>What to do</th></tr></thead>
+  <tbody>
+    <tr><td>500110</td><td>Set the rate for every user tier this company has users on before generating a cost record.</td><td>Set the missing rate on the company's Billing tab. See <a href="#/admin/billing-rates">Setting rates and tiers</a>.</td></tr>
+    <tr><td>500111</td><td>A rate must be a number from 0 to 100000 with at most two decimal places.</td><td>Correct the rate.</td></tr>
+    <tr><td>500112</td><td>Choose a month that has started: not before 2000 and not in the future.</td><td>Pick another month.</td></tr>
+    <tr><td>500113</td><td>That cost record could not be found.</td><td>It may have been deleted. Go back to the Billing page.</td></tr>
+    <tr><td>500114</td><td>That cost record has been finalised, so it can no longer be regenerated or deleted.</td><td>A finalised record is permanent. See <a href="#/admin/billing-records">Cost records</a>.</td></tr>
+    <tr><td>500115</td><td>The tier must be STANDARD or POWER.</td><td>Choose Standard user or Power user.</td></tr>
+  </tbody>
+</table>
+
+<div class="note">
+  <p>If you see a message that is not listed here, or a general error, see <a href="#/admin/troubleshooting">Troubleshooting</a>.</p>
+</div>

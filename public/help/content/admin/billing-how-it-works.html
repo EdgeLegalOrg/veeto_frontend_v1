@@ -1,0 +1,42 @@
+<h1>How billing works</h1>
+<p class="lead">Each company is charged a monthly rate for every registered, unlocked user. The rate depends on the user's tier, and the tier comes from the user's role.</p>
+
+<h2>The pieces</h2>
+<table>
+  <thead><tr><th>Piece</th><th>What it is</th><th>Where you set it</th></tr></thead>
+  <tbody>
+    <tr><td>Tier</td><td><strong>Standard user</strong> or <strong>Power user</strong>.</td><td>On each role (<a href="#/admin/roles">Roles</a>)</td></tr>
+    <tr><td>Rate</td><td>Dollars per user per month, one for each tier, set per company.</td><td>The company's Billing tab (<a href="#/admin/billing-rates">Setting rates and tiers</a>)</td></tr>
+    <tr><td>Cost record</td><td>A snapshot of one company's users and charges for one month.</td><td><a href="#/admin/billing-records">Cost records</a></td></tr>
+  </tbody>
+</table>
+
+<h2>Who is counted</h2>
+<ul>
+  <li>Users who are registered and not locked at the moment the record is generated.</li>
+  <li>Each user is counted <strong>once</strong>, under the site of their <a href="#/admin/staff">staff record</a>, even if they can work at other sites.</li>
+  <li>A user's tier is the tier of their role. A user whose role has no tier set is a Standard user. A user with no role is counted as Standard and shown as <em>No role</em>.</li>
+</ul>
+<p>A record's total is the number of Standard users times the Standard rate, plus the number of Power users times the Power rate. Each site's line shows what that site pays.</p>
+
+<h2>Records are snapshots</h2>
+<ul>
+  <li>A record captures the users, roles and rates as they were when it was generated. Changing a user, a role or a rate afterwards does not change it.</li>
+  <li>A <strong>draft</strong> can be regenerated (a fresh snapshot) or deleted.</li>
+  <li>A <strong>finalised</strong> record is kept exactly as it is. It can no longer be regenerated or deleted.</li>
+</ul>
+
+<h2>A rate must be set first</h2>
+<p>A record cannot be generated if the company has users on a tier whose rate is not set. You are told <em>Set the rate for every user tier this company has users on before generating a cost record.</em> A tier with no users does not need a rate.</p>
+
+<div class="note">
+  <p>The portal records the cost. It does not issue invoices or take payment.</p>
+</div>
+
+<h2>A typical month</h2>
+<ol class="steps">
+  <li>Check each company's <a href="#/admin/billing-rates">rates</a> and that each role is on the right tier.</li>
+  <li>On the <strong>Billing</strong> page, choose the month and <a href="#/admin/billing-records">generate</a> the records.</li>
+  <li>Open a record, check it, and download the CSV if you need it elsewhere.</li>
+  <li><strong>Finalise</strong> the record to lock it.</li>
+</ol>

@@ -1,0 +1,59 @@
+<h1>Cost records</h1>
+<p class="lead">Generate, check, finalise and download each company's cost for a month.</p>
+
+<h2>The Billing page</h2>
+<p>Choose <strong>Billing</strong> at the top. Pick a <strong>Month</strong> (not before 2000 and not in the future). The table lists every company:</p>
+<table>
+  <thead><tr><th>Column</th><th>Meaning</th></tr></thead>
+  <tbody>
+    <tr><td>Company</td><td>Opens the company's page.</td></tr>
+    <tr><td>Rate: standard / power</td><td>The company's two rates, with <em>A rate is not set</em> if either is blank.</td></tr>
+    <tr><td>Standard users, Power users</td><td>Counts in the record, or a dash if none has been generated.</td></tr>
+    <tr><td>Total</td><td>The record's total.</td></tr>
+    <tr><td>Status</td><td><strong>Draft</strong>, <strong>Finalised</strong> or <em>Not generated</em>.</td></tr>
+  </tbody>
+</table>
+<p>A total for all listed records appears at the foot of the table. Search by company or status.</p>
+
+<h2>Generating a record</h2>
+<ul>
+  <li><strong>For one company:</strong> choose <strong>Generate</strong> on its row. If a draft already exists the button reads <strong>Regenerate</strong>.</li>
+  <li><strong>For every company:</strong> choose <strong>Generate for all companies</strong> and confirm.</li>
+</ul>
+<p>You can also generate from the company's own <strong>Billing</strong> tab: pick the month and choose <strong>Generate</strong>.</p>
+
+<h3>What generating for all does</h3>
+<ul>
+  <li>Draft records for the month are replaced with a fresh snapshot.</li>
+  <li>Finalised records are left alone.</li>
+  <li>A company with users on a tier whose rate is not set is skipped, and listed afterwards.</li>
+</ul>
+<p>When it finishes, a window reports how many were generated, how many were already finalised and how many could not be generated, and why.</p>
+
+<div class="note">
+  <p>A record captures who is registered and unlocked at the moment you generate it, so generate it for the month just ended or the current one.</p>
+</div>
+
+<h2>The record page</h2>
+<p>Choose <strong>View</strong> to open a record. It shows its status, who generated it and when, then:</p>
+<ul>
+  <li>The total for the month, and the Standard and Power user counts with the rates used.</li>
+  <li>A table of <strong>What each site pays</strong>. Choose a site's name to list the users behind its figures, with their role and tier.</li>
+</ul>
+
+<h2>The buttons on a record</h2>
+<table>
+  <thead><tr><th>Button</th><th>What it does</th><th>When</th></tr></thead>
+  <tbody>
+    <tr><td>Download CSV</td><td>Saves the record as a CSV file, named for the company and month.</td><td>Always</td></tr>
+    <tr><td>Regenerate</td><td>Replaces the draft with a fresh snapshot.</td><td>Draft only</td></tr>
+    <tr><td>Delete</td><td>Removes the draft. You can generate it again.</td><td>Draft only</td></tr>
+    <tr><td>Finalise</td><td>Keeps the record exactly as it is.</td><td>Draft only</td></tr>
+  </tbody>
+</table>
+
+<div class="warning">
+  <p>A finalised record can no longer be regenerated or deleted. If you try, you are told <em>That cost record has been finalised, so it can no longer be regenerated or deleted.</em> Check the figures before you finalise.</p>
+</div>
+
+<p>Generating, regenerating, finalising and deleting are all recorded in the <a href="#/admin/audit-log">audit log</a>.</p>

@@ -1,0 +1,38 @@
+<h1>Storage type</h1>
+<p class="lead">Where one site keeps its documents: on the server, or in the company's own OneDrive.</p>
+
+<h2>What the tab shows</h2>
+<p>Choose the <strong>site</strong>, then read the table of setups that site has.</p>
+<table>
+  <thead><tr><th>Column</th><th>Meaning</th></tr></thead>
+  <tbody>
+    <tr><td>Storage</td><td>The server, OneDrive or Google Drive.</td></tr>
+    <tr><td>Category</td><td>Specific or General (OneDrive only).</td></tr>
+    <tr><td>Details</td><td>For OneDrive: tenant, client, whether a secret is held (the secret itself is never shown) and the folder.</td></tr>
+    <tr><td>Status</td><td><strong>In use</strong> or <strong>Not in use</strong>. Only one setup is in use at a time.</td></tr>
+  </tbody>
+</table>
+
+<h2>To change the storage</h2>
+<ol class="steps">
+  <li>Open the company's <strong>Storage</strong> tab and choose the site.</li>
+  <li>Either choose <strong>Use this setup</strong> on an existing row, to fill the form from it, or start from the form.</li>
+  <li>Under <strong>Store documents on</strong>, choose <strong>The server</strong> or <strong>OneDrive</strong>.</li>
+  <li>For OneDrive, fill in:
+    <ul>
+      <li><strong>Category</strong>: Specific or General.</li>
+      <li><strong>Organisation folder</strong>.</li>
+      <li><strong>Tenant ID</strong>, <strong>Client ID</strong>, <strong>Client secret</strong> and <strong>SharePoint site ID</strong> (all required). If a secret is already held, leave <strong>Client secret</strong> blank to keep it.</li>
+    </ul>
+  </li>
+  <li>Choose <strong>Save storage type</strong>, then confirm.</li>
+</ol>
+
+<div class="warning">
+  <p>The confirmation reads: <em>This only changes the setting: it does not move any document that is already stored.</em> Documents already saved stay where they are. Plan any move separately.</p>
+</div>
+
+<h2>Google Drive</h2>
+<p>Google Drive uses one platform account, so it has no setup here. If a site already uses it, it appears in the table.</p>
+
+<p>Each change is recorded in the <a href="#/admin/audit-log">audit log</a> (<code>STORAGE_UPDATED</code>). Secrets are never written to the log.</p>

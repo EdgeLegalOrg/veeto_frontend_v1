@@ -1,0 +1,50 @@
+<h1>Matter types and sub types</h1>
+<p class="lead">The matter types and sub types every company uses. A change here reaches every company at once.</p>
+
+<div class="warning">
+  <p>Matter types are shared by all companies. Something you add, rename or remove here changes what every company sees. A new type or sub type appears in the application when users next sign in or reload.</p>
+</div>
+
+<h2>Two tabs</h2>
+<ul>
+  <li><strong>Matter types</strong>: the types themselves, with the sub types offered under each and where each is in use.</li>
+  <li><strong>Sub types</strong>: the sub types, with the types they are offered under, the tabs a matter shows and any extra statuses.</li>
+</ul>
+<p>Each tab shows how many there are in its label, and has a search box (by name or code) and a <strong>Add matter type</strong> or <strong>Add sub type</strong> button. The <strong>In use</strong> column says what relies on each, or <em>Not used</em>.</p>
+
+<h2>Adding a matter type</h2>
+<ol class="steps">
+  <li>On the <strong>Matter types</strong> tab choose <strong>Add matter type</strong>.</li>
+  <li>Type the <strong>Name</strong>.</li>
+  <li>Tick the <strong>sub types offered under this type</strong>.</li>
+  <li>Choose <strong>Save</strong>.</li>
+</ol>
+<p>The code kept on matters is made from the name when you first save it and <strong>cannot be changed later</strong>. Matters store the code, not the name, so renaming a type never changes a matter.</p>
+
+<h2>Adding a sub type</h2>
+<ol class="steps">
+  <li>On the <strong>Sub types</strong> tab choose <strong>Add sub type</strong>.</li>
+  <li>Type the <strong>Name</strong>.</li>
+  <li>Under <strong>Tabs a matter of this sub type shows</strong>, tick any extra tabs. Matter Summary, Contacts, Attachments, Invoices and Time Billing are always shown.</li>
+  <li>Under <strong>Extra statuses</strong>, tick any you want. Instructed, In Progress, Not Proceeding and Complete are always offered.</li>
+  <li>Under <strong>Offered under these matter types</strong>, tick the types it belongs to.</li>
+  <li>Choose <strong>Save</strong>. A message confirms <em>Saved</em>.</li>
+</ol>
+
+<h2>Editing</h2>
+<p>Choose <strong>Edit</strong> on a row. You can rename it and change what it is offered under. Unticking a sub type from a type is refused while a matter, contact role or check list uses it under that type.</p>
+
+<h2>Removing</h2>
+<p>Choose <strong>Remove</strong> and confirm. You can remove a type or sub type only when nothing uses it. If it is in use the button is disabled and its hint says why.</p>
+<ul>
+  <li><em>That matter type or sub type is still used by matters, templates or settings, so it cannot be removed.</em></li>
+  <li><em>The application relies on that matter type or sub type, so it can be renamed but not removed.</em> This applies to the protected types: General, Revenue NSW, VOI Client Authorities, Conveyancing, Business Sale/Purchase and Family Law.</li>
+</ul>
+
+<h2>Other messages</h2>
+<ul>
+  <li><em>A matter type or sub type with that name already exists.</em> Choose a different name.</li>
+  <li><em>That matter type or sub type could not be found.</em> It was removed by someone else. Reload the page.</li>
+</ul>
+
+<p>Every change is recorded in the <a href="#/admin/audit-log">audit log</a> (for example <code>MATTER_TYPE_CREATED</code>). The list of types and sub types is what the <a href="#/admin/groups-and-links">Link to matter</a> tab uses.</p>

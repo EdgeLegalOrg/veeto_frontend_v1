@@ -1,0 +1,52 @@
+<h1>Users</h1>
+<p class="lead">A user is a login to Veeto. Use this tab to add a login, change someone's role and sites, lock or unlock them, and give them a new temporary password.</p>
+
+<h2>The list</h2>
+<table>
+  <thead><tr><th>Column</th><th>Meaning</th></tr></thead>
+  <tbody>
+    <tr><td>User</td><td>The username, with the person's name underneath.</td></tr>
+    <tr><td>Role</td><td>Their role, or a <em>No role</em> warning if they have none.</td></tr>
+    <tr><td>Sites</td><td>The sites they are assigned to, or <em>All sites</em> if their role covers every site.</td></tr>
+    <tr><td>Status</td><td>Active, or Locked.</td></tr>
+  </tbody>
+</table>
+<p>Search by username, name, role or site.</p>
+
+<h2>Adding a user</h2>
+<ol class="steps">
+  <li>Open the company's <strong>Users</strong> tab and choose <strong>Add user</strong>. (It is unavailable until the company has at least one role.)</li>
+  <li>Enter a <strong>Username</strong>, <strong>First name</strong> and <strong>Last name</strong> (all required), and an <strong>Email</strong> if you have one.</li>
+  <li>Choose the <strong>Role</strong>.</li>
+  <li>Tick the <strong>Sites</strong> the user works at. At least one is needed unless the role covers every site.</li>
+  <li>Optionally type a <strong>Temporary password</strong>: 8 to 20 characters. Leave it blank and one is generated.</li>
+  <li>Choose <strong>Save</strong>.</li>
+  <li>A window shows the temporary password. Copy it and give it to the user. It is shown only once.</li>
+</ol>
+<p>The user must choose their own password the first time they sign in. See <a href="#/admin/temporary-passwords">Temporary passwords</a>.</p>
+
+<h2>Changing a role or sites</h2>
+<ol class="steps">
+  <li>Choose <strong>Role and sites</strong> on the user's row.</li>
+  <li>Choose a different <strong>Role</strong>, and tick or clear sites.</li>
+  <li>Choose <strong>Save</strong>.</li>
+</ol>
+<p>If the role covers every site, you do not need to tick any: the user can work at every active site. Tick sites only to record where the person is based.</p>
+
+<div class="note">
+  <p>A user's billing tier comes from their role, so changing the role can change what the company is charged. See <a href="#/admin/billing-how-it-works">How billing works</a>.</p>
+</div>
+
+<h2>Locking and unlocking</h2>
+<p>Choose <strong>Lock</strong> to stop someone signing in, or <strong>Unlock</strong> to let them back. It takes effect at once and is recorded in the <a href="#/admin/audit-log">audit log</a>. The user's role, sites and staff record are left as they are.</p>
+
+<h2>Resetting a password</h2>
+<ol class="steps">
+  <li>Choose <strong>Reset password</strong> on the user's row.</li>
+  <li>Confirm. Their old password stops working.</li>
+  <li>Copy the new temporary password from the window and pass it on.</li>
+</ol>
+<p>They must choose their own password at their next sign-in.</p>
+
+<h2>Where staff come in</h2>
+<p>A person can be a <a href="#/admin/staff">staff member</a> without a login. A login is created here, on the Users tab, not on the Staff tab. Making a staff member inactive does not lock their login.</p>

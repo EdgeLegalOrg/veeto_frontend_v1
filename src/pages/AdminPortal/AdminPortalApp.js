@@ -66,6 +66,9 @@ const Shell = ({ children }) => {
         )}
         <div className="ap-user">
           <span>{session.admin && session.admin.displayName}</span>
+          <a href="/help/#/admin/overview" target="_blank" rel="noopener">
+            Help
+          </a>
           <NavLink to={accountPath}>Account</NavLink>
           <button type="button" onClick={signOut}>
             Sign out
