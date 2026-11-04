@@ -115,8 +115,12 @@ export const resetAdminPassword = (id) => data(portal.post(`${A}/admins/${id}/re
 export const deleteAdmin = (id) => data(portal.delete(`${A}/admins/${id}`));
 
 // ---- audit and catalogue
-export const listAudit = async (page, pageSize) => {
-  const body = await call(portal.get(`${A}/audit`, { params: { page, pageSize } }));
+export const listAudit = async (page, pageSize, filter = {}) => {
+  const params = { page, pageSize };
+  if (filter.q) params.q = filter.q;
+  if (filter.from) params.from = filter.from;
+  if (filter.to) params.to = filter.to;
+  const body = await call(portal.get(`${A}/audit`, { params }));
   return { rows: body.data, page: body.metadata && body.metadata.page };
 };
 export const listFunctions = () => data(portal.get(`${A}/functions`));

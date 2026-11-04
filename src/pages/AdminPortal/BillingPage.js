@@ -6,6 +6,10 @@ import { toast } from "react-toastify";
 import { generateAllBilling, generateBillingRecord, getBillingPeriod } from "./adminPortalApi";
 import { currentMonthValue, money, parseMonthValue, periodLabel } from "./billing";
 import { ConfirmModal, ErrorAlert, Loading, useLoad } from "./shared";
+import { Pager, SearchBox, haystack, usePaging } from "./paging";
+
+const matchesRow = (row, needle) =>
+  haystack(row.companyName, row.record ? (row.record.status === "FINAL" ? "finalised" : "draft") : "not generated").includes(needle);
 
 const STATUS_CLASS = { DRAFT: "ap-badge-warn", FINAL: "ap-badge-ok" };
 
@@ -27,6 +31,7 @@ const BillingPage = () => {
   const [outcome, setOutcome] = useState(null);
 
   const rows = data || [];
+  const paging = usePaging(data, { filterFn: matchesRow });
   const withRecords = rows.filter((r) => r.record);
   const grandTotal = withRecords.reduce((sum, r) => sum + Number(r.record.totalAmount), 0);
 
@@ -90,6 +95,7 @@ const BillingPage = () => {
             style={{ maxWidth: 200 }}
           />
           {!period && <span className="ap-hint">Choose a month.</span>}
+          <SearchBox {...paging.searchProps} placeholder="Search companies" style={{ marginLeft: "auto" }} />
         </div>
 
         {loading && !data ? (
@@ -108,7 +114,7 @@ const BillingPage = () => {
               </tr>
             </thead>
             <tbody>
-              {rows.map((row) => {
+              {paging.pageRows.map((row) => {
                 const record = row.record;
                 return (
                   <tr key={row.companyId}>
@@ -153,10 +159,10 @@ const BillingPage = () => {
                   </tr>
                 );
               })}
-              {rows.length === 0 && (
+              {paging.totalRecords === 0 && data && (
                 <tr>
                   <td colSpan={7} className="ap-hint">
-                    No companies.
+                    {rows.length === 0 ? "No companies." : "No companies match your search."}
                   </td>
                 </tr>
               )}
@@ -175,6 +181,7 @@ const BillingPage = () => {
             )}
           </table>
         )}
+        {data && <Pager {...paging.pagerProps} />}
         <p className="ap-hint" style={{ marginTop: 12 }}>
           A record is a snapshot of the registered, unlocked users when it is generated, each billed once, under the
           site of their staff record. A draft can be regenerated or deleted; finalise it to keep it as it is.

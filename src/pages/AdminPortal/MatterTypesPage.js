@@ -12,6 +12,9 @@ import {
   updateMatterType,
 } from "./adminPortalApi";
 import { ConfirmModal, ErrorAlert, Loading, useLoad } from "./shared";
+import { Pager, SearchBox, haystack, usePaging } from "./paging";
+
+const matchesCode = (item, needle) => haystack(item.displayName, item.code).includes(needle);
 
 // One form for both kinds, so the dialog never reads a field the other kind left out.
 const EMPTY_FORM = { displayName: "", subTypeCodes: [], tabs: [], statuses: [], typeCodes: [] };
@@ -28,7 +31,6 @@ const MatterTypesPage = () => {
   const { data, error, loading, reload } = useLoad(getMatterCatalog);
 
   const [view, setView] = useState("types"); // types | subTypes
-  const [filter, setFilter] = useState("");
   const [editing, setEditing] = useState(null); // { kind, code? } while the dialog is open
   const [form, setForm] = useState(EMPTY_FORM);
   const [confirm, setConfirm] = useState(null); // { kind, item }
@@ -44,10 +46,9 @@ const MatterTypesPage = () => {
     [data]
   );
 
-  const needle = filter.trim().toLowerCase();
-  const matches = (item) => !needle || item.displayName.toLowerCase().includes(needle) || item.code.toLowerCase().includes(needle);
-  const shownTypes = types.filter(matches);
-  const shownSubTypes = subTypes.filter(matches);
+  const typesPaging = usePaging(types, { filterFn: matchesCode });
+  const subTypesPaging = usePaging(subTypes, { filterFn: matchesCode });
+  const activePaging = view === "types" ? typesPaging : subTypesPaging;
 
   const openType = (type) => {
     setForm(type ? { ...EMPTY_FORM, displayName: type.displayName, subTypeCodes: type.subTypeCodes } : EMPTY_FORM);
@@ -152,12 +153,9 @@ const MatterTypesPage = () => {
       </div>
 
       <div className="ap-card">
-        <Input
-          placeholder="Search by name or code"
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-          style={{ maxWidth: 320, marginBottom: 12 }}
-        />
+        <div className="ap-toolbar">
+          <SearchBox {...activePaging.searchProps} placeholder="Search by name or code" />
+        </div>
 
         {loading && !data ? (
           <Loading />
@@ -172,7 +170,7 @@ const MatterTypesPage = () => {
               </tr>
             </thead>
             <tbody>
-              {shownTypes.map((type) => {
+              {typesPaging.pageRows.map((type) => {
                 const blocked = whyNotRemovable(type);
                 return (
                   <tr key={type.code}>
@@ -205,7 +203,7 @@ const MatterTypesPage = () => {
                   </tr>
                 );
               })}
-              {shownTypes.length === 0 && (
+              {typesPaging.totalRecords === 0 && (
                 <tr>
                   <td colSpan={4} className="ap-hint">
                     No matter types match.
@@ -226,7 +224,7 @@ const MatterTypesPage = () => {
               </tr>
             </thead>
             <tbody>
-              {shownSubTypes.map((sub) => {
+              {subTypesPaging.pageRows.map((sub) => {
                 const blocked = whyNotRemovable(sub);
                 return (
                   <tr key={sub.code}>
@@ -267,7 +265,7 @@ const MatterTypesPage = () => {
                   </tr>
                 );
               })}
-              {shownSubTypes.length === 0 && (
+              {subTypesPaging.totalRecords === 0 && (
                 <tr>
                   <td colSpan={5} className="ap-hint">
                     No sub types match.
@@ -277,6 +275,7 @@ const MatterTypesPage = () => {
             </tbody>
           </table>
         )}
+        {data && <Pager {...activePaging.pagerProps} />}
         <p className="ap-hint" style={{ marginTop: 12 }}>
           Matters store a type's code, not its name, so renaming one never changes a matter. Something that matters,
           precedents, letter heads, contact roles or checklists still use cannot be removed.

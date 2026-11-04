@@ -1,6 +1,10 @@
 import React, { useMemo } from "react";
 import { Col, FormGroup, Input, Label, Row } from "reactstrap";
 
+// The same financial year fields and rule as the main application's Edit Site form.
+import SiteFinancialYearFields from "../Edge/components/Admin/SiteInfo/SiteFinancialYearFields";
+import { validateFinancialYearStart } from "../Edge/utils/financialYear";
+
 /** Shared field groups, used by both the create-company page and the company detail page. */
 
 export const DEFAULT_TIME_ZONE = "Australia/Sydney";
@@ -79,6 +83,12 @@ export const siteFromView = (view) => ({
   financialYearStartMonth: view.financialYearStartMonth ?? "",
 });
 
+/** The form keeps a blank day or month as "", the shared fields and rule expect null. */
+const financialYearOf = (site) => ({
+  financialYearStartDay: site.financialYearStartDay === "" ? null : site.financialYearStartDay,
+  financialYearStartMonth: site.financialYearStartMonth === "" ? null : site.financialYearStartMonth,
+});
+
 /** Problems with a site that can be spotted without asking the server. */
 export const siteProblem = (site) => {
   if (!site.siteName.trim()) return "Each site needs a name.";
@@ -86,9 +96,10 @@ export const siteProblem = (site) => {
   if (gst !== "" && (Number.isNaN(Number(gst)) || Number(gst) < 0 || Number(gst) > 100)) {
     return `GST rate for ${site.siteName} must be between 0 and 100.`;
   }
-  const hasDay = site.financialYearStartDay !== "";
-  const hasMonth = site.financialYearStartMonth !== "";
-  if (hasDay !== hasMonth) return `Give both a financial year start day and month for ${site.siteName}, or leave both blank.`;
+  // Both or neither, and a day that exists in that month (no 31 February).
+  if (validateFinancialYearStart(financialYearOf(site))) {
+    return `Give a valid financial year start day and month for ${site.siteName} together, or leave both blank.`;
+  }
   return null;
 };
 
@@ -154,8 +165,11 @@ export const SiteFieldsForm = ({ value, onChange, activeLocked }) => {
         type="number"
         hint="Leave blank and the company must set it."
       />
-      <Text label="Financial year starts: day" value={value.financialYearStartDay} onChange={set("financialYearStartDay")} md={3} type="number" />
-      <Text label="month (1–12)" value={value.financialYearStartMonth} onChange={set("financialYearStartMonth")} md={3} type="number" />
+      <SiteFinancialYearFields
+        value={financialYearOf(value)}
+        onChange={(event) => set(event.target.name)(event.target.value === null ? "" : event.target.value)}
+        columnClassName="col-md-3"
+      />
       <Col md={12}>
         <FormGroup check>
           <Input

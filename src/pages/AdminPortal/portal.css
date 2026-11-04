@@ -363,3 +363,35 @@
     padding: 16px;
   }
 }
+
+/* Search box and pager shared by every list */
+.ap-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.ap-search {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  min-width: 260px;
+}
+
+.ap-pager {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.ap-pager-pages {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}

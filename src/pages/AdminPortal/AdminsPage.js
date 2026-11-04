@@ -22,11 +22,16 @@ import {
   isStrongAdminPassword,
   useLoad,
 } from "./shared";
+import { Pager, SearchBox, haystack, usePaging } from "./paging";
+
+const matchesAdmin = (a, needle) =>
+  haystack(a.userName, a.displayName, a.email, a.locked ? "locked" : "active").includes(needle);
 
 const EMPTY = { userName: "", displayName: "", email: "", temporaryPassword: "" };
 
 const AdminsPage = () => {
   const { data, error, loading, reload } = useLoad(listAdmins);
+  const paging = usePaging(data, { filterFn: matchesAdmin });
   const me = readSession().admin;
 
   const [editing, setEditing] = useState(null); // null closed, {} new, {id,...} existing
@@ -124,6 +129,9 @@ const AdminsPage = () => {
       <ErrorAlert message={error} />
 
       <div className="ap-card">
+        <div className="ap-toolbar">
+          <SearchBox {...paging.searchProps} placeholder="Search system admins" />
+        </div>
         {loading && !data ? (
           <Loading />
         ) : (
@@ -138,7 +146,7 @@ const AdminsPage = () => {
               </tr>
             </thead>
             <tbody>
-              {(data || []).map((admin) => {
+              {paging.pageRows.map((admin) => {
                 const self = admin.id === me.id;
                 return (
                   <tr key={admin.id}>
@@ -186,9 +194,17 @@ const AdminsPage = () => {
                   </tr>
                 );
               })}
+              {data && paging.totalRecords === 0 && (
+                <tr>
+                  <td colSpan={5} className="ap-hint">
+                    No system admins match your search.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         )}
+        {data && <Pager {...paging.pagerProps} />}
         <p className="ap-hint" style={{ marginTop: 12 }}>
           You cannot lock, remove or reset yourself, and the last active system admin can never be locked or removed.
         </p>
