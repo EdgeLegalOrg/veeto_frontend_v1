@@ -180,3 +180,11 @@
     gap: 10px;
   }
 }
+
+/* PDF actions wrap on narrow screens; revision columns scroll within their own panel. */
+.settlement-sheet .settlement-actions .btn {
+  white-space: nowrap;
+}
+.settlement-sheet .settlement-pdf-history {
+  min-width: 720px;
+}
