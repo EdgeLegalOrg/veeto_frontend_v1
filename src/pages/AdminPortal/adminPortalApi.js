@@ -181,3 +181,15 @@ export const listSessions = (page, pageSize, filter = {}) =>
   paged(portal.get(`${A}/sessions`, { params: pagedParams(page, pageSize, filter) }));
 export const listFeedback = (page, pageSize, filter = {}) =>
   paged(portal.get(`${A}/feedback`, { params: pagedParams(page, pageSize, filter) }));
+
+// ---- a company's staff
+export const listStaff = (companyId, page, pageSize, filter = {}) => {
+  const params = { page, pageSize };
+  if (filter.siteId) params.siteId = filter.siteId;
+  if (filter.q) params.q = filter.q;
+  if (filter.active === true || filter.active === false) params.active = filter.active;
+  return paged(portal.get(`${A}/companies/${companyId}/staff`, { params }));
+};
+export const createStaff = (companyId, body) => data(portal.post(`${A}/companies/${companyId}/staff`, body));
+export const updateStaff = (companyId, staffId, body) =>
+  data(portal.put(`${A}/companies/${companyId}/staff/${staffId}`, body));

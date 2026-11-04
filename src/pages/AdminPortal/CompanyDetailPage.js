@@ -27,6 +27,7 @@ import {
   siteProblem,
 } from "./forms";
 import CompanyBillingTab from "./CompanyBillingTab";
+import CompanyStaffTab from "./CompanyStaffTab";
 import { ConfirmModal, ErrorAlert, Loading, SecretModal, StatusBadge, useLoad } from "./shared";
 import { Pager, SearchBox, haystack, usePaging } from "./paging";
 
@@ -36,7 +37,7 @@ const matchesRole = (r, needle) => haystack(r.roleName, r.description, r.tier ==
 const matchesUser = (u, needle) =>
   haystack(u.userName, u.firstName, u.lastName, u.email, u.roleName, u.locked ? "locked" : "active").includes(needle);
 
-const TABS = ["Details", "Sites", "Roles", "Users", "Billing"];
+const TABS = ["Details", "Sites", "Roles", "Users", "Staff", "Billing"];
 
 const CompanyDetailPage = () => {
   const { companyId } = useParams();
@@ -83,6 +84,7 @@ const CompanyDetailPage = () => {
       {tab === "Sites" && <SitesTab {...common} />}
       {tab === "Roles" && <RolesTab {...common} rights={rights.data} />}
       {tab === "Users" && <UsersTab {...common} />}
+      {tab === "Staff" && <CompanyStaffTab {...common} />}
       {tab === "Billing" && <CompanyBillingTab {...common} />}
 
       <SecretModal
