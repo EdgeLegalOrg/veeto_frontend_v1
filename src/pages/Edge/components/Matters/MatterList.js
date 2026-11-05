@@ -298,6 +298,7 @@ const MatterList = () => {
       setLoading(false);
       console.error(error);
     }
+    return rval;
   };
 
   const parseStaffList = (list) => {
@@ -1721,7 +1722,7 @@ const MatterList = () => {
   };
 
   const handleRefresh = async (selected) => {
-    await fetchMatterDetail(matterDetail.id);
+    return await fetchMatterDetail(matterDetail.id);
   };
 
   const ui = () => {

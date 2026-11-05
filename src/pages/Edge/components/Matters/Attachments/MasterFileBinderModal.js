@@ -79,6 +79,7 @@ const MasterFileBinderModal = ({
   matterId,
   matterData,
   initialAttachmentId,
+  initialSelectedIds,
 }) => {
   const [loadingSequence, setLoadingSequence] = useState(true);
   const [binderData, setBinderData] = useState(null);
@@ -87,7 +88,7 @@ const MasterFileBinderModal = ({
   const [searchQuery, setSearchQuery] = useState("");
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [selectedIds, setSelectedIds] = useState(() => new Set());
+  const [selectedIds, setSelectedIds] = useState(() => new Set(initialSelectedIds || []));
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState("");
   const [sequenceError, setSequenceError] = useState("");
