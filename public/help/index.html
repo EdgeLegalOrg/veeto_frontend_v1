@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex" />
     <title>Veeto Help</title>
+    <script>
+      // Reached as /help with no closing slash: add it, so the page finds its style, scripts and content.
+      if (/\/help$/.test(location.pathname)) {
+        location.replace(location.pathname + "/" + location.search + location.hash);
+      }
+    </script>
     <link rel="stylesheet" href="assets/help.css" />
   </head>
   <body>

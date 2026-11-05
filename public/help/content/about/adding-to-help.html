@@ -50,7 +50,7 @@ python -m http.server 8080</code></pre>
 <h2>How it is published</h2>
 <ul>
   <li>The help is part of the application's front end. Anything in <code>public/help</code> is copied into the build and served at <code>/help/</code>.</li>
-  <li>The web server must serve files that exist, such as <code>/help/index.html</code>, before it falls back to the application's own page. Files that exist are normally served as they are. The address <code>/help</code> (without the closing slash) must be redirected to <code>/help/</code> so the page can find its style and scripts; the <code>_redirects</code> file has a rule for this on hosts that read it, and other web servers need the equivalent.</li>
+  <li>The web server must serve files that exist, such as <code>/help/index.html</code>, before it falls back to the application's own page. Files that exist are normally served as they are. The address <code>/help/</code> must show <code>help/index.html</code>. If someone types <code>/help</code> with no closing slash, the page adds the slash itself, as long as the server returns <code>help/index.html</code> for that address too. The <code>serve.json</code> file does this when the site is run with <code>serve</code>, and the <code>_redirects</code> file does it on hosts that read it. Other web servers need the equivalent.</li>
   <li>Nothing needs to be installed, and no database or back end is involved.</li>
 </ul>
 

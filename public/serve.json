@@ -1,5 +1,7 @@
 {
   "cleanUrls": false,
-  "redirects": [{ "source": "/help", "destination": "/help/", "type": 301 }],
-  "rewrites": [{ "source": "/help/", "destination": "/help/index.html" }]
+  "rewrites": [
+    { "source": "/help", "destination": "/help/index.html" },
+    { "source": "/help/", "destination": "/help/index.html" }
+  ]
 }
