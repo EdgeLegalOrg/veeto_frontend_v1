@@ -35,7 +35,7 @@ const MAX_FILES = 15;
 
 const AddNewTemplate = (props) => {
   const [formData, setFormData] = useState([]);
-  const [uploadedFiles, setUploadedFiles] = useState([]);
+  const uploadedFiles = formData.map((entry) => entry.file);
   const [confirmScreen, setConfirmScreen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -152,27 +152,19 @@ const AddNewTemplate = (props) => {
   const addUploadedFiles = (files = [], storageType = null) => {
     if (!files?.length) return;
 
-    setUploadedFiles((prevFiles) => {
-      const mergedFiles = [...prevFiles, ...files].sort((a, b) =>
-        a.name.localeCompare(b.name),
-      );
-      return mergedFiles;
-    });
-
-    setFormData((prevData) => {
-      const updatedData = [...prevData];
-      files.forEach((file) => {
-        updatedData.push({
-          ...initialData,
-          name: file.name.split(".").slice(0, -1).join("."),
-          documentType: lockDocType && lockedDocTypeVal ? lockedDocTypeVal : "",
-          type: lockMatterType && lockedMatterTypeVal ? lockedMatterTypeVal : "",
-          ...(storageType ? { storageType } : {}),
-        });
-      });
-
-      return updatedData.sort((a, b) => a.name.localeCompare(b.name));
-    });
+    // Keep the source file with its editable details when sorting or adding batches.
+    const entries = files.map((file) => ({
+      ...initialData,
+      uploadId: uuidv1(),
+      file,
+      name: file.name.split(".").slice(0, -1).join("."),
+      documentType: lockDocType && lockedDocTypeVal ? lockedDocTypeVal : "",
+      type: lockMatterType && lockedMatterTypeVal ? lockedMatterTypeVal : "",
+      ...(storageType ? { storageType } : {}),
+    }));
+    setFormData((prevData) =>
+      [...prevData, ...entries].sort((a, b) => a.name.localeCompare(b.name)),
+    );
   };
 
   const handleDragOver = (e) => {
@@ -212,71 +204,42 @@ const AddNewTemplate = (props) => {
   };
 
   const handleDelete = (ind) => {
-    let data1 = formData.filter((file, i) => i !== ind);
-    let data2 = uploadedFiles.filter((file, i) => i !== ind);
-
-    setTimeout(() => {
-      setFormData(data1);
-      setUploadedFiles(data2);
-    }, 10);
+    setFormData((entries) => entries.filter((entry, i) => i !== ind));
   };
 
   const handleSubmit = async () => {
-    if (uploadedFiles && uploadedFiles?.length > 0) {
-      setLoading(true);
-
-      let count = 0;
-      let size = uploadedFiles?.length;
-
-      for (let i = 0; i < size; i++) {
-        count += 1;
-        const temp = { ...formData[i] };
-        try {
-          let inputData = new FormData();
-          let dataInput = {
-            requestId: uuidv1(),
-            data: {
-              ...formData[i],
-            },
-          };
-          inputData.append("templateJSON", JSON.stringify(dataInput));
-          inputData.append("templateFile", uploadedFiles[i]);
-          const { data } = await uploadTemplate(inputData);
-
-          if (!data.success) {
-            let arr1 = uploadedFiles.slice(i + 1, uploadedFiles?.length);
-            let arr2 = formData.slice(i + 1, formData?.length);
-            toast.error(
-              `${temp.name} could not be uploaded, please try again later.`,
-            );
-            setUploadedFiles(arr1);
-            setFormData(arr2);
-          } else {
-            toast.success(`${temp.name} uploaded`);
-            let arr1 = uploadedFiles.slice(i + 1, uploadedFiles?.length);
-            let arr2 = formData.slice(i + 1, formData?.length);
-            setUploadedFiles(arr1);
-            setFormData(arr2);
-          }
-        } catch (error) {
-          toast.error(`File could not be uploaded, please try again later.`);
-          console.error(error);
-          let arr1 = uploadedFiles.slice(i + 1, uploadedFiles?.length);
-          let arr2 = formData.slice(i + 1, formData?.length);
-          setUploadedFiles(arr1);
-          setFormData(arr2);
-        }
-        if (count === size) {
-          setLoading(false);
-          closeFormToast();
-          refreshList();
-          return;
-        }
-      }
-    } else {
+    if (!formData.length) {
       setSubmitted(true);
-      // toast.error("Please add document");
+      return;
     }
+    if (loading) return;
+    setLoading(true);
+
+    for (const entry of formData) {
+      const { file, uploadId, ...details } = entry;
+      try {
+        const inputData = new FormData();
+        inputData.append("templateJSON", JSON.stringify({
+          requestId: uuidv1(),
+          data: details,
+        }));
+        inputData.append("templateFile", file);
+        const { data } = await uploadTemplate(inputData);
+
+        if (data.success) {
+          toast.success(`${details.name} uploaded`);
+        } else {
+          toast.error(`${details.name} could not be uploaded, please try again later.`);
+        }
+      } catch (error) {
+        toast.error(`${details.name} could not be uploaded, please try again later.`);
+        console.error(error);
+      }
+      setFormData((entries) => entries.filter((item) => item.uploadId !== uploadId));
+    }
+    setLoading(false);
+    closeFormToast();
+    refreshList();
   };
 
   const findDisplayname = (from, val = "") => {
@@ -336,7 +299,7 @@ const AddNewTemplate = (props) => {
           )}
 
           {formData.map((file, i) => (
-            <div className="tempForm-inputContainer pe-cursor" key={i}>
+            <div className="tempForm-inputContainer pe-cursor" key={file.uploadId}>
               <span>{`${i + 1})`}</span>
               <TextInputField
                 name="name"

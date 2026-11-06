@@ -51,7 +51,7 @@ import {
   errorMessage,
   money,
   shortDate,
-  toApiDate,
+  getOfficeToday,
 } from "./TrustShared";
 
 /**
@@ -1008,8 +1008,8 @@ const IssueReceiptForm = ({ ledger, onClose, onSaved }) => {
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     amount: "",
-    receiptDate: toApiDate(new Date()),
-    moneyReceivedDate: toApiDate(new Date()),
+    receiptDate: getOfficeToday(),
+    moneyReceivedDate: getOfficeToday(),
     receivedFrom: "",
     receivedForm: "EFT",
     reason: "",
@@ -1165,7 +1165,7 @@ const PreparePaymentForm = ({ ledger, onClose, onSaved }) => {
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     paymentMethod: "EFT",
-    paymentDate: toApiDate(new Date()),
+    paymentDate: getOfficeToday(),
     amount: "",
     payeeName: "",
     payeeAccountName: "",

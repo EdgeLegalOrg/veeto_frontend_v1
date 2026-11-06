@@ -1,3 +1,4 @@
+import { formatDateFunc } from "../../../utils/utilFunc";
 import React, { useState, useMemo } from "react";
 import {
   Table,
@@ -176,7 +177,7 @@ const FeesBilledTable = ({ rows, isLoading, ownFeesOnly = false }) => {
                   </td>
                   <td>
                     <span className="text-muted fs-13">
-                      {row.invoiceDate ? row.invoiceDate.slice(0, 10) : "-"}
+                      {row.invoiceDate ? formatDateFunc(row.invoiceDate, "YYYY-MM-DD", row.timeZone) : "-"}
                     </span>
                   </td>
                   <td

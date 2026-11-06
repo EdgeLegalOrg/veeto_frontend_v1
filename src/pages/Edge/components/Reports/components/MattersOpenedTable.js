@@ -1,4 +1,4 @@
-import moment from "moment";
+import { formatDateFunc } from "../../../utils/utilFunc";
 import React, { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -159,7 +159,7 @@ const MattersOpenedTable = ({ rows, isLoading }) => {
                   </td>
                                     <td>
                     <span className="text-muted fs-13">
-                      {row.instructionDate ? moment(row.instructionDate).format("DD-MM-YYYY") : "-"}
+                      {row.instructionDate ? formatDateFunc(row.instructionDate, "DD-MM-YYYY", row.timeZone) : "-"}
                     </span>
                   </td>
                   <td>

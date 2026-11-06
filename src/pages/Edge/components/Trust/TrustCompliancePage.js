@@ -42,7 +42,7 @@ import {
   errorMessage,
   money,
   shortDate,
-  toApiDate,
+  getOfficeToday,
 } from "./TrustShared";
 
 /**
@@ -116,7 +116,7 @@ const TrustCompliancePage = () => {
         return;
       }
 
-      const asAt = toApiDate(new Date());
+      const asAt = getOfficeToday();
 
       const [deficiencyResponse, unrecordedResponse, staleResponse] =
         await Promise.all([
@@ -199,7 +199,7 @@ const TrustCompliancePage = () => {
       const { data } = await closeTrustDeficiency(deficiency.id, {
         status,
         rectificationNotes: notes.trim(),
-        rectifiedDate: toApiDate(new Date()),
+        rectifiedDate: getOfficeToday(),
       });
 
       if (data.success) {
@@ -616,7 +616,7 @@ const DeficiencyForm = ({ preset, trustAccountId, onClose, onSaved }) => {
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     trustLedgerId: preset.trustLedgerId || "",
-    discoveredDate: toApiDate(new Date()),
+    discoveredDate: getOfficeToday(),
     amount: preset.amount || "",
     cause: preset.cause || "OTHER",
     description: preset.description || "",
@@ -763,7 +763,7 @@ const DepositFormModal = ({ accounts, defaultAccountId, onClose, onSaved }) => {
   const [form, setForm] = useState({
     trustAccountId: defaultAccountId || "",
     periodFromDate: "",
-    periodToDate: toApiDate(new Date()),
+    periodToDate: getOfficeToday(),
     depositRequired: "",
     depositHeld: "",
     basis: "",

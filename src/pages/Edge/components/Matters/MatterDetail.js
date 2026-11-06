@@ -179,10 +179,11 @@ const MatterDetail = (props) => {
 
   const handleRefresh = (listRefresh = false) => {
     dispatch(resetFormStatusAction());
-    refresh(selected);
+    const refreshed = refresh(selected);
     if (listRefresh) {
       refreshListing();
     }
+    return refreshed;
   };
 
   const handleArchive = async () => {

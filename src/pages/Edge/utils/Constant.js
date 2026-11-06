@@ -44,14 +44,3 @@ export const UPLOAD_CONFIG = {
     storageType: null,
   },
 };
-export const AUSTRALIAN_TIMEZONES = [
-  {
-    label: "Sydney / Melbourne / Canberra (AEST/AEDT)",
-    value: "Australia/Sydney",
-  },
-  { label: "Brisbane (AEST - No DST)", value: "Australia/Brisbane" },
-  { label: "Adelaide (ACST/ACDT)", value: "Australia/Adelaide" },
-  { label: "Darwin (ACST - No DST)", value: "Australia/Darwin" },
-  { label: "Perth (AWST)", value: "Australia/Perth" },
-  { label: "Hobart (AEST/AEDT)", value: "Australia/Hobart" },
-];

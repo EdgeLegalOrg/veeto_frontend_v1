@@ -1,3 +1,5 @@
+import { formatDateFunc, getOfficeToday } from "../../utils/utilFunc";
+export { getOfficeToday };
 import React from "react";
 import { Alert, Badge, Card, Container, Input } from "reactstrap";
 
@@ -45,27 +47,13 @@ export const money = (value) => {
 /**
  * A date for display, from whatever the server sent.
  *
- * The API returns dates in a few shapes depending on the column type, so this
- * takes the first ten characters of an ISO string where it can and falls back
- * to Date parsing. Returns a dash rather than "Invalid Date", which is what
- * users report as a bug.
+ * Calendar strings retain their day; timestamps use the active office zone.
+ * Invalid values return a dash.
  */
 export const shortDate = (value) => {
-  if (!value) {
-    return "-";
-  }
-
-  const parsed = new Date(value);
-
-  if (Number.isNaN(parsed.getTime())) {
-    return "-";
-  }
-
-  return parsed.toLocaleDateString("en-AU", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
+  if (!value) return "-";
+  const text = formatDateFunc(value, "DD MMM YYYY");
+  return text === "Invalid date" ? "-" : text;
 };
 
 /**
@@ -81,6 +69,7 @@ export const toApiDate = (value) => {
     return "";
   }
 
+  if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
   const d = value instanceof Date ? value : new Date(value);
 
   if (Number.isNaN(d.getTime())) {
@@ -95,7 +84,9 @@ export const toApiDate = (value) => {
 
 /** The last day of the month a date falls in, as yyyy-MM-dd. */
 export const monthEndOf = (value) => {
-  const d = value ? new Date(value) : new Date();
+  const text = value || getOfficeToday();
+  const d = typeof text === "string" && /^\d{4}-\d{2}-\d{2}$/.test(text)
+    ? new Date(...text.split("-").map((part, i) => Number(part) - (i === 1 ? 1 : 0))) : new Date(text);
 
   if (Number.isNaN(d.getTime())) {
     return "";
@@ -106,7 +97,9 @@ export const monthEndOf = (value) => {
 
 /** The first day of the month a date falls in, as yyyy-MM-dd. */
 export const monthStartOf = (value) => {
-  const d = value ? new Date(value) : new Date();
+  const text = value || getOfficeToday();
+  const d = typeof text === "string" && /^\d{4}-\d{2}-\d{2}$/.test(text)
+    ? new Date(...text.split("-").map((part, i) => Number(part) - (i === 1 ? 1 : 0))) : new Date(text);
 
   if (Number.isNaN(d.getTime())) {
     return "";

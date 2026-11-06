@@ -1,4 +1,4 @@
-import { getFinancialYearRange } from "../../utils/financialYear";
+import { getDatePresetRange } from "./utils/reportDatePresets";
 import { comparisonDates } from "./utils/reportComparison";
 import React, { useState, useEffect, useMemo } from "react";
 import { Container, Nav, NavItem, NavLink } from "reactstrap";
@@ -29,50 +29,6 @@ import {
   getCompanyInfo,
   allStaffMember,
 } from "../../apis";
-
-// Date preset helper calculating standard fiscal / calendar periods
-const getDatePresetRange = (preset, siteInfo) => {
-  const now = new Date();
-  const startOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0);
-  const endOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59);
-
-  switch (preset) {
-    case "THIS_MONTH": {
-      const start = new Date(now.getFullYear(), now.getMonth(), 1);
-      const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-      return [startOfDay(start), endOfDay(end)];
-    }
-    case "LAST_MONTH": {
-      const start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-      const end = new Date(now.getFullYear(), now.getMonth(), 0);
-      return [startOfDay(start), endOfDay(end)];
-    }
-    case "THIS_QUARTER": {
-      const qMonth = Math.floor(now.getMonth() / 3) * 3;
-      const start = new Date(now.getFullYear(), qMonth, 1);
-      const end = new Date(now.getFullYear(), qMonth + 3, 0);
-      return [startOfDay(start), endOfDay(end)];
-    }
-    case "CALENDAR_YEAR": {
-      // Calendar Year: 1 January to 31 December
-      const start = new Date(now.getFullYear(), 0, 1);
-      const end = new Date(now.getFullYear(), 11, 31);
-      return [startOfDay(start), endOfDay(end)];
-    }
-    case "FINANCIAL_YEAR": {
-      // The recurring site boundary determines the full financial year containing today.
-      return getFinancialYearRange(siteInfo);
-    }
-    case "LAST_30_DAYS": {
-      const start = new Date();
-      start.setDate(start.getDate() - 30);
-      return [startOfDay(start), endOfDay(now)];
-    }
-    case "ALL_TIME":
-    default:
-      return [null, null];
-  }
-};
 
 const ALL_REPORT_TABS = [
   {
@@ -156,15 +112,15 @@ const ReportDashboard = () => {
   const [comparison, setComparison] = useState(null);
   const [financialYearConfig, setFinancialYearConfig] = useState(null);
   const [siteSettingsVersion, setSiteSettingsVersion] = useState(0);
-  // A tab change or Site Info update invalidates the cached range before the report loads.
-  const financialYearKey = `${selectedSite == null ? "active" : selectedSite}:${activeTab}:${siteSettingsVersion}`;
+  // Reuse settings across report tabs; office changes and Site Info updates refresh them.
+  const financialYearKey = `${selectedSite == null ? "active" : selectedSite}:${siteSettingsVersion}`;
   const financialYearReady = financialYearConfig?.key === financialYearKey;
-  const financialYearPending = activePreset === "FINANCIAL_YEAR" && !financialYearReady;
-  const financialYearError = activePreset === "FINANCIAL_YEAR" && financialYearReady && financialYearConfig.error;
+  const financialYearPending = activePreset !== "CUSTOM" && !financialYearReady;
+  const financialYearError = activePreset !== "CUSTOM" && financialYearReady && financialYearConfig.error;
   const dateRange = useMemo(() => {
-    if (activePreset !== "FINANCIAL_YEAR") return presetDateRange;
+    if (activePreset === "CUSTOM") return presetDateRange;
     if (!financialYearReady || financialYearConfig.error) return [null, null];
-    return getDatePresetRange("FINANCIAL_YEAR", financialYearConfig.data);
+    return getDatePresetRange(activePreset, financialYearConfig.data);
   }, [activePreset, presetDateRange, financialYearReady, financialYearConfig]);
 
   useEffect(() => {
@@ -288,7 +244,7 @@ const ReportDashboard = () => {
     if (activePreset === preset && preset !== "CUSTOM") return;
     setActivePreset(preset);
     if (preset !== "CUSTOM" && preset !== "FINANCIAL_YEAR") {
-      setDateRange(getDatePresetRange(preset));
+      setDateRange(getDatePresetRange(preset, financialYearConfig?.data));
     }
   };
 
@@ -393,10 +349,10 @@ const ReportDashboard = () => {
               </div>
             </div>
           ) : financialYearPending ? (
-            <p className="text-muted py-4">Loading site financial year…</p>
+            <p className="text-muted py-4">Loading office date settings…</p>
           ) : financialYearError ? (
             <p className="text-danger py-4">
-              Could not load the site's financial year. Reload the page to retry, or select another date range.
+              Could not load the office's date settings. Reload the page to retry, or select another date range.
             </p>
           ) : (
             permittedTabs.map((tab) => {

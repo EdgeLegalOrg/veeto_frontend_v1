@@ -17,7 +17,7 @@ import {
   SearchableCountry,
 } from "pages/Edge/components/InputField";
 import { v1 as uuidv1 } from "uuid";
-import { AUSTRALIAN_TIMEZONES } from "pages/Edge/utils/Constant";
+import TimezoneSelect from "../TimezoneSelect";
 import { updateLocalSiteInfo } from "pages/Edge/utils/utilFunc";
 
 const initialData = {
@@ -463,15 +463,7 @@ const EditSiteInfo = (props) => {
             />
           </div>
           <div className="col-md-3 mt-3">
-            <TextInputField
-              type="select"
-              label="Timezone"
-              name="timeZone"
-              placeholder="Select Timezone"
-              optionArray={AUSTRALIAN_TIMEZONES}
-              value={formData.timeZone || "Australia/Sydney"}
-              onChange={handleFormChange}
-            />
+            <TimezoneSelect value={formData.timeZone} onChange={handleFormChange} />
           </div>
           <SiteFinancialYearFields value={formData} onChange={handleFormChange} columnClassName="col-md-4" />
 
