@@ -14,13 +14,17 @@
 .matter-folder-panels {
   display: grid;
   grid-template-columns: minmax(200px, 24%) minmax(0, 1fr);
-  min-height: 380px;
+  grid-template-rows: minmax(0, 1fr);
+  height: clamp(320px, 65vh, 620px);
+  min-height: 0;
+  overflow: hidden;
 }
 .matter-folder-tree {
   border-right: 1px solid #e9ebec;
   padding: 0.5rem;
   overflow: auto;
-  max-height: 620px;
+  min-height: 0;
+  overscroll-behavior: contain;
 }
 .matter-folder-tree button {
   display: block;
@@ -42,8 +46,27 @@
   background: #f0f5ff;
 }
 .matter-folder-contents {
+  display: flex;
+  flex-direction: column;
   min-width: 0;
+  min-height: 0;
+  overflow: hidden;
   padding: 0.65rem;
+}
+.matter-folder-contents > :not(.matter-folder-list) {
+  flex-shrink: 0;
+}
+.matter-folder-list {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.matter-folder-list thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--vz-secondary-bg, #f3f6f9);
 }
 .matter-folder-table {
   font-size: 0.85rem;
@@ -102,9 +125,10 @@
 @media (max-width: 767px) {
   .matter-folder-panels {
     grid-template-columns: 1fr;
+    grid-template-rows: minmax(100px, 25%) minmax(0, 1fr);
+    height: clamp(400px, 75vh, 720px);
   }
   .matter-folder-tree {
-    max-height: 180px;
     border-right: 0;
     border-bottom: 1px solid #e9ebec;
   }

@@ -665,7 +665,7 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
         </details>
       )}
       <div className="matter-folder-panels">
-        <nav className="matter-folder-tree" aria-label="Matter folders">
+        <nav className="matter-folder-tree" aria-label="Matter folders" tabIndex={0}>
           <button type="button" aria-current={!folderId ? "true" : undefined} disabled={busy} onClick={() => setFolderId(null)}>
             Matter attachments
           </button>
@@ -716,7 +716,7 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
               <option value="NAME">Name</option>
             </Input>
           </div>
-          <div className="table-responsive">
+          <div className="table-responsive matter-folder-list" role="region" aria-label="Folder contents" tabIndex={0}>
             <Table className="matter-folder-table mb-0" hover>
               <thead>
                 <tr>
