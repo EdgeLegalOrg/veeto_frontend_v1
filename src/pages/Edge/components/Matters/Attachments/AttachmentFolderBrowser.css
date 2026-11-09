@@ -21,7 +21,9 @@
 }
 .matter-folder-tree {
   border-right: 1px solid #e9ebec;
-  padding: 0.5rem;
+  padding: 0.35rem;
+  font-size: 0.85rem;
+  line-height: 1.4;
   overflow: auto;
   min-height: 0;
   overscroll-behavior: contain;
@@ -33,7 +35,7 @@
   text-align: left;
   width: 100%;
   border-radius: 4px;
-  padding: 0.35rem 0.5rem;
+  padding: 0.25rem 0.35rem;
   overflow-wrap: anywhere;
 }
 .matter-folder-tree button[aria-current="true"] {
@@ -256,8 +258,8 @@
 /* Nested branches draw connector lines without covering selection or drop targets. */
 .matter-folder-tree .matter-folder-branches {
   list-style: none;
-  margin: 0 0 0 15px;
-  padding: 0 0 0 14px;
+  margin: 0 0 0 10px;
+  padding: 0 0 0 10px;
 }
 .matter-folder-tree .matter-folder-roots {
   margin: 0;
@@ -266,12 +268,12 @@
 .matter-folder-tree .matter-folder-branch {
   position: relative;
   margin: 0;
-  padding: 0 0 2px;
+  padding: 0 0 1px;
 }
 .matter-folder-tree .matter-folder-branches:not(.matter-folder-roots) > .matter-folder-branch::before {
   content: "";
   position: absolute;
-  left: -14px;
+  left: -10px;
   top: 0;
   bottom: 0;
   border-left: 1px solid #c2ccdc;
@@ -280,24 +282,26 @@
 .matter-folder-tree .matter-folder-branches:not(.matter-folder-roots) > .matter-folder-branch::after {
   content: "";
   position: absolute;
-  left: -14px;
-  top: 16px;
-  width: 14px;
+  left: -10px;
+  top: 14px;
+  width: 10px;
   border-top: 1px solid #c2ccdc;
   pointer-events: none;
 }
 .matter-folder-tree .matter-folder-branches:not(.matter-folder-roots) > .matter-folder-branch:last-child::before {
   bottom: auto;
-  height: 16px;
+  height: 14px;
 }
 .matter-folder-tree .matter-folder-tree-node {
   display: flex;
   align-items: flex-start;
-  gap: 0.4rem;
+  gap: 0.3rem;
 }
 .matter-folder-tree-node > i {
   flex-shrink: 0;
   line-height: inherit;
+  font-size: 1rem;
+  margin-right: 0;
 }
 .matter-folder-tree-node > span {
   flex: 1;
@@ -315,9 +319,9 @@
   min-width: 0;
 }
 .matter-folder-tree .matter-folder-tree-toggle {
-  flex: 0 0 20px;
-  width: 20px;
-  height: 32px;
+  flex: 0 0 18px;
+  width: 18px;
+  height: 28px;
   padding: 0;
   display: flex;
   align-items: center;
@@ -329,6 +333,6 @@
   line-height: 1;
 }
 .matter-folder-tree-spacer {
-  flex: 0 0 20px;
-  width: 20px;
+  flex: 0 0 18px;
+  width: 18px;
 }
