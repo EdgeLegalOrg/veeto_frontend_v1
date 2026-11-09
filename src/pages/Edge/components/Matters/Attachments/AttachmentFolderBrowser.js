@@ -848,17 +848,6 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
               </tbody>
             </Table>
           </div>
-          {!!selected.size && (
-            <div className="d-flex align-items-center gap-2 mt-2">
-              <span className="small">{selected.size} files selected</span>
-              <Button size="sm" color="primary" onClick={() => setBinder({ focus: null, ids: [...selected] })}>
-                Open binder with selection
-              </Button>
-              <Button size="sm" outline color="primary" onClick={() => setSelected(new Set())}>
-                Clear
-              </Button>
-            </div>
-          )}
         </div>
       </div>
       <Modal
