@@ -11,6 +11,36 @@ import MasterFileBinderModal from "./MasterFileBinderModal";
 import "./AttachmentFolderBrowser.css";
 
 const contextType = "MATTER_ATTACHMENT";
+const cleanFolderName = (name) => name.replace(/\s+-\s+[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, "");
+// Labels are derived only; storage names, folder IDs and rename versions stay intact.
+const folderLabels = (folders, matterNumber) => {
+  const labels = new Map();
+  const siblings = new Map();
+  folders.forEach((folder) => {
+    const parent = folder.parentId ?? null;
+    if (!siblings.has(parent)) siblings.set(parent, []);
+    siblings.get(parent).push(folder);
+  });
+  siblings.forEach((group, parent) => {
+    const nameOf = (folder) => (parent === null && matterNumber != null ? `Matter #${matterNumber}` : cleanFolderName(folder.name));
+    const reserved = new Set(group.map((folder) => nameOf(folder).toLowerCase()));
+    const used = new Set();
+    group
+      .sort((a, b) => a.id - b.id)
+      .forEach((folder) => {
+        const base = nameOf(folder);
+        let label = base;
+        let suffix = 2;
+        // A real sibling named e.g. "Email (2)" keeps its own label.
+        while (used.has(label.toLowerCase()) || (label !== base && reserved.has(label.toLowerCase()))) {
+          label = `${base} (${suffix++})`;
+        }
+        used.add(label.toLowerCase());
+        labels.set(folder.id, label);
+      });
+  });
+  return labels;
+};
 const ancestorFolders = (folders, id) => {
   const parents = new Map(folders.map((folder) => [folder.id, folder.parentId]));
   const result = new Set();
@@ -38,7 +68,6 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
   const matterId = data?.id;
   const configuredStorage = useSelector(selectStorageType);
   const storageLoading = useSelector((state) => state.Storage?.loading || false);
-  const configuredStorageLabel = { SERVER: "Server", ONEDRIVE: "OneDrive" }[configuredStorage];
   const api = useMemo(() => documentFoldersApi(contextType, matterId), [matterId]);
   const [listing, setListing] = useState({ folders: [], files: [], warnings: [] });
   const [folderId, setFolderId] = useState(null);
@@ -64,10 +93,14 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
   const registrationAbort = useRef(null);
   const registrationAttempted = useRef(new Set());
   const registrationPaused = useRef(false);
-  const mutationBusy = busy || registration.running;
+  const rootAttempt = useRef(null);
+  const [rootSetup, setRootSetup] = useState({ running: false, error: "" });
+  const mutationBusy = busy || registration.running || rootSetup.running;
   const canEdit = checkHasPermission("UpdateMatter") && (!data?.flagArchived || checkHasPermission("EditArchivedMatter"));
   const canDelete = canEdit && checkHasPermission("DeleteMatterAttachment");
   const folders = listing.folders || [];
+  const labels = useMemo(() => folderLabels(listing.folders || [], data?.matterNumber), [listing.folders, data?.matterNumber]);
+  const folderLabel = (folder) => labels.get(folder.id) || folder.name;
   const files = listing.files || [];
   const current = folders.find((folder) => folder.id === folderId);
   const pendingRegistration = files.filter((file) => file.folderId == null).length;
@@ -104,6 +137,8 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
     registrationPaused.current = false;
     setRegistration({ running: false, paused: false, checked: 0, total: 0 });
     setRegistrationWarnings([]);
+    rootAttempt.current = null;
+    setRootSetup({ running: false, error: "" });
     return () => {
       sequence.current += 1;
       registrationAbort.current?.abort();
@@ -123,10 +158,19 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
     return () => setExtraButtons?.(null);
   }, [selected, setExtraButtons]);
 
+  useEffect(() => {
+    rootAttempt.current = null;
+    setRootSetup({ running: false, error: "" });
+    return () => {
+      rootAttempt.current = null;
+    };
+  }, [api, configuredStorage]);
+
   // Listing stays fast. Existing folder locations are resolved separately in
   // small requests; previews, downloads and navigation remain available.
   useEffect(() => {
-    if (listing.ownerId !== matterId || busy || dialog || registrationAbort.current || registrationPaused.current) return;
+    if (listing.ownerId !== matterId || busy || rootSetup.running || dialog || registrationAbort.current || registrationPaused.current)
+      return;
     const ids = (listing.files || [])
       .filter((file) => file.folderId == null && !registrationAttempted.current.has(file.id))
       .map((file) => file.id)
@@ -162,7 +206,38 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
       }
     };
     run();
-  }, [api, matterId, listing.ownerId, listing.files, busy, dialog, registrationRetry, registration.running, load]);
+  }, [api, matterId, listing.ownerId, listing.files, busy, rootSetup.running, dialog, registrationRetry, registration.running, load]);
+
+  // First map existing locations, then create/reuse only a missing configured root.
+  // The read-only listing API remains database-only and viewers never create storage.
+  useEffect(() => {
+    if (listing.ownerId !== matterId || !canEdit || storageLoading || busy || dialog || registration.running || registrationAbort.current)
+      return;
+    if (!["SERVER", "ONEDRIVE"].includes(configuredStorage)) return;
+    if (folders.some((folder) => folder.parentId == null && folder.provider === configuredStorage)) return;
+    const key = `${matterId}:${configuredStorage}`;
+    if (rootAttempt.current?.key === key) return;
+    const attempt = { key };
+    rootAttempt.current = attempt;
+    setRootSetup({ running: true, error: "" });
+    api
+      .root(configuredStorage)
+      .then((response) => {
+        if (rootAttempt.current !== attempt) return;
+        const root = response.data;
+        if (root?.id == null) throw new Error("Invalid root response");
+        setListing((previous) =>
+          previous.ownerId === matterId
+            ? { ...previous, folders: [...previous.folders.filter((folder) => folder.id !== root.id), root] }
+            : previous,
+        );
+        setFolderId((previous) => previous ?? root.id);
+        setRootSetup({ running: false, error: "" });
+      })
+      .catch((error) => {
+        if (rootAttempt.current === attempt) setRootSetup({ running: false, error: errorMessage(error) });
+      });
+  }, [api, matterId, listing.ownerId, folders, canEdit, storageLoading, configuredStorage, busy, dialog, registration.running]);
 
   const pauseRegistration = () => {
     registrationPaused.current = true;
@@ -259,7 +334,7 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
       seen.add(id);
       const folder = folders.find((item) => item.id === id);
       if (!folder) break;
-      names.unshift(folder.name);
+      names.unshift(folderLabel(folder));
       id = folder.parentId;
     }
     return names.join(" / ");
@@ -345,7 +420,7 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
   };
   const openDialog = (type, item) => {
     setDialog({ type, item });
-    setValue(type === "MOVE" ? "" : item?.name || "");
+    setValue(type === "MOVE" ? "" : type === "RENAME" ? cleanFolderName(item.name) : item?.name || "");
   };
   const saveDialog = () => {
     if (dialog.type === "CREATE") perform(() => api.create(folderId, value.trim()), "Folder created.");
@@ -388,7 +463,7 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
                     type="button"
                     className="matter-folder-tree-toggle"
                     disabled={busy}
-                    aria-label={`${expanded ? "Collapse" : "Expand"} ${folder.name}`}
+                    aria-label={`${expanded ? "Collapse" : "Expand"} ${folderLabel(folder)}`}
                     aria-expanded={expanded}
                     aria-controls={`matter-${matterId}-folder-${folder.id}-children`}
                     onClick={() => toggleFolder(folder.id)}
@@ -406,7 +481,7 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
                   onClick={() => openFolder(folder.id)}
                 >
                   <i className="ri-folder-2-fill text-warning" aria-hidden="true" />
-                  <span>{folder.name}</span>
+                  <span>{folderLabel(folder)}</span>
                 </button>
               </div>
               {hasChildren && expanded && tree(folder.id)}
@@ -420,9 +495,10 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
   const visibleFolders = folders
     .filter(
       (folder) =>
-        (scope === "MATTER" && needle ? true : folder.parentId === folderId) && (!needle || folder.name.toLowerCase().includes(needle)),
+        (scope === "MATTER" && needle ? true : folder.parentId === folderId) &&
+        (!needle || folderLabel(folder).toLowerCase().includes(needle)),
     )
-    .sort((a, b) => a.name.localeCompare(b.name));
+    .sort((a, b) => folderLabel(a).localeCompare(folderLabel(b)));
   const visibleFiles = files
     .filter(
       (file) =>
@@ -454,17 +530,6 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
             >
               Rename folder
             </Button>
-            {configuredStorageLabel && (
-              <Button
-                size="sm"
-                outline
-                color="primary"
-                disabled={mutationBusy || storageLoading}
-                onClick={() => perform(() => api.root(configuredStorage), `${configuredStorageLabel} root ready.`)}
-              >
-                {configuredStorageLabel} root
-              </Button>
-            )}
           </>
         )}
         {canDelete && (
@@ -493,15 +558,33 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
             event.target.value = "";
           }}
         />
-        {busy && (
+        {(busy || rootSetup.running) && (
           <span role="status" className="text-muted">
-            Processing…
+            {rootSetup.running ? "Preparing matter folder…" : "Processing…"}
           </span>
         )}
       </div>
       {loadError && (
         <div role="alert" className="alert alert-danger m-2">
           {loadError}
+        </div>
+      )}
+      {rootSetup.error && (
+        <div role="alert" className="alert alert-danger m-2">
+          Matter folder setup failed: {rootSetup.error}{" "}
+          <Button
+            size="sm"
+            outline
+            color="primary"
+            disabled={mutationBusy}
+            onClick={() => {
+              rootAttempt.current = null;
+              setRootSetup({ running: false, error: "" });
+              load();
+            }}
+          >
+            Retry folder setup
+          </Button>
         </div>
       )}
       {(registration.running || pendingRegistration > 0) && (
@@ -614,7 +697,7 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
                       <td>
                         <input
                           type="checkbox"
-                          aria-label={`Select all files in ${folder.name}`}
+                          aria-label={`Select all files in ${folderLabel(folder)}`}
                           disabled={!ids.length}
                           checked={!!ids.length && ids.every((id) => selected.has(id))}
                           onChange={() => toggleIds(ids)}
@@ -623,7 +706,7 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
                       <td colSpan={4}>
                         <button className="matter-folder-name" onClick={() => openFolder(folder.id)}>
                           <i className="ri-folder-2-fill text-warning me-2" />
-                          {folder.name}
+                          {folderLabel(folder)}
                         </button>
                         {scope === "MATTER" && needle && <div className="small text-muted">{location(folder.parentId)}</div>}
                       </td>
@@ -804,7 +887,7 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
             </>
           )}
           {dialog?.type === "DELETE_FOLDER" && (
-            <p className="mb-0">Delete “{dialog.item.name}”? It must contain no files or subfolders, including items in storage.</p>
+            <p className="mb-0">Delete “{folderLabel(dialog.item)}”? It must contain no files or subfolders, including items in storage.</p>
           )}
           {dialog?.type === "DELETE_FILES" && (
             <p className="mb-0">
