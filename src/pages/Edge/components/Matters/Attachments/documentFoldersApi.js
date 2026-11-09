@@ -15,6 +15,7 @@ export const documentFoldersApi = (contextType, contextId) => {
     renameFile: (id, name) => API.patch(`${url}/files/${id}`, { name }),
     deleteFile: (id) => API.delete(`${url}/files/${id}`),
     deleteFiles: (fileIds) => API.delete(`${url}/files`, { data: { fileIds } }),
+    deleteEmailGroup: (groupId) => API.delete(`${url}/email-groups/${encodeURIComponent(groupId)}`),
     upload: (folderId, file, name) => {
       const body = new FormData();
       body.append("folderId", folderId);
