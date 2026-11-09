@@ -61,6 +61,23 @@
   text-align: left;
   overflow-wrap: anywhere;
 }
+.matter-attachment-type-icon {
+  display: inline-block;
+  flex-shrink: 0;
+  font-size: 1.25rem;
+  line-height: 1;
+  vertical-align: middle;
+  margin-right: 0.4rem;
+}
+.matter-folder-email-context {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.2rem;
+  color: #6c757d;
+  font-size: 0.75rem;
+}
 .matter-folder-avatar {
   display: inline-flex;
   justify-content: center;

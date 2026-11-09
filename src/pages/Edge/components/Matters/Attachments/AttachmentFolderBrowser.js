@@ -8,6 +8,7 @@ import { checkHasPermission, formatDateFunc, formatDateTimeFunc } from "../../..
 import { downloadMatterAttach } from "../../../apis";
 import { documentFoldersApi } from "./documentFoldersApi";
 import MasterFileBinderModal from "./MasterFileBinderModal";
+import AttachmentTypeIcon from "./AttachmentTypeIcon";
 import "./AttachmentFolderBrowser.css";
 
 const contextType = "MATTER_ATTACHMENT";
@@ -62,6 +63,40 @@ const initials = (name) =>
     .toUpperCase();
 const fileName = (file) =>
   file.type && !file.name?.toLowerCase().endsWith(`.${file.type.toLowerCase()}`) ? `${file.name}.${file.type}` : file.name;
+const EmailContext = ({ email }) =>
+  email?.direction ? (
+    <div className="matter-folder-email-context">
+      <span className={`badge ${email.direction === "SENT" ? "bg-primary" : "bg-success"}`}>
+        {email.direction === "SENT" ? "Sent" : "Received"}
+      </span>
+      <span>{email.direction === "SENT" ? `To: ${email.recipient || "—"}` : `From: ${email.sender || "—"}`}</span>
+    </div>
+  ) : null;
+const UploadDate = ({ file }) => (
+  <span title={file?.uploadDate ? formatDateTimeFunc(file.uploadDate) : ""}>
+    {file?.uploadDate ? (
+      <>
+        {formatDateFunc(file.uploadDate, "DD/MM/YYYY")}
+        <span className="d-block small text-muted">{formatDateTimeFunc(file.uploadDate, "hh:mm A")}</span>
+      </>
+    ) : (
+      "—"
+    )}
+  </span>
+);
+const Uploader = ({ file }) =>
+  file ? (
+    <span
+      className="matter-folder-avatar"
+      title={file.uploadedBy || "Unknown uploader"}
+      tabIndex={0}
+      aria-label={file.uploadedBy || "Unknown uploader"}
+    >
+      {initials(file.uploadedBy)}
+    </span>
+  ) : (
+    "—"
+  );
 
 /** Storage-backed folder tree and compact file table; moves never cross a matter/storage root. */
 const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
@@ -102,6 +137,18 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
   const labels = useMemo(() => folderLabels(listing.folders || [], data?.matterNumber), [listing.folders, data?.matterNumber]);
   const folderLabel = (folder) => labels.get(folder.id) || folder.name;
   const files = listing.files || [];
+  const filesById = new Map(files.map((file) => [file.id, file]));
+  const emailSources = new Map(
+    folders
+      .filter((folder) => folder.emailUploadGroupId)
+      .map((folder) => [
+        folder.id,
+        filesById.get(folder.emailAttachmentId)?.uploadGroupId === folder.emailUploadGroupId &&
+        filesById.get(folder.emailAttachmentId)?.type?.toLowerCase() === "msg"
+          ? filesById.get(folder.emailAttachmentId)
+          : undefined,
+      ]),
+  );
   const current = folders.find((folder) => folder.id === folderId);
   const pendingRegistration = files.filter((file) => file.folderId == null).length;
   const warnings = [...(listing.warnings || []), ...registrationWarnings];
@@ -480,7 +527,10 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
                   disabled={busy}
                   onClick={() => openFolder(folder.id)}
                 >
-                  <i className="ri-folder-2-fill text-warning" aria-hidden="true" />
+                  <AttachmentTypeIcon
+                    type={folder.emailUploadGroupId ? "email" : "folder"}
+                    direction={emailSources.get(folder.id)?.direction}
+                  />
                   <span>{folderLabel(folder)}</span>
                 </button>
               </div>
@@ -688,6 +738,7 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
               <tbody>
                 {visibleFolders.map((folder) => {
                   const ids = folderFiles(folder.id);
+                  const email = emailSources.get(folder.id);
                   return (
                     <tr
                       key={`folder-${folder.id}`}
@@ -703,12 +754,22 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
                           onChange={() => toggleIds(ids)}
                         />
                       </td>
-                      <td colSpan={4}>
+                      <td>
                         <button className="matter-folder-name" onClick={() => openFolder(folder.id)}>
-                          <i className="ri-folder-2-fill text-warning me-2" />
+                          <AttachmentTypeIcon type={folder.emailUploadGroupId ? "email" : "folder"} direction={email?.direction} />
                           {folderLabel(folder)}
                         </button>
+                        <EmailContext email={email} />
                         {scope === "MATTER" && needle && <div className="small text-muted">{location(folder.parentId)}</div>}
+                      </td>
+                      <td>{folder.emailUploadGroupId ? <UploadDate file={email} /> : "—"}</td>
+                      <td>{folder.emailUploadGroupId ? <Uploader file={email} /> : "—"}</td>
+                      <td>
+                        {email && (
+                          <Button size="sm" outline color="primary" onClick={() => download(email)}>
+                            Download email
+                          </Button>
+                        )}
                       </td>
                     </tr>
                   );
@@ -732,38 +793,19 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
                     </td>
                     <td>
                       <button className="matter-folder-name" onClick={() => download(file)}>
-                        {fileName(file)}
+                        <AttachmentTypeIcon type={file.type} name={file.name} direction={file.direction} />
+                        {file.name}
                       </button>
-                      <span className="badge bg-light text-secondary ms-2">{file.type?.toUpperCase() || "FILE"}</span>
-                      {file.direction && (
-                        <div className="small text-muted">
-                          {file.direction === "SENT" ? `Sent · To: ${file.recipient || "—"}` : `Received · From: ${file.sender || "—"}`}
-                        </div>
-                      )}
-                      {file.uploadGroupName && <div className="small text-muted">Email: {file.uploadGroupName}</div>}
+                      {["msg", "eml"].includes(file.type?.toLowerCase()) && <EmailContext email={file} />}
                       {scope === "MATTER" && (
                         <div className="small text-muted">{location(file.folderId) || "Location pending registration"}</div>
                       )}
                     </td>
-                    <td title={file.uploadDate ? formatDateTimeFunc(file.uploadDate) : ""}>
-                      {file.uploadDate ? (
-                        <>
-                          {formatDateFunc(file.uploadDate, "DD/MM/YYYY")}
-                          <div className="small text-muted">{formatDateTimeFunc(file.uploadDate, "hh:mm A")}</div>
-                        </>
-                      ) : (
-                        "—"
-                      )}
+                    <td>
+                      <UploadDate file={file} />
                     </td>
                     <td>
-                      <span
-                        className="matter-folder-avatar"
-                        title={file.uploadedBy || "Unknown uploader"}
-                        tabIndex={0}
-                        aria-label={file.uploadedBy || "Unknown uploader"}
-                      >
-                        {initials(file.uploadedBy)}
-                      </span>
+                      <Uploader file={file} />
                     </td>
                     <td>
                       <div className="matter-folder-actions">
