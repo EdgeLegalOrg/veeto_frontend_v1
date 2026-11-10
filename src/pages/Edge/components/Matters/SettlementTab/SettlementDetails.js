@@ -174,7 +174,7 @@ const SettlementDetails = ({ data, isArchived = false, onClose }) => {
       if (activeRef.current) setSaving(false);
     }
   };
-  const pdfReady = Boolean(sheet?.version != null && !dirty && !adjustmentDraft && !totals?.errors.length && !saving && !pdfBusy);
+  const pdfReady = Boolean(sheet?.version != null && !sheet.validationError && !dirty && !adjustmentDraft && !totals?.errors.length && !saving && !pdfBusy);
   const pdfAction = async (action, revision) => {
     if (pdfBusy || (action !== "revision" && !pdfReady)) return;
     const requestedMatter = data.id;
@@ -280,6 +280,12 @@ const SettlementDetails = ({ data, isArchived = false, onClose }) => {
         </div>
       </div>
       {!editable && <div className="alert alert-info">This worksheet is read only.</div>}
+      {sheet.validationError && (
+        <div className="alert alert-warning" role="alert">
+          Saved worksheet needs correction: {sheet.validationError}
+          <div className="small">Correct the indicated fields and save again before generating a new PDF. Existing saved values have been preserved.</div>
+        </div>
+      )}
       {error && (
         <div className="alert alert-danger" role="alert">
           {error}
