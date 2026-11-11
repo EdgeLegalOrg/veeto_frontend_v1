@@ -141,7 +141,7 @@ const Navdata = () => {
       document.body.classList.add("twocolumn-panel");
     }
     if (iscurrentState === "Documents") {
-      history("/Documents");
+      history("/team-precedents");
       document.body.classList.add("twocolumn-panel");
     }
     if (iscurrentState === "Contacts") {
@@ -200,18 +200,18 @@ const Navdata = () => {
         setIscurrentState("Matters");
       },
     },
-    // {
-    //   id: "Documents",
-    //   label: "Documents",
-    //   icon: " ri-file-copy-2-line",
-    //   link: "/Documents",
-    //   show: true,
-    //   click: function (e) {
-    //     e.preventDefault();
-    //     // closeNavWithSubItems();
-    //     setIscurrentState("Documents");
-    //   },
-    // },
+    {
+      id: "Documents",
+      label: "Team Precedents",
+      icon: " ri-file-copy-2-line",
+      link: "/team-precedents",
+      show: true,
+      click: function (e) {
+        e.preventDefault();
+        // closeNavWithSubItems();
+        setIscurrentState("Documents");
+      },
+    },
     {
       id: "Contacts",
       label: "Contacts",

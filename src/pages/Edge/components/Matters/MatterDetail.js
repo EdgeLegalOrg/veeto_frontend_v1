@@ -37,6 +37,7 @@ import { AlertPopup } from "../customComponents/CustomComponents";
 
 //file directory import
 import FileDirectoryModal from "./../FileDirectory/index";
+import TeamPrecedentPicker from "../TeamPrecedents/TeamPrecedentPicker";
 import { toast } from "react-toastify";
 import {
   updateFormStatusAction,
@@ -432,6 +433,10 @@ const MatterDetail = (props) => {
               name: "Forms",
               type: "FORM",
             },
+            {
+              name: "Team Precedents",
+              type: "TEAM",
+            },
           ].map((item) => (
             <Button
               key={item.name}
@@ -504,9 +509,14 @@ const MatterDetail = (props) => {
           matterData={data}
           modal={modal}
           setModal={setModal}
-          isOpen={modalOpen}
+          isOpen={modalOpen && modal.type !== "TEAM"}
           onClose={handleModalClose}
         />
+
+        {modalOpen && modal.type === "TEAM" && <TeamPrecedentPicker
+          key={data.id} matter={data} onClose={handleModalClose}
+          onSaved={handleRefresh}
+        />}
 
         {/***********Type Section Tab***** */}
         <MatterTabList

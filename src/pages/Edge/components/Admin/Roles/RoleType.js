@@ -41,6 +41,11 @@ const CATEGORY_DEFINITIONS = [
     ],
   },
   {
+    key: 'TEAM_PRECEDENTS',
+    label: 'TEAM PRECEDENTS',
+    fallbackRights: ['UploadTeamPrecedents', 'DeleteTeamPrecedents'],
+  },
+  {
     key: 'REPORTS',
     label: 'REPORTS',
     fallbackRights: [

@@ -17,6 +17,7 @@ import UserProfile from '../pages/Authentication/user-profile';
 import MatterList from '../pages/Edge/components/Matters/MatterList';
 import Contact from '../pages/Edge/components/contacts/contacts';
 import DocumentPage from '../pages/Edge/components/Document/DocumentPage';
+import TeamPrecedentPage from '../pages/Edge/components/TeamPrecedents/TeamPrecedentPage';
 import AllSafeCustody from '../pages/Edge/components/safeCustody/AllSafeCustody';
 import SafeCustodySection from '../pages/Edge/components/safeCustody/safeCustody';
 import PropertyList from '../pages/Edge/components/property/property';
@@ -74,6 +75,7 @@ const authProtectedRoutes = [
   { path: '/matters', component: <MatterList /> },
   { path: '/Contacts', component: <Contact /> },
   { path: '/Documents', component: <DocumentPage /> },
+  { path: '/team-precedents', component: <TeamPrecedentPage /> },
   { path: '/safe-custody', component: <AllSafeCustody /> },
   { path: '/safe-custody/:id', component: <SafeCustodySection /> },
   { path: '/property', component: <PropertyList /> },

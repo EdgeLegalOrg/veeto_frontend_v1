@@ -1228,8 +1228,8 @@ export const checkContactsLinked = (contactIds, contactTypes) =>
   );
 
 // Storage Type - matches /api/user/storage controller
-export const getStorageTypeApi = () =>
-  API.get(`/api/storage?requestId=${uuidv1()}`);
+export const getStorageTypeApi = (params) =>
+  API.get(`/api/storage?requestId=${uuidv1()}`, { params });
 
 // Fetch existing storage provider configuration
 export const fetchStorageConfigApi = () =>
