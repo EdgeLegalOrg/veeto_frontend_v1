@@ -76,12 +76,12 @@ const TeamPrecedentPicker = ({ matter, onClose, onSaved }) => {
     finally { setBusy(false); }
   };
 
-  return <Modal isOpen toggle={busy ? undefined : onClose} size="xl" className="matter-folder-modal team-precedent-picker" centered style={{ maxWidth: "min(1400px, 96vw)", width: "96vw" }}>
+  return <Modal isOpen toggle={busy ? undefined : onClose} size="xl" className="matter-folder-modal team-precedent-picker" centered style={{ maxWidth: chosen ? 760 : 1400, width: chosen ? "90vw" : "96vw" }}>
     <ModalHeader toggle={busy ? undefined : onClose}>Team Precedents — Matter #{matter.matterNumber}</ModalHeader>
     <ModalBody>
       {error && <div className="alert alert-danger" role="alert">{error}</div>}
       {!chosen ? <>
-        <p className="text-muted">Choose a master file from the company’s shared Team Precedents. All files are shown; matter type and sub-type filters are optional.</p>
+        <p className="text-muted">Choose a master file from the company’s shared Team Precedents. Browse its folders or search by filename.</p>
         <TeamPrecedentBrowser siteId={matter.siteId} onChoose={(file, config) => {
           setChosen({ file, config }); setName(file.name || ""); setOutput("DOWNLOAD"); setError("");
           setAction(["doc", "docx"].includes(file.type?.toLowerCase()) ? "GENERATE" : "COPY");

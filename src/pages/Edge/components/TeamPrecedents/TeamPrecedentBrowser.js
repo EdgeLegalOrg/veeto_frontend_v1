@@ -3,9 +3,13 @@ import { Button, Input, Modal, ModalHeader, ModalBody, ModalFooter, Table } from
 import fileDownload from "js-file-download";
 import { toast } from "react-toastify";
 import { formatDateTimeFunc } from "../../utils/utilFunc";
+import TeamPrecedentPreview from "./TeamPrecedentPreview";
 import AttachmentTypeIcon from "../Matters/Attachments/AttachmentTypeIcon";
 import "../Matters/Attachments/AttachmentFolderBrowser.css";
 import { downloadName, teamPrecedentsApi, teamPrecedentsConfiguration } from "./api";
+
+// Retain classification support while its controls are temporarily hidden.
+const showClassificationControls = false;
 
 const filename = (file) => file.type && !file.name?.toLowerCase().endsWith(`.${file.type.toLowerCase()}`) ? `${file.name}.${file.type}` : file.name;
 const failure = async (error) => {
@@ -29,6 +33,7 @@ const TeamPrecedentBrowser = ({ siteId, onChoose }) => {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [dialog, setDialog] = useState(null);
+  const [preview, setPreview] = useState(null);
   const [value, setValue] = useState("");
   const [uploadFiles, setUploadFiles] = useState([]);
   const [classification, setClassification] = useState({ matterType: "", matterSubType: "" });
@@ -77,7 +82,7 @@ const TeamPrecedentBrowser = ({ siteId, onChoose }) => {
 
   useEffect(() => {
     setConfig(null); setListing({ folders: [], files: [] }); setFolderId(null); setSelected(new Set()); setExpanded(new Set());
-    setScope("FOLDER");
+    setScope("FOLDER"); setPreview(null);
     load();
     return () => { sequence.current += 1; };
   }, [load]);
@@ -86,7 +91,10 @@ const TeamPrecedentBrowser = ({ siteId, onChoose }) => {
     if (locked) return;
     setBusy(true);
     try { await run(); toast.success(message); setDialog(null); }
-    catch (err) { toast.error(await failure(err)); }
+    catch (err) {
+      if (dialog?.type === "DELETE_FOLDER") setDialog(null);
+      toast.error(await failure(err));
+    }
     finally { await load(); setBusy(false); }
   };
   const location = (id) => {
@@ -145,7 +153,7 @@ const TeamPrecedentBrowser = ({ siteId, onChoose }) => {
   const needle = query.trim().toLowerCase();
   const visible = files.filter((file) => (scope === "LIBRARY" || file.folderId === folderId)
     && (!needle || `${file.name} ${file.uploadedBy || ""}`.toLowerCase().includes(needle))
-    && (!matterType || file.matterType === matterType) && (!subType || file.matterSubType === subType))
+    && (!showClassificationControls || ((!matterType || file.matterType === matterType) && (!subType || file.matterSubType === subType))))
     .sort((a, b) => sort === "NAME" ? a.name.localeCompare(b.name) : new Date(b.uploadDate || 0) - new Date(a.uploadDate || 0));
   const childFolders = folders.filter((folder) => (folder.parentId ?? null) === folderId && (!needle || folder.name.toLowerCase().includes(needle)));
   const submit = () => {
@@ -188,12 +196,14 @@ const TeamPrecedentBrowser = ({ siteId, onChoose }) => {
           <Input bsSize="sm" style={{ flex: "1 1 180px" }} value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search filename or uploader…" aria-label="Search Team Precedents" />
           <Input bsSize="sm" type="select" style={{ width: 155 }} value={scope} onChange={(event) => setScope(event.target.value)}><option value="LIBRARY">Entire library</option><option value="FOLDER">Current folder</option></Input>
           <Input bsSize="sm" type="select" style={{ width: 145 }} value={sort} onChange={(event) => setSort(event.target.value)}><option value="DATE">Newest first</option><option value="NAME">Name</option></Input>
+          {showClassificationControls && <>
           <Input bsSize="sm" type="select" aria-label="Matter type filter" style={{ width: 190 }} value={matterType} onChange={(event) => { setMatterType(event.target.value); setSubType(""); }}>
             <option value="">All matter types</option>{types.map((type) => <option key={type.code} value={type.code}>{type.name}</option>)}
           </Input>
           <Input bsSize="sm" type="select" aria-label="Matter sub-type filter" style={{ width: 190 }} value={subType} disabled={!matterType} onChange={(event) => setSubType(event.target.value)}>
             <option value="">All sub-types</option>{subTypes.map((type) => <option key={type.code} value={type.code}>{type.name}</option>)}
           </Input>
+          </>}
         </div>
         <div className="table-responsive matter-folder-list" tabIndex={0} role="region" aria-label="Team Precedents contents">
           <Table hover className="matter-folder-table mb-0"><thead><tr><th style={{ width: 32 }}>{canDelete && <input type="checkbox" aria-label="Select visible masters" checked={!!visible.length && visible.every((file) => selected.has(file.id))} onChange={() => setSelected((previous) => { const next = new Set(previous), remove = visible.every((file) => next.has(file.id)); visible.forEach((file) => remove ? next.delete(file.id) : next.add(file.id)); return next; })} />}</th><th>Name</th><th>Uploaded</th><th>By</th><th>Actions</th></tr></thead><tbody>
@@ -202,17 +212,18 @@ const TeamPrecedentBrowser = ({ siteId, onChoose }) => {
               <td>{canDelete && <input type="checkbox" aria-label={`Select ${file.name}`} checked={selected.has(file.id)} onChange={() => toggleSelection(file.id)} />}</td>
               <td><button className="matter-folder-name" onClick={() => download(file)}><AttachmentTypeIcon type={file.type} name={file.name} />{file.name}</button>
                 {scope === "LIBRARY" && <div className="small text-muted">{location(file.folderId) || "Library location unavailable"}</div>}
-                {file.matterType && <div className="small text-muted">{types.find((type) => type.code === file.matterType)?.name || file.matterType}{file.matterSubType ? ` / ${types.flatMap((type) => type.subTypes || []).find((type) => type.code === file.matterSubType)?.name || file.matterSubType}` : ""}</div>}
+                {showClassificationControls && file.matterType && <div className="small text-muted">{types.find((type) => type.code === file.matterType)?.name || file.matterType}{file.matterSubType ? ` / ${types.flatMap((type) => type.subTypes || []).find((type) => type.code === file.matterSubType)?.name || file.matterSubType}` : ""}</div>}
               </td>
               <td>{file.uploadDate ? formatDateTimeFunc(file.uploadDate) : "—"}</td>
               <td><span className="matter-folder-avatar" title={file.uploadedBy || "Unknown uploader"}>{(file.uploadedBy || "?").split(/[\s@]+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase()}</span></td>
               <td><div className="matter-folder-actions">
+                <Button size="sm" outline color="primary" onClick={() => setPreview(file)}>Preview</Button>
                 {onChoose && <Button size="sm" color="primary" onClick={() => onChoose(file, config)}>Select</Button>}
                 <Button size="sm" outline color="primary" onClick={async () => { try { const response = await apiRef.current.history(file.id); setDialog({ type: "HISTORY", item: file, versions: response.data }); } catch (err) { toast.error(await failure(err)); } }}>Versions</Button>
                 {canManage && <>
                   <Button size="sm" outline color="primary" disabled={locked} onClick={() => openDialog("RENAME_FILE", file)}>Rename</Button>
                   <Button size="sm" outline color="primary" disabled={locked || !file.folderId} onClick={() => { openDialog("MOVE", file); setValue(""); }}>Move</Button>
-                  <Button size="sm" outline color="primary" disabled={locked} onClick={() => openDialog("CLASSIFY", file)}>Classify</Button>
+                  {showClassificationControls && <Button size="sm" outline color="primary" disabled={locked} onClick={() => openDialog("CLASSIFY", file)}>Classify</Button>}
                   <Button size="sm" outline color="primary" disabled={locked || !file.folderId} onClick={() => { replaceTarget.current = file; replaceInput.current?.click(); }}>Upload version</Button>
                 </>}
               </div></td>
@@ -222,6 +233,7 @@ const TeamPrecedentBrowser = ({ siteId, onChoose }) => {
         </div>
       </div>
     </div>
+    {preview && config && <TeamPrecedentPreview key={`${config.companyId}:${preview.id}:${preview.version}`} companyId={config.companyId} file={preview} onClose={() => setPreview(null)} />}
     <Modal isOpen={!!dialog} centered scrollable backdrop="static" className="matter-folder-modal" size={dialog?.type === "UPLOAD" ? "lg" : "md"} toggle={() => { if (!busy) setDialog(null); }}>
       <ModalHeader toggle={busy ? undefined : () => setDialog(null)}>{({ CREATE: "Create folder", RENAME_FOLDER: "Rename folder", RENAME_FILE: "Rename file", MOVE: "Move file", DELETE_FOLDER: "Delete empty folder", DELETE_FILES: "Delete selected masters", CLASSIFY: "Matter classification", UPLOAD: "Upload files", HISTORY: "Document versions" })[dialog?.type]}</ModalHeader>
       <ModalBody>
@@ -229,7 +241,7 @@ const TeamPrecedentBrowser = ({ siteId, onChoose }) => {
         {dialog?.type === "MOVE" && <><label className="form-label">Destination folder</label><Input type="select" value={value} disabled={busy} onChange={(event) => setValue(event.target.value)}><option value="">Choose destination</option>{folders.filter((folder) => { const source = rootOf(dialog.item.folderId), target = rootOf(folder.id); return source && target && source.provider === target.provider && source.id === target.id && source.storageConfigId === target.storageConfigId && folder.id !== dialog.item.folderId; }).map((folder) => <option key={folder.id} value={folder.id}>{location(folder.id)}</option>)}</Input></>}
         {dialog?.type === "DELETE_FOLDER" && <p>Delete “{dialog.item.name}”? It must be empty, including items in storage.</p>}
         {dialog?.type === "DELETE_FILES" && <p>Delete {selected.size} selected master document(s) and their version history? Matter copies remain unchanged. This cannot be undone.</p>}
-        {dialog?.type === "CLASSIFY" && <><label className="form-label">Matter type (optional)</label><Input type="select" value={classification.matterType} onChange={(event) => setClassification({ matterType: event.target.value, matterSubType: "" })}><option value="">Unclassified / general document</option>{types.map((type) => <option key={type.code} value={type.code}>{type.name}</option>)}</Input><label className="form-label mt-3">Sub-type (optional)</label><Input type="select" disabled={!classification.matterType} value={classification.matterSubType} onChange={(event) => setClassification((previous) => ({ ...previous, matterSubType: event.target.value }))}><option value="">All sub-types</option>{(types.find((type) => type.code === classification.matterType)?.subTypes || []).map((type) => <option key={type.code} value={type.code}>{type.name}</option>)}</Input></>}
+        {showClassificationControls && dialog?.type === "CLASSIFY" && <><label className="form-label">Matter type (optional)</label><Input type="select" value={classification.matterType} onChange={(event) => setClassification({ matterType: event.target.value, matterSubType: "" })}><option value="">Unclassified / general document</option>{types.map((type) => <option key={type.code} value={type.code}>{type.name}</option>)}</Input><label className="form-label mt-3">Sub-type (optional)</label><Input type="select" disabled={!classification.matterType} value={classification.matterSubType} onChange={(event) => setClassification((previous) => ({ ...previous, matterSubType: event.target.value }))}><option value="">All sub-types</option>{(types.find((type) => type.code === classification.matterType)?.subTypes || []).map((type) => <option key={type.code} value={type.code}>{type.name}</option>)}</Input></>}
         {dialog?.type === "UPLOAD" && <><div className="matter-folder-dialog-context mb-3">Destination: {location(dialog.target)}</div>{uploadFiles.map((entry, index) => <div className="mb-3" key={index}><label className="form-label">{entry.file.name}</label><Input value={entry.name} maxLength={200} disabled={busy} onChange={(event) => setUploadFiles((previous) => previous.map((item, i) => i === index ? { ...item, name: event.target.value } : item))} /></div>)}</>}
         {dialog?.type === "HISTORY" && <><p>Current file: <button className="matter-folder-name" onClick={() => download(dialog.item)}>{filename(dialog.item)}</button></p>{dialog.versions.map((version) => <div className="d-flex justify-content-between gap-2 mb-2" key={version.id}><span>Version {version.version ?? version.id} · {version.uploadDate ? formatDateTimeFunc(version.uploadDate) : "—"} · {version.uploadedBy || "—"}</span><Button size="sm" outline color="primary" onClick={() => download(dialog.item, version.id)}>Download</Button></div>)}{!dialog.versions.length && <p>No saved version history.</p>}</>}
       </ModalBody>

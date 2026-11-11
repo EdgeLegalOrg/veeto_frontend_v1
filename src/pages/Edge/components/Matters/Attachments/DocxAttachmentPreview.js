@@ -10,7 +10,7 @@ const PREVIEW_FRAME = `<!doctype html><html><head><meta charset="utf-8">
 .docx-wrapper>section.docx{margin-bottom:20px!important}
 </style></head><body><div id="docx-styles"></div><div id="docx-content"></div></body></html>`;
 
-const DocxAttachmentPreview = ({ attachmentId, title, onDownload }) => {
+const DocxAttachmentPreview = ({ attachmentId, title, onDownload, loadPreview = fetchAttachmentInlinePreview }) => {
   const frameRef = useRef(null);
   const [frameReady, setFrameReady] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -31,7 +31,7 @@ const DocxAttachmentPreview = ({ attachmentId, title, onDownload }) => {
     const load = async () => {
       try {
         const [response, { renderAsync }] = await Promise.all([
-          fetchAttachmentInlinePreview(attachmentId, { signal: controller.signal }),
+          loadPreview(attachmentId, { signal: controller.signal }),
           import("docx-preview"),
         ]);
         if (!current) return;
@@ -54,7 +54,7 @@ const DocxAttachmentPreview = ({ attachmentId, title, onDownload }) => {
       content.replaceChildren();
       styles.replaceChildren();
     };
-  }, [attachmentId, frameReady]);
+  }, [attachmentId, frameReady, loadPreview]);
 
   if (error) return (
     <div className="binder-scroll-canvas">
