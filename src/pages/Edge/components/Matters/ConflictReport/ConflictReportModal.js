@@ -495,7 +495,7 @@ const ConflictReportModal = ({ isOpen, toggle, matter, onSuccess }) => {
         <div className="d-flex align-items-center gap-2">
 
            <Button
-            color="success"
+            color="warning"
             onClick={() => handleSignOff("FOR_REVIEW")}
             disabled={loading || submitting || !!error || !reportData}
             className="d-flex align-items-center gap-1"
