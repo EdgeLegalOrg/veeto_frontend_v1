@@ -336,3 +336,49 @@
   flex: 0 0 18px;
   width: 18px;
 }
+
+/* The email is the parent; attachment rows are inset beyond its icon connector. */
+.matter-folder-table { --email-tree-title-indent: 3.025rem; --email-tree-icon-axis: 2.45rem; }
+.matter-folder-table .email-tree-parent > td,
+.matter-folder-table .email-tree-child > td { background-color: var(--vz-secondary-bg, #fff); }
+.email-tree-heading { display: grid; grid-template-columns: 1.125rem minmax(0, 1fr); align-items: start; gap: 0.25rem; }
+.email-tree-toggle, .email-tree-toggle-spacer { width: 1.125rem; }
+.email-tree-toggle { padding: 0; border: 0; background: transparent; color: inherit; }
+.email-tree-heading .matter-folder-name { display: grid; grid-template-columns: 1.25rem minmax(0, 1fr); gap: 0.4rem; align-items: start; }
+.email-tree-heading .matter-attachment-type-icon { margin-right: 0; }
+.email-tree-details { padding-left: var(--email-tree-title-indent); }
+.matter-folder-table .email-tree-child > td { padding-top: 0.25rem !important; padding-bottom: 0.25rem !important; }
+.email-tree-parent > td:nth-child(2),
+.email-tree-child > td:nth-child(2) { position: relative; }
+.email-tree-expanded > td:nth-child(2)::before,
+.email-tree-child > td:nth-child(2)::before {
+  content: "";
+  position: absolute;
+  left: var(--email-tree-icon-axis);
+  top: 0;
+  bottom: 0;
+  border-left: 1px solid #c2ccdc;
+  pointer-events: none;
+}
+.email-tree-expanded > td:nth-child(2)::before { top: 1.6rem; }
+.email-tree-last-child > td:nth-child(2)::before { bottom: 50%; }
+.email-tree-child > td:nth-child(2)::after {
+  content: "";
+  position: absolute;
+  left: var(--email-tree-icon-axis);
+  top: 50%;
+  width: 1.025rem;
+  border-top: 1px solid #c2ccdc;
+  pointer-events: none;
+}
+.email-tree-child .matter-folder-name {
+  display: grid;
+  grid-template-columns: 0.75rem minmax(0, 1fr);
+  align-items: center;
+  gap: 0.4rem;
+  padding-left: var(--email-tree-title-indent);
+}
+.email-tree-paperclip { position: relative; z-index: 1; background: var(--vz-secondary-bg, #fff); color: #8794a6; font-size: 1rem; }
+
+.matter-folder-table .document-folder-active-file > td { background-color: var(--vz-primary-bg-subtle, #edf2ff); }
+.document-folder-active-file .email-tree-paperclip { background-color: var(--vz-primary-bg-subtle, #edf2ff); }

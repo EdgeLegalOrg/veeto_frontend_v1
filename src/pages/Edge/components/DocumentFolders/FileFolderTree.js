@@ -16,6 +16,7 @@ const FileFolderTree = ({
   folderDirection,
   disabled,
   canDrop,
+  canDropFolder,
   onDrop,
   canDragFile,
   onFileDragStart,
@@ -97,9 +98,12 @@ const FileFolderTree = ({
               <div
                 className="matter-folder-tree-row"
                 onDragOver={(event) => {
-                  if (canDrop) event.preventDefault();
+                  if (canDrop && (!canDropFolder || canDropFolder(folder))) event.preventDefault();
                 }}
-                onDrop={(event) => onDrop?.(event, folder.id)}
+                onDrop={(event) => {
+                  if (!canDrop || (canDropFolder && !canDropFolder(folder))) { event.preventDefault(); event.stopPropagation(); return; }
+                  onDrop?.(event, folder.id);
+                }}
               >
                 {hasChildren ? (
                   <button
@@ -126,6 +130,7 @@ const FileFolderTree = ({
                 >
                   <AttachmentTypeIcon type={folder.emailUploadGroupId ? "email" : "folder"} direction={folderDirection?.(folder)} />
                   <span>{folderLabel(folder)}</span>
+                  {folder.emailUploadGroupId && <i className="ri-lock-line text-muted" title="Read-only email folder" aria-label="Read-only email folder" />}
                 </button>
               </div>
               {hasChildren && opened && branches(folder.id, new Set([...visited, folder.id]))}
