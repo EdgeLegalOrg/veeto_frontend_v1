@@ -1,8 +1,9 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button, Input, Modal, ModalHeader, ModalBody, ModalFooter, Table } from "reactstrap";
 import fileDownload from "js-file-download";
 import { toast } from "react-toastify";
 import { formatDateTimeFunc } from "../../utils/utilFunc";
+import FileFolderTree from "../DocumentFolders/FileFolderTree";
 import FolderUploadPicker from "../DocumentFolders/FolderUploadPicker";
 import TeamPrecedentPreview from "./TeamPrecedentPreview";
 import AttachmentTypeIcon from "../Matters/Attachments/AttachmentTypeIcon";
@@ -31,6 +32,7 @@ const TeamPrecedentBrowser = ({ siteId, onChoose }) => {
   const [config, setConfig] = useState(null);
   const [listing, setListing] = useState({ folders: [], files: [] });
   const [folderId, setFolderId] = useState(null);
+  const [activeFileId, setActiveFileId] = useState(null);
   const [expanded, setExpanded] = useState(new Set());
   const [selected, setSelected] = useState(new Set());
   const [query, setQuery] = useState("");
@@ -58,6 +60,7 @@ const TeamPrecedentBrowser = ({ siteId, onChoose }) => {
   const locked = busy || refreshing;
   const folders = listing.folders;
   const files = listing.files;
+  const knownFolderIds = useMemo(() => new Set(folders.map((folder) => folder.id)), [folders]);
   const current = folders.find((folder) => folder.id === folderId);
   const uploadRoot = folders.find(
     (folder) => folder.parentId == null && folder.name === "TEAM_PRECEDENTS" && folder.provider === config?.provider,
@@ -79,6 +82,7 @@ const TeamPrecedentBrowser = ({ siteId, onChoose }) => {
         if (token !== sequence.current) return;
         setConfig(setup);
         setListing(response.data);
+        setActiveFileId((previous) => (response.data.files.some((file) => file.id === previous) ? previous : null));
         setError("");
         let availableFolders = response.data.folders;
         if (
@@ -109,6 +113,7 @@ const TeamPrecedentBrowser = ({ siteId, onChoose }) => {
     setConfig(null);
     setListing({ folders: [], files: [] });
     setFolderId(null);
+    setActiveFileId(null);
     setSelected(new Set());
     setExpanded(new Set());
     setScope("FOLDER");
@@ -159,6 +164,7 @@ const TeamPrecedentBrowser = ({ siteId, onChoose }) => {
   const openFolder = (id) => {
     if (busy) return;
     setFolderId(id);
+    setActiveFileId(null);
     setScope("FOLDER");
     setQuery("");
     const next = new Set(expanded),
@@ -228,60 +234,35 @@ const TeamPrecedentBrowser = ({ siteId, onChoose }) => {
       queueFiles(event.dataTransfer.files, target);
     }
   };
-  const tree = (parentId = null, visited = new Set()) => (
-    <ul className={`matter-folder-branches ${parentId == null ? "matter-folder-roots" : ""}`}>
-      {folders
-        .filter((folder) => (folder.parentId ?? null) === parentId && !visited.has(folder.id))
-        .map((folder) => {
-          const hasChildren = folders.some((child) => child.parentId === folder.id),
-            opened = expanded.has(folder.id);
-          return (
-            <li className="matter-folder-branch" key={folder.id}>
-              <div
-                className="matter-folder-tree-row"
-                onDragOver={(event) => {
-                  if (canManage) event.preventDefault();
-                }}
-                onDrop={(event) => drop(event, folder.id)}
-              >
-                {hasChildren ? (
-                  <button
-                    className="matter-folder-tree-toggle"
-                    aria-label={`${opened ? "Collapse" : "Expand"} ${folder.name}`}
-                    aria-expanded={opened}
-                    onClick={() =>
-                      setExpanded((previous) => {
-                        const next = new Set(previous);
-                        next.has(folder.id) ? next.delete(folder.id) : next.add(folder.id);
-                        return next;
-                      })
-                    }
-                  >
-                    {opened ? "▾" : "▸"}
-                  </button>
-                ) : (
-                  <span className="matter-folder-tree-spacer" />
-                )}
-                <button
-                  className="matter-folder-tree-node"
-                  aria-current={folderId === folder.id ? "true" : undefined}
-                  onClick={() => openFolder(folder.id)}
-                >
-                  <AttachmentTypeIcon type="folder" />
-                  <span>{folder.name}</span>
-                </button>
-              </div>
-              {hasChildren && opened && tree(folder.id, new Set([...visited, folder.id]))}
-            </li>
-          );
-        })}
-    </ul>
-  );
+  const toggleFolder = (id) =>
+    setExpanded((previous) => {
+      const next = new Set(previous);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  const openFilePreview = (file, selectFolder = false) => {
+    if (busy) return;
+    const parentId = knownFolderIds.has(file.folderId) ? file.folderId : null;
+    if (selectFolder) openFolder(parentId);
+    else {
+      const next = new Set(expanded),
+        seen = new Set();
+      let cursor = parentId;
+      while (cursor != null && !seen.has(cursor)) {
+        seen.add(cursor);
+        next.add(cursor);
+        cursor = folders.find((folder) => folder.id === cursor)?.parentId;
+      }
+      setExpanded(next);
+    }
+    setActiveFileId(file.id);
+    setPreview(file);
+  };
   const needle = query.trim().toLowerCase();
   const visible = files
     .filter(
       (file) =>
-        (scope === "LIBRARY" || file.folderId === folderId) &&
+        (scope === "LIBRARY" || (knownFolderIds.has(file.folderId) ? file.folderId : null) === folderId) &&
         (!needle || `${file.name} ${file.uploadedBy || ""}`.toLowerCase().includes(needle)) &&
         (!showClassificationControls || ((!matterType || file.matterType === matterType) && (!subType || file.matterSubType === subType))),
     )
@@ -415,12 +396,34 @@ const TeamPrecedentBrowser = ({ siteId, onChoose }) => {
       <div className="matter-folder-panels">
         <nav className="matter-folder-tree" aria-label="Team Precedents folders" tabIndex={0}>
           <button
-            aria-current={folderId === (uploadRoot?.id ?? null) ? "true" : undefined}
+            aria-current={folderId == null && !uploadRoot && !files.length && activeFileId == null ? "true" : undefined}
             onClick={() => openFolder(uploadRoot?.id ?? null)}
           >
             Team Precedents
           </button>
-          {tree()}
+          <FileFolderTree
+            key={`team-${config?.companyId ?? siteId}`}
+            idPrefix={`team-${config?.companyId ?? siteId}`}
+            folders={folders}
+            files={files}
+            expanded={expanded}
+            folderId={folderId}
+            activeFileId={activeFileId}
+            onToggle={toggleFolder}
+            onFolderSelect={openFolder}
+            onFilePreview={(file) => openFilePreview(file, true)}
+            disabled={busy}
+            canDrop={canManage && !locked}
+            onDrop={drop}
+            canDragFile={(file) => canManage && knownFolderIds.has(file.folderId) && !locked}
+            onFileDragStart={(event, file) => {
+              event.dataTransfer.effectAllowed = "move";
+              event.dataTransfer.setData(
+                "application/x-veeto-team-precedent",
+                JSON.stringify({ id: file.id, companyId: config.companyId }),
+              );
+            }}
+          />
         </nav>
         <div
           className="matter-folder-contents"
@@ -517,17 +520,23 @@ const TeamPrecedentBrowser = ({ siteId, onChoose }) => {
                 {childFolders.map((folder) => (
                   <tr key={`folder-${folder.id}`} onDragOver={(event) => event.preventDefault()} onDrop={(event) => drop(event, folder.id)}>
                     <td />
-                    <td colSpan={4}>
+                    <td>
                       <button className="matter-folder-name" onClick={() => openFolder(folder.id)}>
                         <AttachmentTypeIcon type="folder" />
                         {folder.name}
                       </button>
                     </td>
+                    <td>{folder.createdDate ? formatDateTimeFunc(folder.createdDate) : "—"}</td>
+                    <td>{folder.createdBy?.trim() ? <span className="matter-folder-avatar" title={folder.createdBy} aria-label={folder.createdBy} tabIndex={0}>
+                      {folder.createdBy.split(/[\s@]+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase()}
+                    </span> : "—"}</td>
+                    <td />
                   </tr>
                 ))}
                 {visible.map((file) => (
                   <tr
                     key={file.id}
+                    className={activeFileId === file.id ? "document-folder-active-file" : undefined}
                     draggable={canManage && !!file.folderId && !locked}
                     onDragStart={(event) =>
                       event.dataTransfer.setData(
@@ -576,7 +585,7 @@ const TeamPrecedentBrowser = ({ siteId, onChoose }) => {
                     </td>
                     <td>
                       <div className="matter-folder-actions">
-                        <Button size="sm" outline color="primary" onClick={() => setPreview(file)}>
+                        <Button size="sm" outline color="primary" onClick={() => openFilePreview(file)}>
                           Preview
                         </Button>
                         {onChoose && (

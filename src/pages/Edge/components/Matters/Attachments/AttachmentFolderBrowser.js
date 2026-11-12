@@ -7,6 +7,7 @@ import fileDownload from "js-file-download";
 import { checkHasPermission, formatDateFunc, formatDateTimeFunc } from "../../../utils/utilFunc";
 import { downloadMatterAttach } from "../../../apis";
 import { documentFoldersApi } from "./documentFoldersApi";
+import FileFolderTree from "../../DocumentFolders/FileFolderTree";
 import FolderUploadPicker from "../../DocumentFolders/FolderUploadPicker";
 import MasterFileBinderModal from "./MasterFileBinderModal";
 import AttachmentTypeIcon from "./AttachmentTypeIcon";
@@ -107,6 +108,7 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
   const api = useMemo(() => documentFoldersApi(contextType, matterId), [matterId]);
   const [listing, setListing] = useState({ folders: [], files: [], warnings: [] });
   const [folderId, setFolderId] = useState(null);
+  const [activeFileId, setActiveFileId] = useState(null);
   const [expandedFolders, setExpandedFolders] = useState(new Set());
   const revealedFolder = useRef(null);
   const [selected, setSelected] = useState(new Set());
@@ -140,6 +142,8 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
   const labels = useMemo(() => folderLabels(listing.folders || [], data?.matterNumber), [listing.folders, data?.matterNumber]);
   const folderLabel = (folder) => labels.get(folder.id) || folder.name;
   const files = listing.files || [];
+  const knownFolderIds = useMemo(() => new Set(folders.map((folder) => folder.id)), [folders]);
+  const hasUnassignedFiles = files.some((file) => file.folderId == null || !knownFolderIds.has(file.folderId));
   const filesById = new Map(files.map((file) => [file.id, file]));
   const emailSources = new Map(
     folders
@@ -167,6 +171,7 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
         const result = response.data;
         if (!Array.isArray(result.folders) || !Array.isArray(result.files)) throw new Error("Invalid folder response");
         setListing({ ...result, ownerId: matterId });
+        setActiveFileId((previous) => (result.files.some((file) => file.id === previous) ? previous : null));
         setLoadError("");
         setFolderId((previous) =>
           result.folders.some((folder) => folder.id === previous)
@@ -189,6 +194,7 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
   useEffect(() => {
     setListing({ folders: [], files: [], warnings: [] });
     setFolderId(null);
+    setActiveFileId(null);
     setSelected(new Set());
     setSelectedEmailFolders(new Set());
     setExpandedFolders(new Set());
@@ -316,6 +322,7 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
   const openFolder = (id) => {
     if (busy) return;
     setFolderId(id);
+    setActiveFileId(null);
     setScope("FOLDER");
     setQuery("");
     revealFolder(id);
@@ -591,61 +598,13 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
         true,
       );
   };
-  const tree = (parent = null) => {
-    const children = folders.filter((folder) => (folder.parentId ?? null) === parent);
-    if (!children.length) return null;
-    return (
-      <ul
-        id={parent == null ? undefined : `matter-${matterId}-folder-${parent}-children`}
-        className={`matter-folder-branches ${parent === null ? "matter-folder-roots" : ""}`}
-      >
-        {children.map((folder) => {
-          const hasChildren = folders.some((child) => child.parentId === folder.id);
-          const expanded = expandedFolders.has(folder.id);
-          return (
-            <li key={folder.id} className="matter-folder-branch">
-              <div
-                className="matter-folder-tree-row"
-                onDragOver={(event) => {
-                  if (canEdit) event.preventDefault();
-                }}
-                onDrop={(event) => drop(event, folder.id)}
-              >
-                {hasChildren ? (
-                  <button
-                    type="button"
-                    className="matter-folder-tree-toggle"
-                    disabled={busy}
-                    aria-label={`${expanded ? "Collapse" : "Expand"} ${folderLabel(folder)}`}
-                    aria-expanded={expanded}
-                    aria-controls={`matter-${matterId}-folder-${folder.id}-children`}
-                    onClick={() => toggleFolder(folder.id)}
-                  >
-                    <span aria-hidden="true">{expanded ? "▾" : "▸"}</span>
-                  </button>
-                ) : (
-                  <span className="matter-folder-tree-spacer" aria-hidden="true" />
-                )}
-                <button
-                  type="button"
-                  className="matter-folder-tree-node"
-                  aria-current={folder.id === folderId ? "true" : undefined}
-                  disabled={busy}
-                  onClick={() => openFolder(folder.id)}
-                >
-                  <AttachmentTypeIcon
-                    type={folder.emailUploadGroupId ? "email" : "folder"}
-                    direction={emailSources.get(folder.id)?.direction}
-                  />
-                  <span>{folderLabel(folder)}</span>
-                </button>
-              </div>
-              {hasChildren && expanded && tree(folder.id)}
-            </li>
-          );
-        })}
-      </ul>
-    );
+  const openFilePreview = (file, selectFolder = false) => {
+    if (busy) return;
+    const parentId = knownFolderIds.has(file.folderId) ? file.folderId : null;
+    if (selectFolder) openFolder(parentId);
+    else revealFolder(parentId);
+    setActiveFileId(file.id);
+    setBinder({ focus: file.id, ids: [...selected] });
   };
   const needle = query.trim().toLowerCase();
   const visibleFolders = folders
@@ -658,7 +617,7 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
   const visibleFiles = files
     .filter(
       (file) =>
-        (scope === "MATTER" ? true : (file.folderId ?? null) === folderId) &&
+        (scope === "MATTER" ? true : (knownFolderIds.has(file.folderId) ? file.folderId : null) === folderId) &&
         (!needle || `${file.name} ${file.uploadedBy || ""}`.toLowerCase().includes(needle)),
     )
     .sort((a, b) => (sort === "NAME" ? a.name.localeCompare(b.name) : new Date(b.uploadDate || 0) - new Date(a.uploadDate || 0)));
@@ -776,10 +735,36 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
       )}
       <div className="matter-folder-panels">
         <nav className="matter-folder-tree" aria-label="Matter folders" tabIndex={0}>
-          <button type="button" aria-current={!folderId ? "true" : undefined} disabled={busy} onClick={() => setFolderId(null)}>
+          <button
+            type="button"
+            aria-current={!folderId && activeFileId == null && !hasUnassignedFiles ? "true" : undefined}
+            disabled={busy}
+            onClick={() => openFolder(null)}
+          >
             Matter attachments
           </button>
-          {tree()}
+          <FileFolderTree
+            key={`matter-${matterId}`}
+            idPrefix={`matter-${matterId}`}
+            folders={folders}
+            files={files}
+            expanded={expandedFolders}
+            folderId={folderId}
+            activeFileId={activeFileId}
+            onToggle={toggleFolder}
+            onFolderSelect={openFolder}
+            onFilePreview={(file) => openFilePreview(file, true)}
+            folderLabel={folderLabel}
+            folderDirection={(folder) => emailSources.get(folder.id)?.direction}
+            disabled={busy}
+            canDrop={canEdit && !mutationBusy}
+            onDrop={drop}
+            canDragFile={(file) => canEdit && knownFolderIds.has(file.folderId) && !mutationBusy}
+            onFileDragStart={(event, file) => {
+              event.dataTransfer.effectAllowed = "move";
+              event.dataTransfer.setData("application/x-veeto-attachment", JSON.stringify({ fileId: file.id, matterId }));
+            }}
+          />
         </nav>
         <div
           className={`matter-folder-contents ${dragOver ? "drag-over" : ""}`}
@@ -849,6 +834,7 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
                 {visibleFolders.map((folder) => {
                   const ids = folderFiles(folder.id);
                   const email = emailSources.get(folder.id);
+                  const folderAudit = folder.emailUploadGroupId && email ? email : { uploadDate: folder.createdDate, uploadedBy: folder.createdBy };
                   return (
                     <tr
                       key={`folder-${folder.id}`}
@@ -874,8 +860,8 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
                         <EmailContext email={email} />
                         {scope === "MATTER" && needle && <div className="small text-muted">{location(folder.parentId)}</div>}
                       </td>
-                      <td>{folder.emailUploadGroupId ? <UploadDate file={email} /> : "—"}</td>
-                      <td>{folder.emailUploadGroupId ? <Uploader file={email} /> : "—"}</td>
+                      <td><UploadDate file={folderAudit} /></td>
+                      <td>{folderAudit.uploadedBy?.trim() ? <Uploader file={folderAudit} /> : "—"}</td>
                       <td>
                         <div className="matter-folder-actions">
                           {email && (
@@ -891,6 +877,7 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
                 {visibleFiles.map((file) => (
                   <tr
                     key={file.id}
+                    className={activeFileId === file.id ? "document-folder-active-file" : undefined}
                     draggable={canEdit && !!file.folderId && !mutationBusy}
                     onDragStart={(event) => {
                       event.dataTransfer.effectAllowed = "move";
@@ -923,7 +910,7 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
                     </td>
                     <td>
                       <div className="matter-folder-actions">
-                        <Button size="sm" outline color="primary" onClick={() => setBinder({ focus: file.id, ids: [...selected] })}>
+                        <Button size="sm" outline color="primary" onClick={() => openFilePreview(file)}>
                           Preview
                         </Button>
                         {canEdit && (
