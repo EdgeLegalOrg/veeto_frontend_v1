@@ -16,12 +16,12 @@ export const documentFoldersApi = (contextType, contextId) => {
     deleteFile: (id) => API.delete(`${url}/files/${id}`),
     deleteFiles: (fileIds) => API.delete(`${url}/files`, { data: { fileIds } }),
     deleteEmailGroup: (groupId) => API.delete(`${url}/email-groups/${encodeURIComponent(groupId)}`),
-    upload: (folderId, file, name) => {
+    upload: (folderId, file, name, options = {}) => {
       const body = new FormData();
       body.append("folderId", folderId);
       body.append("file", file);
       body.append("name", name);
-      return API.post(`${url}/files`, body);
+      return API.post(`${url}/files`, body, options);
     },
   };
 };
