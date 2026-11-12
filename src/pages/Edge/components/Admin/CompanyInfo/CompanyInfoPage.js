@@ -16,6 +16,7 @@ import LoadingPage from "../../../utils/LoadingPage";
 import { API_BASE_URL, getCompanyInfo, updateCompanyInfo } from "../../../apis";
 import "../../../stylesheets/CompanyInfoPage.css";
 import CompanySites from "./CompanySites";
+import CompanyStorage from "./CompanyStorage";
 import CompanyMatterColors from "./CompanyMatterColors";
 import { toast } from "react-toastify";
 import {
@@ -669,6 +670,7 @@ function CompanyInfoPage(props) {
               </div>
 
               <div>
+                <CompanyStorage />
                 <CompanyMatterColors />
               </div>
             </div>

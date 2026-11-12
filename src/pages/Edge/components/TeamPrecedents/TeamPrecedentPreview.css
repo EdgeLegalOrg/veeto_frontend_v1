@@ -1,0 +1,9 @@
+/* Override the global non-scrollable modal rule that removes only top padding. */
+.modal-dialog.team-precedent-preview .modal-content .modal-footer {
+  padding: 0.75rem 1rem;
+  gap: 0.5rem;
+}
+
+.modal-dialog.team-precedent-preview .modal-content .modal-footer > .btn {
+  margin: 0;
+}

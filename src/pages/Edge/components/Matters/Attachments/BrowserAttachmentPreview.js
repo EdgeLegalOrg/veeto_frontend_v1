@@ -37,7 +37,7 @@ const columnLabel = (index) => {
 };
 
 /** Selected-file-only browser preview with cancellable workers and bounded session HEIC caching. */
-const BrowserAttachmentPreview = ({ item, kind, title, onDownload, imageCache }) => {
+const BrowserAttachmentPreview = ({ item, kind, title, onDownload, imageCache, loadPreview = fetchAttachmentInlinePreview }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [imageUrl, setImageUrl] = useState(null);
@@ -78,7 +78,7 @@ const BrowserAttachmentPreview = ({ item, kind, title, onDownload, imageCache })
         const cached = kind === "heic" && imageCache.current.get(cacheKey);
         if (cached) { showImage(cached.blob, cached.multipleImages); return; }
         timerRef.current = setTimeout(() => fail("Preview preparation took too long. Download the original to view it."), TIMEOUT);
-        const response = await fetchAttachmentInlinePreview(item.attachmentId, {
+        const response = await loadPreview(item.attachmentId, {
           signal: controller.signal,
           onDownloadProgress: ({ loaded }) => {
             if (loaded > FILE_LIMIT) fail("This file exceeds the 20 MB preview limit. Download the original to view it.");
@@ -125,7 +125,7 @@ const BrowserAttachmentPreview = ({ item, kind, title, onDownload, imageCache })
       workerRef.current = null;
       if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
-  }, [item, kind, imageCache]);
+  }, [item, kind, imageCache, loadPreview]);
 
   const selectSheet = (event) => {
     if (!workerRef.current) return;

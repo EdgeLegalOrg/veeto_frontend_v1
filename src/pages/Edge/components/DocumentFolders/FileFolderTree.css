@@ -1,0 +1,14 @@
+.matter-folder-tree .document-tree-file {
+  font-weight: 400;
+}
+.matter-folder-tree .document-tree-file[aria-current="true"] {
+  font-weight: 600;
+}
+.matter-folder-tree .document-tree-unassigned {
+  margin-top: 0.5rem;
+  border-top: 1px solid #e1e5ed;
+  padding-top: 0.5rem;
+}
+.matter-folder-table .document-folder-active-file > td {
+  background-color: var(--vz-primary-bg-subtle, #edf2ff);
+}

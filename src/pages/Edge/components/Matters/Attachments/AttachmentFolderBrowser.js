@@ -7,6 +7,8 @@ import fileDownload from "js-file-download";
 import { checkHasPermission, formatDateFunc, formatDateTimeFunc } from "../../../utils/utilFunc";
 import { downloadMatterAttach } from "../../../apis";
 import { documentFoldersApi } from "./documentFoldersApi";
+import FileFolderTree from "../../DocumentFolders/FileFolderTree";
+import FolderUploadPicker from "../../DocumentFolders/FolderUploadPicker";
 import MasterFileBinderModal from "./MasterFileBinderModal";
 import AttachmentTypeIcon from "./AttachmentTypeIcon";
 import "./AttachmentFolderBrowser.css";
@@ -106,11 +108,14 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
   const api = useMemo(() => documentFoldersApi(contextType, matterId), [matterId]);
   const [listing, setListing] = useState({ folders: [], files: [], warnings: [] });
   const [folderId, setFolderId] = useState(null);
+  const [activeFileId, setActiveFileId] = useState(null);
+  const [collapsedEmails, setCollapsedEmails] = useState(new Set());
   const [expandedFolders, setExpandedFolders] = useState(new Set());
   const revealedFolder = useRef(null);
   const [selected, setSelected] = useState(new Set());
   const [selectedEmailFolders, setSelectedEmailFolders] = useState(new Set());
   const [busy, setBusy] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [loadError, setLoadError] = useState("");
   const [query, setQuery] = useState("");
   const [scope, setScope] = useState("FOLDER");
@@ -121,7 +126,7 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
   const [uploadTarget, setUploadTarget] = useState(null);
   const [binder, setBinder] = useState(null);
   const [dragOver, setDragOver] = useState(false);
-  const input = useRef(null);
+  const uploadKey = useRef(0);
   const sequence = useRef(0);
   const [registration, setRegistration] = useState({ running: false, paused: false, checked: 0, total: 0 });
   const [registrationWarnings, setRegistrationWarnings] = useState([]);
@@ -131,13 +136,15 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
   const registrationPaused = useRef(false);
   const rootAttempt = useRef(null);
   const [rootSetup, setRootSetup] = useState({ running: false, error: "" });
-  const mutationBusy = busy || registration.running || rootSetup.running;
+  const mutationBusy = busy || refreshing || registration.running || rootSetup.running;
   const canEdit = checkHasPermission("UpdateMatter") && (!data?.flagArchived || checkHasPermission("EditArchivedMatter"));
   const canDelete = canEdit && checkHasPermission("DeleteMatterAttachment");
   const folders = listing.folders || [];
   const labels = useMemo(() => folderLabels(listing.folders || [], data?.matterNumber), [listing.folders, data?.matterNumber]);
   const folderLabel = (folder) => labels.get(folder.id) || folder.name;
   const files = listing.files || [];
+  const knownFolderIds = useMemo(() => new Set(folders.map((folder) => folder.id)), [folders]);
+  const hasUnassignedFiles = files.some((file) => file.folderId == null || !knownFolderIds.has(file.folderId));
   const filesById = new Map(files.map((file) => [file.id, file]));
   const emailSources = new Map(
     folders
@@ -145,42 +152,72 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
       .map((folder) => [
         folder.id,
         filesById.get(folder.emailAttachmentId)?.uploadGroupId === folder.emailUploadGroupId &&
-        filesById.get(folder.emailAttachmentId)?.type?.toLowerCase() === "msg"
+        ["msg", "eml"].includes(filesById.get(folder.emailAttachmentId)?.type?.toLowerCase())
           ? filesById.get(folder.emailAttachmentId)
           : undefined,
       ]),
   );
+  const emailFilesByGroup = useMemo(() => {
+    const groups = new Map();
+    files.forEach((file) => {
+      if (!file.uploadGroupId) return;
+      if (!groups.has(file.uploadGroupId)) groups.set(file.uploadGroupId, []);
+      groups.get(file.uploadGroupId).push(file);
+    });
+    return groups;
+  }, [files]);
   const current = folders.find((folder) => folder.id === folderId);
-  const currentEmailFiles = current?.emailUploadGroupId
-    ? files.filter((file) => file.uploadGroupId === current.emailUploadGroupId) : [];
+  const currentEmailFiles = current?.emailUploadGroupId ? files.filter((file) => file.uploadGroupId === current.emailUploadGroupId) : [];
+  const emailLocks = useMemo(() => {
+    const parents = new Map(folders.map((folder) => [folder.id, folder.parentId]));
+    const emailIds = new Set(folders.filter((folder) => folder.emailUploadGroupId).map((folder) => folder.id));
+    const within = new Set();
+    for (const folder of folders) {
+      const seen = new Set(); let id = folder.id;
+      while (id != null && !seen.has(id)) { seen.add(id); if (emailIds.has(id)) { within.add(folder.id); break; } id = parents.get(id); }
+    }
+    return { within };
+  }, [folders]);
+  const fileLocked = (file) => !!file.uploadGroupId || emailLocks.within.has(file.folderId);
+  const currentLocked = emailLocks.within.has(folderId);
   const pendingRegistration = files.filter((file) => file.folderId == null).length;
   const warnings = [...(listing.warnings || []), ...registrationWarnings];
 
-  const load = useCallback(async () => {
-    const request = ++sequence.current;
-    try {
-      const response = await api.list();
-      if (request !== sequence.current) return;
-      const result = response.data;
-      if (!Array.isArray(result.folders) || !Array.isArray(result.files)) throw new Error("Invalid folder response");
-      setListing({ ...result, ownerId: matterId });
-      setLoadError("");
-      setFolderId((previous) =>
-        result.folders.some((folder) => folder.id === previous)
-          ? previous
-          : result.unregisteredCount > 0
-            ? null
-            : (result.folders.find((folder) => !folder.parentId)?.id ?? null),
-      );
-      setSelected((previous) => new Set([...previous].filter((id) => result.files.some((file) => file.id === id))));
-      setSelectedEmailFolders((previous) => new Set([...previous].filter((id) => result.folders.some((folder) => folder.id === id))));
-    } catch (error) {
-      if (request === sequence.current) setLoadError(errorMessage(error));
-    }
-  }, [api, matterId]);
+  const load = useCallback(
+    async (notify = false) => {
+      const request = ++sequence.current;
+      setRefreshing(true);
+      try {
+        const response = await api.list();
+        if (request !== sequence.current) return;
+        const result = response.data;
+        if (!Array.isArray(result.folders) || !Array.isArray(result.files)) throw new Error("Invalid folder response");
+        setListing({ ...result, ownerId: matterId });
+        setActiveFileId((previous) => (result.files.some((file) => file.id === previous) ? previous : null));
+        setLoadError("");
+        setFolderId((previous) =>
+          result.folders.some((folder) => folder.id === previous)
+            ? previous
+            : result.unregisteredCount > 0
+              ? null
+              : (result.folders.find((folder) => !folder.parentId)?.id ?? null),
+        );
+        setSelected((previous) => new Set([...previous].filter((id) => result.files.some((file) => file.id === id))));
+        setSelectedEmailFolders((previous) => new Set([...previous].filter((id) => result.folders.some((folder) => folder.id === id))));
+        if (notify) toast.success("Attachments refreshed.");
+      } catch (error) {
+        if (request === sequence.current) setLoadError(errorMessage(error));
+      } finally {
+        if (request === sequence.current) setRefreshing(false);
+      }
+    },
+    [api, matterId],
+  );
   useEffect(() => {
     setListing({ folders: [], files: [], warnings: [] });
     setFolderId(null);
+    setActiveFileId(null);
+    setCollapsedEmails(new Set());
     setSelected(new Set());
     setSelectedEmailFolders(new Set());
     setExpandedFolders(new Set());
@@ -306,7 +343,10 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
 
   const revealFolder = (id) => setExpandedFolders((previous) => new Set([...previous, ...ancestorFolders(folders, id)]));
   const openFolder = (id) => {
+    if (busy) return;
     setFolderId(id);
+    setActiveFileId(null);
+    setScope("FOLDER");
     setQuery("");
     revealFolder(id);
   };
@@ -386,7 +426,7 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
     const remove = selectedEmailFolders.has(folder.id) || (ids.length > 0 && ids.every((id) => selected.has(id)));
     setSelected((previous) => {
       const next = new Set(previous);
-      ids.forEach((id) => remove ? next.delete(id) : next.add(id));
+      ids.forEach((id) => (remove ? next.delete(id) : next.add(id)));
       return next;
     });
     setSelectedEmailFolders((previous) => {
@@ -399,30 +439,44 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
   const requestDelete = () => {
     const groups = new Map();
     const protectedLocations = new Set();
-    folders.filter((folder) => selectedEmailFolders.has(folder.id)).forEach((folder) => {
-      groups.set(folder.emailUploadGroupId, folderLabel(folder));
-      descendants(folder.id).forEach((id) => protectedLocations.add(id));
-    });
+    folders
+      .filter((folder) => selectedEmailFolders.has(folder.id))
+      .forEach((folder) => {
+        groups.set(folder.emailUploadGroupId, folderLabel(folder));
+        descendants(folder.id).forEach((id) => protectedLocations.add(id));
+      });
     const originalIds = new Set([...emailSources.values()].filter(Boolean).map((file) => file.id));
     // Historical groups without a folder association must have one unambiguous MSG.
     const associated = new Set(folders.map((folder) => folder.emailUploadGroupId).filter(Boolean));
     const legacyMessages = new Map();
-    files.filter((file) => file.uploadGroupId && !associated.has(file.uploadGroupId) && file.type?.toLowerCase() === "msg")
+    files
+      .filter((file) => file.uploadGroupId && !associated.has(file.uploadGroupId) && ["msg", "eml"].includes(file.type?.toLowerCase()))
       .forEach((file) => legacyMessages.set(file.uploadGroupId, [...(legacyMessages.get(file.uploadGroupId) || []), file]));
-    legacyMessages.forEach((messages) => { if (messages.length === 1) originalIds.add(messages[0].id); });
-    files.filter((file) => selected.has(file.id) && originalIds.has(file.id)
-      && (!protectedLocations.has(file.folderId) || groups.has(file.uploadGroupId))).forEach((file) => {
-      groups.set(file.uploadGroupId, file.uploadGroupName || file.name);
+    legacyMessages.forEach((messages) => {
+      if (messages.length === 1) originalIds.add(messages[0].id);
     });
-    if (files.some((file) => selected.has(file.id) && file.uploadGroupId && !groups.has(file.uploadGroupId)
-      && !protectedLocations.has(file.folderId))) {
+    files
+      .filter(
+        (file) =>
+          selected.has(file.id) && originalIds.has(file.id) && (!protectedLocations.has(file.folderId) || groups.has(file.uploadGroupId)),
+      )
+      .forEach((file) => {
+        groups.set(file.uploadGroupId, file.uploadGroupName || file.name);
+      });
+    if (
+      files.some(
+        (file) => selected.has(file.id) && file.uploadGroupId && !groups.has(file.uploadGroupId) && !protectedLocations.has(file.folderId),
+      )
+    ) {
       toast.info("Email contents cannot be deleted individually. Select the email folder or original email, then click Delete.");
       return;
     }
     // Selecting an email folder never deletes unrelated files placed inside it.
-    const fileIds = files.filter((file) => selected.has(file.id) && !file.uploadGroupId && !protectedLocations.has(file.folderId))
+    const fileIds = files
+      .filter((file) => selected.has(file.id) && !file.uploadGroupId && !protectedLocations.has(file.folderId))
       .map((file) => file.id);
-    const emails = [...groups].map(([id, name]) => ({ id, name, count: files.filter((file) => file.uploadGroupId === id).length }))
+    const emails = [...groups]
+      .map(([id, name]) => ({ id, name, count: files.filter((file) => file.uploadGroupId === id).length }))
       .filter((email) => email.count > 0);
     if (!fileIds.length && !emails.length) return;
     setDialog({ type: "DELETE_FILES", item: { fileIds, emails } });
@@ -451,6 +505,7 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
   };
   const queueUploads = (localFiles, target) => {
     if (!canEdit || mutationBusy) return;
+    if (emailLocks.within.has(target)) { toast.info("Email folders are read-only. Choose an ordinary folder."); return; }
     if (!target) {
       toast.info("Select or create a storage root before uploading.");
       return;
@@ -460,7 +515,9 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
       toast.info("Choose non-empty files. Folder uploads are not supported.");
       return;
     }
-    setUploads(accepted.map((file, index) => ({ id: index, file, name: file.name.replace(/\.[^.]+$/, ""), error: "" })));
+    const append = dialog?.type === "UPLOAD" && uploadTarget === target;
+    const entries = accepted.map((file) => ({ id: ++uploadKey.current, file, name: file.name.replace(/\.[^.]+$/, ""), error: "" }));
+    setUploads((previous) => [...(append ? previous : []), ...entries]);
     setUploadTarget(target);
     setDialog({ type: "UPLOAD" });
   };
@@ -469,6 +526,7 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
     event.stopPropagation();
     setDragOver(false);
     if (!canEdit || mutationBusy || !destination) return;
+    if (emailLocks.within.has(destination)) { toast.info("Email folders are read-only."); return; }
     const raw = event.dataTransfer.getData("application/x-veeto-attachment");
     if (raw) {
       try {
@@ -477,6 +535,7 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
           toast.warning("Files can only move within the same matter.");
           return;
         }
+        if (fileLocked(filesById.get(dragged.fileId) || {})) { toast.info("Email contents are read-only."); return; }
         perform(() => api.move(dragged.fileId, destination), "File moved.");
       } catch {
         toast.error("Unable to read dragged file.");
@@ -490,16 +549,30 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
     }
   };
   const upload = async () => {
-    if (mutationBusy || uploads.some((item) => !item.name.trim())) return;
+    if (mutationBusy || !uploads.length || uploads.some((item) => !item.name.trim())) return;
     setBusy(true);
     const failed = [];
     let count = 0;
     for (const entry of uploads) {
       try {
-        await api.upload(uploadTarget, entry.file, entry.name.trim());
+        setUploads((previous) =>
+          previous.map((item) => (item.id === entry.id ? { ...item, status: "UPLOADING", progress: null, error: "" } : item)),
+        );
+        await api.upload(uploadTarget, entry.file, entry.name.trim(), {
+          onUploadProgress: ({ loaded, total }) => {
+            setUploads((previous) =>
+              previous.map((item) =>
+                item.id === entry.id ? { ...item, progress: total ? Math.min(100, Math.round((loaded * 100) / total)) : null } : item,
+              ),
+            );
+          },
+        });
+        setUploads((previous) => previous.map((item) => (item.id === entry.id ? { ...item, status: "DONE", progress: 100 } : item)));
         count += 1;
       } catch (error) {
-        failed.push({ ...entry, error: errorMessage(error) });
+        const failure = { ...entry, status: "FAILED", error: errorMessage(error) };
+        failed.push(failure);
+        setUploads((previous) => previous.map((item) => (item.id === entry.id ? failure : item)));
       }
     }
     setUploads(failed);
@@ -538,9 +611,11 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
           for (const email of dialog.item.emails) {
             removeDeleted(await api.deleteEmailGroup(email.id));
             // If a later request fails, retry only the items still awaiting deletion.
-            setDialog((previous) => previous?.type === "DELETE_FILES" ? {
-              ...previous, item: { ...previous.item, emails: previous.item.emails.filter((item) => item.id !== email.id) },
-            } : previous);
+            setDialog((previous) =>
+              previous?.type === "DELETE_FILES"
+                ? { ...previous, item: { ...previous.item, emails: previous.item.emails.filter((item) => item.id !== email.id) } }
+                : previous,
+            );
           }
           if (dialog.item.fileIds.length) removeDeleted(await api.deleteFiles(dialog.item.fileIds));
           setSelectedEmailFolders(new Set());
@@ -549,61 +624,13 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
         true,
       );
   };
-  const tree = (parent = null) => {
-    const children = folders.filter((folder) => (folder.parentId ?? null) === parent);
-    if (!children.length) return null;
-    return (
-      <ul
-        id={parent == null ? undefined : `matter-${matterId}-folder-${parent}-children`}
-        className={`matter-folder-branches ${parent === null ? "matter-folder-roots" : ""}`}
-      >
-        {children.map((folder) => {
-          const hasChildren = folders.some((child) => child.parentId === folder.id);
-          const expanded = expandedFolders.has(folder.id);
-          return (
-            <li key={folder.id} className="matter-folder-branch">
-              <div
-                className="matter-folder-tree-row"
-                onDragOver={(event) => {
-                  if (canEdit) event.preventDefault();
-                }}
-                onDrop={(event) => drop(event, folder.id)}
-              >
-                {hasChildren ? (
-                  <button
-                    type="button"
-                    className="matter-folder-tree-toggle"
-                    disabled={busy}
-                    aria-label={`${expanded ? "Collapse" : "Expand"} ${folderLabel(folder)}`}
-                    aria-expanded={expanded}
-                    aria-controls={`matter-${matterId}-folder-${folder.id}-children`}
-                    onClick={() => toggleFolder(folder.id)}
-                  >
-                    <span aria-hidden="true">{expanded ? "▾" : "▸"}</span>
-                  </button>
-                ) : (
-                  <span className="matter-folder-tree-spacer" aria-hidden="true" />
-                )}
-                <button
-                  type="button"
-                  className="matter-folder-tree-node"
-                  aria-current={folder.id === folderId ? "true" : undefined}
-                  disabled={busy}
-                  onClick={() => openFolder(folder.id)}
-                >
-                  <AttachmentTypeIcon
-                    type={folder.emailUploadGroupId ? "email" : "folder"}
-                    direction={emailSources.get(folder.id)?.direction}
-                  />
-                  <span>{folderLabel(folder)}</span>
-                </button>
-              </div>
-              {hasChildren && expanded && tree(folder.id)}
-            </li>
-          );
-        })}
-      </ul>
-    );
+  const openFilePreview = (file, selectFolder = false) => {
+    if (busy) return;
+    const parentId = knownFolderIds.has(file.folderId) ? file.folderId : null;
+    if (selectFolder) openFolder(parentId);
+    else revealFolder(parentId);
+    setActiveFileId(file.id);
+    setBinder({ focus: file.id, ids: [...selected] });
   };
   const needle = query.trim().toLowerCase();
   const visibleFolders = folders
@@ -616,30 +643,116 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
   const visibleFiles = files
     .filter(
       (file) =>
-        (scope === "MATTER" ? true : (file.folderId ?? null) === folderId) &&
+        (scope === "MATTER" ? true : (knownFolderIds.has(file.folderId) ? file.folderId : null) === folderId) &&
         (!needle || `${file.name} ${file.uploadedBy || ""}`.toLowerCase().includes(needle)),
     )
     .sort((a, b) => (sort === "NAME" ? a.name.localeCompare(b.name) : new Date(b.uploadDate || 0) - new Date(a.uploadDate || 0)));
 
+  const matchesFile = (file) => !needle || `${file.name} ${file.uploadedBy || ""}`.toLowerCase().includes(needle);
+  const emailPanels = (current?.emailUploadGroupId && scope === "FOLDER" ? [current]
+    : scope === "MATTER" ? folders.filter((folder) => folder.emailUploadGroupId)
+    : folders.filter((folder) => folder.parentId === folderId && folder.emailUploadGroupId))
+    .filter((folder) => !needle || folderLabel(folder).toLowerCase().includes(needle)
+      || (emailFilesByGroup.get(folder.emailUploadGroupId) || []).some(matchesFile));
+  const panelGroups = new Set(emailPanels.map((folder) => folder.emailUploadGroupId));
+  const renderFileRow = (file, nested = false, lastChild = false) => (
+    <tr
+      key={`${nested ? "email-child" : "file"}-${file.id}`}
+      className={[activeFileId === file.id ? "document-folder-active-file" : "", nested ? "email-tree-child" : "", lastChild ? "email-tree-last-child" : ""].filter(Boolean).join(" ")}
+      draggable={canEdit && !fileLocked(file) && !!file.folderId && !mutationBusy}
+      onDragStart={(event) => {
+        event.dataTransfer.effectAllowed = "move";
+        event.dataTransfer.setData("application/x-veeto-attachment", JSON.stringify({ fileId: file.id, matterId }));
+      }}
+    >
+      <td>
+        {!nested && (
+          <input
+            type="checkbox"
+            checked={selected.has(file.id)}
+            aria-label={`Select ${file.name}`}
+            onChange={() => toggleIds([file.id])}
+          />
+        )}
+      </td>
+      <td>
+        <button className="matter-folder-name" title={nested ? location(file.folderId) : undefined} onClick={() => download(file)}>
+          {nested ? <i className="ri-attachment-2 email-tree-paperclip" aria-hidden="true" />
+            : <AttachmentTypeIcon type={file.type} name={file.name} direction={file.direction} />}
+          <span>{file.name}</span>
+        </button>
+        {!nested && ["msg", "eml"].includes(file.type?.toLowerCase()) && <EmailContext email={file} />}
+        {!nested && scope === "MATTER" && (
+          <div className="small text-muted">{location(file.folderId) || "Location pending registration"}</div>
+        )}
+      </td>
+      <td>
+        {!nested && <UploadDate file={file} />}
+      </td>
+      <td>
+        {!nested && <Uploader file={file} />}
+      </td>
+      <td>
+        <div className="matter-folder-actions">
+          <Button size="sm" outline color="primary" onClick={() => openFilePreview(file)}>
+            Preview
+          </Button>
+          <Button size="sm" outline color="primary" onClick={() => download(file)}>Download</Button>
+          {canEdit && !fileLocked(file) && (
+            <>
+              <Button
+                size="sm"
+                outline
+                color="primary"
+                disabled={mutationBusy}
+                onClick={() => openDialog("RENAME_FILE", file)}
+              >
+                Rename
+              </Button>
+              <Button
+                size="sm"
+                outline
+                color="primary"
+                disabled={mutationBusy || !file.folderId}
+                onClick={() => openDialog("MOVE", file)}
+              >
+                Move
+              </Button>
+            </>
+          )}
+        </div>
+      </td>
+    </tr>
+  );
+
   return (
-    <div className="matter-folder-browser" aria-busy={busy}>
+    <div className="matter-folder-browser" aria-busy={busy || refreshing}>
       <div className="matter-folder-toolbar">
-        <Button size="sm" outline color="primary" disabled={busy} onClick={load}>
-          Refresh
+        <Button size="sm" outline color="primary" disabled={busy || refreshing} onClick={() => load(true)}>
+          {refreshing ? "Refreshing…" : "Refresh"}
         </Button>
         {canEdit && (
           <>
-            <Button size="sm" color="primary" disabled={mutationBusy || !current} onClick={() => openDialog("CREATE")}>
+            <Button size="sm" color="primary" disabled={mutationBusy || !current || currentLocked} onClick={() => openDialog("CREATE")}>
               New folder
             </Button>
-            <Button size="sm" color="primary" disabled={mutationBusy || !current} onClick={() => input.current?.click()}>
+            <Button
+              size="sm"
+              color="primary"
+              disabled={mutationBusy || !current || currentLocked}
+              onClick={() => {
+                setUploads([]);
+                setUploadTarget(folderId);
+                setDialog({ type: "UPLOAD" });
+              }}
+            >
               Upload
             </Button>
             <Button
               size="sm"
               outline
               color="primary"
-              disabled={mutationBusy || !current?.parentId}
+              disabled={mutationBusy || !current?.parentId || currentLocked}
               onClick={() => openDialog("RENAME", current)}
             >
               Rename folder
@@ -652,29 +765,24 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
               size="sm"
               outline
               color="danger"
-              disabled={mutationBusy || !current?.parentId || currentEmailFiles.length > 0}
+              disabled={mutationBusy || !current?.parentId || currentLocked || currentEmailFiles.length > 0}
               onClick={() => openDialog("DELETE_FOLDER", current)}
             >
               Delete empty folder
             </Button>
-            <Button size="sm" color="danger" disabled={mutationBusy || (!selected.size && !selectedEmailFolders.size)} onClick={requestDelete}>
+            <Button
+              size="sm"
+              color="danger"
+              disabled={mutationBusy || (!selected.size && !selectedEmailFolders.size)}
+              onClick={requestDelete}
+            >
               Delete
             </Button>
           </>
         )}
-        <input
-          ref={input}
-          type="file"
-          multiple
-          hidden
-          onChange={(event) => {
-            queueUploads(event.target.files, folderId);
-            event.target.value = "";
-          }}
-        />
-        {(busy || rootSetup.running) && (
+        {(busy || refreshing || rootSetup.running) && (
           <span role="status" className="text-muted">
-            {rootSetup.running ? "Preparing matter folder…" : "Processing…"}
+            {rootSetup.running ? "Preparing matter folder…" : refreshing ? "Refreshing attachments…" : "Processing…"}
           </span>
         )}
       </div>
@@ -730,15 +838,42 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
       )}
       <div className="matter-folder-panels">
         <nav className="matter-folder-tree" aria-label="Matter folders" tabIndex={0}>
-          <button type="button" aria-current={!folderId ? "true" : undefined} disabled={busy} onClick={() => setFolderId(null)}>
+          <button
+            type="button"
+            aria-current={!folderId && activeFileId == null && !hasUnassignedFiles ? "true" : undefined}
+            disabled={busy}
+            onClick={() => openFolder(null)}
+          >
             Matter attachments
           </button>
-          {tree()}
+          <FileFolderTree
+            key={`matter-${matterId}`}
+            idPrefix={`matter-${matterId}`}
+            folders={folders}
+            files={files}
+            expanded={expandedFolders}
+            folderId={folderId}
+            activeFileId={activeFileId}
+            onToggle={toggleFolder}
+            onFolderSelect={openFolder}
+            onFilePreview={(file) => openFilePreview(file, true)}
+            folderLabel={folderLabel}
+            folderDirection={(folder) => emailSources.get(folder.id)?.direction}
+            disabled={busy}
+            canDrop={canEdit && !mutationBusy}
+            canDropFolder={(folder) => !emailLocks.within.has(folder.id)}
+            onDrop={drop}
+            canDragFile={(file) => canEdit && !fileLocked(file) && knownFolderIds.has(file.folderId) && !mutationBusy}
+            onFileDragStart={(event, file) => {
+              event.dataTransfer.effectAllowed = "move";
+              event.dataTransfer.setData("application/x-veeto-attachment", JSON.stringify({ fileId: file.id, matterId }));
+            }}
+          />
         </nav>
         <div
           className={`matter-folder-contents ${dragOver ? "drag-over" : ""}`}
           onDragOver={(event) => {
-            if (canEdit && folderId) {
+            if (canEdit && folderId && !currentLocked) {
               event.preventDefault();
               setDragOver(true);
             }
@@ -800,9 +935,10 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
                 </tr>
               </thead>
               <tbody>
-                {visibleFolders.map((folder) => {
+                {visibleFolders.filter((folder) => !folder.emailUploadGroupId).map((folder) => {
                   const ids = folderFiles(folder.id);
                   const email = emailSources.get(folder.id);
+                  const folderAudit = folder.emailUploadGroupId && email ? email : { uploadDate: folder.createdDate, uploadedBy: folder.createdBy };
                   return (
                     <tr
                       key={`folder-${folder.id}`}
@@ -813,7 +949,9 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
                         <input
                           type="checkbox"
                           aria-label={`Select all files in ${folderLabel(folder)}`}
-                          disabled={!ids.length && !files.some((file) => file.uploadGroupId && file.uploadGroupId === folder.emailUploadGroupId)}
+                          disabled={
+                            !ids.length && !files.some((file) => file.uploadGroupId && file.uploadGroupId === folder.emailUploadGroupId)
+                          }
                           checked={selectedEmailFolders.has(folder.id) || (!!ids.length && ids.every((id) => selected.has(id)))}
                           onChange={() => toggleFolderSelection(folder, ids)}
                         />
@@ -826,85 +964,66 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
                         <EmailContext email={email} />
                         {scope === "MATTER" && needle && <div className="small text-muted">{location(folder.parentId)}</div>}
                       </td>
-                      <td>{folder.emailUploadGroupId ? <UploadDate file={email} /> : "—"}</td>
-                      <td>{folder.emailUploadGroupId ? <Uploader file={email} /> : "—"}</td>
+                      <td><UploadDate file={folderAudit} /></td>
+                      <td>{folderAudit.uploadedBy?.trim() ? <Uploader file={folderAudit} /> : "—"}</td>
                       <td>
                         <div className="matter-folder-actions">
-                        {email && (
-                          <Button size="sm" outline color="primary" onClick={() => download(email)}>
-                            Download email
-                          </Button>
-                        )}
+                          {email && (
+                            <Button size="sm" outline color="primary" onClick={() => download(email)}>
+                              Download email
+                            </Button>
+                          )}
                         </div>
                       </td>
                     </tr>
                   );
                 })}
-                {visibleFiles.map((file) => (
-                  <tr
-                    key={file.id}
-                    draggable={canEdit && !!file.folderId && !mutationBusy}
-                    onDragStart={(event) => {
-                      event.dataTransfer.effectAllowed = "move";
-                      event.dataTransfer.setData("application/x-veeto-attachment", JSON.stringify({ fileId: file.id, matterId }));
-                    }}
-                  >
-                    <td>
-                      <input
-                        type="checkbox"
-                        checked={selected.has(file.id)}
-                        aria-label={`Select ${file.name}`}
-                        onChange={() => toggleIds([file.id])}
-                      />
-                    </td>
-                    <td>
-                      <button className="matter-folder-name" onClick={() => download(file)}>
-                        <AttachmentTypeIcon type={file.type} name={file.name} direction={file.direction} />
-                        {file.name}
-                      </button>
-                      {["msg", "eml"].includes(file.type?.toLowerCase()) && <EmailContext email={file} />}
-                      {scope === "MATTER" && (
-                        <div className="small text-muted">{location(file.folderId) || "Location pending registration"}</div>
-                      )}
-                    </td>
-                    <td>
-                      <UploadDate file={file} />
-                    </td>
-                    <td>
-                      <Uploader file={file} />
-                    </td>
-                    <td>
-                      <div className="matter-folder-actions">
-                        <Button size="sm" outline color="primary" onClick={() => setBinder({ focus: file.id, ids: [...selected] })}>
-                          Preview
-                        </Button>
-                        {canEdit && (
-                          <>
-                            <Button
-                              size="sm"
-                              outline
-                              color="primary"
-                              disabled={mutationBusy}
-                              onClick={() => openDialog("RENAME_FILE", file)}
-                            >
-                              Rename
-                            </Button>
-                            <Button
-                              size="sm"
-                              outline
-                              color="primary"
-                              disabled={mutationBusy || !file.folderId}
-                              onClick={() => openDialog("MOVE", file)}
-                            >
-                              Move
-                            </Button>
-                          </>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-                {!visibleFiles.length && !visibleFolders.length && (
+                {emailPanels.map((folder) => {
+                  const email = emailSources.get(folder.id);
+                  const members = [...(emailFilesByGroup.get(folder.emailUploadGroupId) || [])].sort((a, b) =>
+                    a.id === email?.id ? -1 : b.id === email?.id ? 1 : a.id - b.id);
+                  const opened = !collapsedEmails.has(folder.id) || !!needle;
+                  const headerMatches = !needle || folderLabel(folder).toLowerCase().includes(needle);
+                  const attachments = members.filter((file) => file.id !== email?.id);
+                  const displayed = headerMatches || (email && matchesFile(email)) ? attachments : attachments.filter(matchesFile);
+                  const ids = members.map((file) => file.id);
+                  const audit = email || { uploadDate: folder.createdDate, uploadedBy: folder.createdBy };
+                  return <React.Fragment key={`email-${folder.id}`}>
+                    <tr className={`email-tree-parent${opened && displayed.length ? " email-tree-expanded" : ""}${email && activeFileId === email.id ? " document-folder-active-file" : ""}`}>
+                      <td><input type="checkbox" aria-label={`Select entire email ${folderLabel(folder)}`}
+                        checked={selectedEmailFolders.has(folder.id) || (!!ids.length && ids.every((id) => selected.has(id)))}
+                        disabled={!ids.length} onChange={() => toggleFolderSelection(folder, ids)} /></td>
+                      <td>
+                        <div className="email-tree-heading">
+                          {displayed.length > 0 ? (
+                            <button type="button" className="email-tree-toggle" aria-expanded={opened}
+                              aria-label={`${opened ? "Collapse" : "Expand"} attachments for ${folderLabel(folder)}`}
+                              onClick={() => setCollapsedEmails((previous) => { const next = new Set(previous); next.has(folder.id) ? next.delete(folder.id) : next.add(folder.id); return next; })}>
+                              <span aria-hidden="true">{opened ? "▾" : "▸"}</span>
+                            </button>
+                          ) : <span className="email-tree-toggle-spacer" aria-hidden="true" />}
+                          <button type="button" className="matter-folder-name" disabled={!email} onClick={() => email && download(email)}>
+                            <AttachmentTypeIcon type="email" direction={email?.direction} />
+                            <span>{folderLabel(folder)} <i className="ri-lock-line text-muted" title="Read-only email group" aria-label="Read-only email group" /></span>
+                          </button>
+                        </div>
+                        <div className="email-tree-details">
+                          <EmailContext email={email} />
+                          {scope === "MATTER" && <div className="small text-muted">{location(folder.parentId)}</div>}
+                        </div>
+                      </td>
+                      <td><UploadDate file={audit} /></td>
+                      <td>{audit.uploadedBy?.trim() ? <Uploader file={audit} /> : "—"}</td>
+                      <td><div className="matter-folder-actions">{email && <>
+                        <Button size="sm" outline color="primary" onClick={() => openFilePreview(email)}>Preview</Button>
+                        <Button size="sm" outline color="primary" onClick={() => download(email)}>Download</Button>
+                      </>}</div></td>
+                    </tr>
+                    {opened && displayed.map((file, index) => renderFileRow(file, true, index === displayed.length - 1))}
+                  </React.Fragment>;
+                })}
+                {visibleFiles.filter((file) => !panelGroups.has(file.uploadGroupId)).map((file) => renderFileRow(file))}
+                {!visibleFiles.length && !visibleFolders.length && !emailPanels.length && (
                   <tr>
                     <td colSpan={5} className="text-muted py-3">
                       No items in this view.
@@ -974,7 +1093,7 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
               >
                 <option value="">Choose destination</option>
                 {folders
-                  .filter((folder) => rootOf(folder.id) === rootOf(dialog.item.folderId) && folder.id !== dialog.item.folderId)
+                  .filter((folder) => rootOf(folder.id) === rootOf(dialog.item.folderId) && !emailLocks.within.has(folder.id) && folder.id !== dialog.item.folderId)
                   .map((folder) => (
                     <option key={folder.id} value={folder.id}>
                       {location(folder.id)}
@@ -989,11 +1108,22 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
           {dialog?.type === "DELETE_FILES" && (
             <div>
               {dialog.item.fileIds.length > 0 && <p>Delete {dialog.item.fileIds.length} selected file(s)?</p>}
-              {dialog.item.emails.length > 0 && <>
-                <p>The following emails will be deleted in full, including their original MSG and all extracted attachments, even those moved elsewhere:</p>
-                <ul>{dialog.item.emails.map((email) => <li key={email.id}>{email.name} ({email.count} files)</li>)}</ul>
-                <p>Unrelated files inside email folders will remain. Email folders are removed only if empty.</p>
-              </>}
+              {dialog.item.emails.length > 0 && (
+                <>
+                  <p>
+                    The following emails will be deleted in full, including their original MSG and all extracted attachments, even those
+                    moved elsewhere:
+                  </p>
+                  <ul>
+                    {dialog.item.emails.map((email) => (
+                      <li key={email.id}>
+                        {email.name} ({email.count} files)
+                      </li>
+                    ))}
+                  </ul>
+                  <p>Unrelated files inside email folders will remain. Email folders are removed only if empty.</p>
+                </>
+              )}
               <p className="mb-0">This cannot be undone.</p>
             </div>
           )}
@@ -1006,34 +1136,13 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
               <div className="matter-folder-dialog-help">
                 Each email creates its own folder containing the original email and supported extracted attachments.
               </div>
-              <div className="matter-folder-upload-list">
-                {uploads.map((entry) => (
-                  <div key={entry.id} className="matter-folder-upload-item">
-                    <div className="matter-folder-upload-filename" title={entry.file.name}>
-                      {entry.file.name}
-                    </div>
-                    <label htmlFor={`matter-folder-upload-${entry.id}`} className="form-label">
-                      Display name
-                    </label>
-                    <Input
-                      id={`matter-folder-upload-${entry.id}`}
-                      value={entry.name}
-                      maxLength={200}
-                      disabled={busy}
-                      onChange={(event) =>
-                        setUploads((previous) =>
-                          previous.map((item) => (item.id === entry.id ? { ...item, name: event.target.value } : item)),
-                        )
-                      }
-                    />
-                    {entry.error && (
-                      <div role="alert" className="small text-danger mt-2">
-                        {entry.error}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
+              <FolderUploadPicker
+                entries={uploads}
+                onFiles={(files) => queueUploads(files, uploadTarget)}
+                onChange={setUploads}
+                disabled={mutationBusy}
+                idPrefix="matter"
+              />
             </>
           )}
         </ModalBody>
@@ -1043,7 +1152,11 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
           </Button>
           <Button
             color={dialog?.type?.startsWith("DELETE") ? "danger" : "primary"}
-            disabled={busy || (["CREATE", "RENAME", "RENAME_FILE", "MOVE"].includes(dialog?.type) && !value.trim())}
+            disabled={
+              busy ||
+              (["CREATE", "RENAME", "RENAME_FILE", "MOVE"].includes(dialog?.type) && !value.trim()) ||
+              (dialog?.type === "UPLOAD" && (mutationBusy || !uploads.length || uploads.some((entry) => !entry.name.trim())))
+            }
             onClick={dialog?.type === "UPLOAD" ? upload : saveDialog}
           >
             {busy ? "Processing…" : dialog?.type?.startsWith("DELETE") ? "Delete" : dialog?.type === "UPLOAD" ? "Upload" : "Save"}
