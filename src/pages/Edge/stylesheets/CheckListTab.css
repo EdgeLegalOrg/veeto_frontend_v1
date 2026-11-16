@@ -213,3 +213,53 @@
     flex-wrap: wrap;
   }
 }
+
+/* Shared three-line task/document handles; keep row inputs editable and keyboard focus visible. */
+.workflow-sortable-list {
+  min-height: 0.5rem;
+}
+.workflow-drag-handle {
+  cursor: grab;
+  flex-shrink: 0;
+  min-width: 28px;
+  min-height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--vz-secondary-color, #6c757d);
+}
+.workflow-drag-handle:active {
+  cursor: grabbing;
+}
+.workflow-drag-handle:focus-visible {
+  outline: 2px solid var(--vz-primary, #405189);
+  outline-offset: 2px;
+}
+.workflow-drag-handle:disabled {
+  cursor: default;
+}
+.workflow-sort-line {
+  border-bottom: 2px solid var(--vz-primary, #405189) !important;
+  z-index: 10050 !important;
+  pointer-events: none;
+}
+
+/* Keep the two document-source actions equal and compact inside task settings. */
+.workflow-settings-modal .workflow-document-picker-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+.workflow-settings-modal .workflow-document-picker-actions > .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 1 11rem;
+  min-height: 2.25rem;
+  max-width: 100%;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  border-radius: 0.25rem;
+}

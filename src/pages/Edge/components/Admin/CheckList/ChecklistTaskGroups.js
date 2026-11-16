@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { Button, Input, Spinner } from "reactstrap";
 import WorkflowTaskSettings from "./WorkflowTaskSettings";
+import WorkflowSortableList, { WorkflowDragHandle, reorderWorkflowItems } from "./WorkflowSortableList";
 import TaskGroupForm from "../TaskGroups/TaskGroupForm";
 import { useTaskGroups } from "./TaskGroupSelect";
 
@@ -108,33 +109,16 @@ const ChecklistTaskGroups = (props) => {
     );
   };
 
-  /**
-   * Moves a task one place up or down within its own group.
-   *
-   * Positions are swapped in the underlying array rather than by editing
-   * sortOrder directly, because the array is what the display order is read
-   * from - editing the numbers alone would leave the list looking unchanged
-   * until it was reloaded. commit then renumbers from the new arrangement.
+  /** Translate this group's drag indices back into the complete task draft.
+   * Replace only its existing slots; commit then renumbers each group's sortOrder.
+   * Moving between groups remains an explicit group-selection action.
    */
-  const handleReorderTask = (task, direction) => {
-    const groupId = task.taskGroupId ?? UNGROUPED;
+  const handleReorderTasks = (groupId, from, to) => {
     const siblings = tasksIn(groupId);
-    const at = siblings.findIndex((t) => sameTask(task, t));
-    const to = at + direction;
-
-    if (at < 0 || to < 0 || to >= siblings.length) {
-      return;
-    }
-
-    // The two rows to exchange, located in the full list.
-    const fromIndex = tasks.findIndex((t) => sameTask(siblings[at], t));
-    const toIndex = tasks.findIndex((t) => sameTask(siblings[to], t));
-
-    const next = [...tasks];
-    next[fromIndex] = tasks[toIndex];
-    next[toIndex] = tasks[fromIndex];
-
-    commit(next);
+    const reordered = reorderWorkflowItems(siblings, from, to);
+    if (reordered === siblings) return;
+    let position = 0;
+    commit(tasks.map((task) => (task.taskGroupId ?? UNGROUPED) === groupId ? reordered[position++] : task));
   };
 
   const handleAddTask = (groupId) => {
@@ -211,7 +195,7 @@ const ChecklistTaskGroups = (props) => {
     setGroupFormOpen(true);
   };
 
-  // useTaskGroups loads once, so bump a key to re-mount it after an edit.
+  // Remount the keyed group editor subtree after a group is saved.
   const handleGroupSaved = () => setRefreshKey(refreshKey + 1);
 
   const unusedGroups = taskGroups.filter(
@@ -230,7 +214,7 @@ const ChecklistTaskGroups = (props) => {
   return (
     <div key={refreshKey}>
       <div className="d-flex align-items-center justify-content-between mb-3">
-        <h5 className="mb-0">Tasks</h5>
+        <div><h5 className="mb-0">Tasks</h5><small className="text-muted">Drag the handle to reorder tasks within a group.</small></div>
         <div className="d-flex align-items-center gap-2">
           <Input
             type="select"
@@ -288,36 +272,13 @@ const ChecklistTaskGroups = (props) => {
               <p className="text-muted fs-13 mb-2">No tasks in this group.</p>
             )}
 
+            <WorkflowSortableList onMove={(from, to) => handleReorderTasks(groupId, from, to)}>
             {tasksIn(groupId).map((task, i, siblings) => (
               <div
-                className="d-flex align-items-center gap-2 mb-2"
-                key={task.localKey || `task-${task.taskId}-${i}`}
+                className="workflow-sortable-row d-flex align-items-center gap-2 mb-2"
+                key={task.localKey || (task.id != null ? `row-${task.id}` : `task-${task.taskId}`)}
               >
-                {/* Reordering within the group. Buttons rather than drag and
-                    drop: the list is short, and a keyboard-reachable control
-                    beats a drag target that needs a library. */}
-                <div className="btn-group-vertical" role="group">
-                  <Button
-                    color="light"
-                    size="sm"
-                    className="py-0 px-1"
-                    onClick={() => handleReorderTask(task, -1)}
-                    disabled={i === 0}
-                    title="Move up"
-                  >
-                    <i className="ri-arrow-up-s-line" />
-                  </Button>
-                  <Button
-                    color="light"
-                    size="sm"
-                    className="py-0 px-1"
-                    onClick={() => handleReorderTask(task, 1)}
-                    disabled={i === siblings.length - 1}
-                    title="Move down"
-                  >
-                    <i className="ri-arrow-down-s-line" />
-                  </Button>
-                </div>
+                <WorkflowDragHandle index={i} count={siblings.length} label={task.taskTitle || "task"} onMove={(from, to) => handleReorderTasks(groupId, from, to)} />
                 <span className="text-muted fs-13" style={{ width: "24px" }}>
                   {i + 1}.
                 </span>
@@ -362,6 +323,7 @@ const ChecklistTaskGroups = (props) => {
               </div>
             ))}
 
+            </WorkflowSortableList>
             <div className="d-flex align-items-center gap-2 mt-2">
               <Input
                 type="text"

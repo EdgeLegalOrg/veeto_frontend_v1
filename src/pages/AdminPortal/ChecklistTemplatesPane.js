@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   Button,
   Form,
@@ -26,6 +26,7 @@ import { Pager, SearchBox, haystack, usePaging } from "./paging";
 import { ConfirmModal, ErrorAlert, Loading, useLoad } from "./shared";
 
 import WorkflowTaskSettings from "../Edge/components/Admin/CheckList/WorkflowTaskSettings";
+import WorkflowSortableList, { WorkflowDragHandle, reorderWorkflowItems } from "../Edge/components/Admin/CheckList/WorkflowSortableList";
 
 const NEW_TASK = "new";
 const BATCH = 25;
@@ -45,6 +46,9 @@ const ChecklistTemplatesPane = ({ companyId }) => {
   const groups = useLoad(() => listChecklistGroups(companyId), [companyId]);
   const paging = usePaging(data, { filterFn: matches });
 
+  // Client-only keys keep row inputs attached to the same task during reordering.
+  // The explicit save payload below excludes these keys.
+  const rowKey = useRef(0);
   const [editing, setEditing] = useState(null);
   const [settingsIndex, setSettingsIndex] = useState(null);
   const [form, setForm] = useState({ name: "", description: "", checksum: null, rows: [] });
@@ -69,6 +73,7 @@ const ChecklistTemplatesPane = ({ companyId }) => {
             rows: [...(template.templateTaskList || [])]
               .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
               .map((r) => ({
+                uiKey: `workflow-row-${++rowKey.current}`,
                 id: r.id,
                 taskId: r.taskId,
                 taskTitle: r.taskTitle || taskTitle(r.taskId),
@@ -86,13 +91,9 @@ const ChecklistTemplatesPane = ({ companyId }) => {
 
   const setRow = (index, patch) => setForm({ ...form, rows: form.rows.map((r, i) => (i === index ? { ...r, ...patch } : r)) });
 
-  const move = (index, delta) => {
-    const target = index + delta;
-    if (target < 0 || target >= form.rows.length) return;
-    const rows = [...form.rows];
-    [rows[index], rows[target]] = [rows[target], rows[index]];
-    setForm({ ...form, rows });
-  };
+  // Reorder draft rows with their settings and links intact; persist on Save.
+  // The list is disabled while task settings are open because they use a row index.
+  const move = (from, to) => setForm((previous) => ({ ...previous, rows: reorderWorkflowItems(previous.rows, from, to) }));
 
   const chooseTask = (index, value) => {
     if (value === NEW_TASK) setRow(index, { taskId: null, taskTitle: "" });
@@ -258,10 +259,12 @@ const ChecklistTemplatesPane = ({ companyId }) => {
             </FormGroup>
             <Label>Tasks, in order</Label>
             <div className="ap-hint" style={{ marginBottom: 6 }}>
-              Within each group the tasks keep the order shown here.
+              Drag the handle to reorder tasks. Within each group, tasks keep the order shown here.
             </div>
+            <WorkflowSortableList onMove={move} disabled={busy || settingsIndex != null}>
             {form.rows.map((r, i) => (
-              <div key={r.id || `row-${i}`} className="ap-search" style={{ marginBottom: 6, flexWrap: "wrap" }}>
+              <div key={r.uiKey || r.id || `row-${i}`} className="workflow-sortable-row ap-search" style={{ marginBottom: 6, flexWrap: "wrap" }}>
+                <WorkflowDragHandle index={i} count={form.rows.length} label={r.taskTitle || "task"} onMove={move} disabled={busy || settingsIndex != null} />
                 <Input
                   bsSize="sm"
                   type="select"
@@ -307,19 +310,6 @@ const ChecklistTemplatesPane = ({ companyId }) => {
                   <input type="checkbox" checked={r.mandatory} onChange={(e) => setRow(i, { mandatory: e.target.checked })} />{" "}
                   Required
                 </label>
-                <Button size="sm" color="light" type="button" onClick={() => move(i, -1)} disabled={i === 0} aria-label="Move up">
-                  ↑
-                </Button>
-                <Button
-                  size="sm"
-                  color="light"
-                  type="button"
-                  onClick={() => move(i, 1)}
-                  disabled={i === form.rows.length - 1}
-                  aria-label="Move down"
-                >
-                  ↓
-                </Button>
                 <Button
                   size="sm"
                   color="outline-danger"
@@ -330,11 +320,12 @@ const ChecklistTemplatesPane = ({ companyId }) => {
                 </Button>
               </div>
             ))}
+            </WorkflowSortableList>
             <Button
               size="sm"
               color="light"
               type="button"
-              onClick={() => setForm({ ...form, rows: [...form.rows, { taskId: null, taskTitle: "", mandatory: false, taskGroupId: "" }] })}
+              onClick={() => setForm({ ...form, rows: [...form.rows, { uiKey: `workflow-row-${++rowKey.current}`, taskId: null, taskTitle: "", mandatory: false, taskGroupId: "" }] })}
             >
               Add a task
             </Button>

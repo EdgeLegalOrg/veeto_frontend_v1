@@ -4,6 +4,7 @@ import { API } from "../../../apis";
 import { listWorkflowDocuments } from "../../../../AdminPortal/adminPortalApi";
 import "../../../stylesheets/CheckListTab.css";
 import FileDirectoryModal from "../../FileDirectory";
+import WorkflowSortableList, { WorkflowDragHandle, reorderWorkflowItems } from "./WorkflowSortableList";
 
 export const MATTER_DATE_OPTIONS = [
   ["INSTRUCTION_DATE", "Instruction Date"], ["EXCHANGE_DATE", "Exchange Date"],
@@ -40,11 +41,9 @@ const WorkflowTaskSettings = ({ task, companyId, onSave, onClose }) => {
     })();
     return () => { active = false; };
   }, [companyId]);
-  const moveLink = (index, delta) => {
-    const next = [...links];
-    [next[index], next[index + delta]] = [next[index + delta], next[index]];
-    setLinks(next);
-  };
+  // Array order is the generation order. Reordering stays local until Apply,
+  // then becomes part of the parent checklist draft until that checklist is saved.
+  const moveLink = (from, to) => setLinks((previous) => reorderWorkflowItems(previous, from, to));
   const change = (field, value) => setConfig((previous) => ({ ...previous, [field]: value }));
   const save = () => {
     if (config.matterDateField && (!/^\d+$/.test(days) || Number(days) > 36500)) return setError("Enter a whole-number offset between 0 and 36,500.");
@@ -84,27 +83,26 @@ const WorkflowTaskSettings = ({ task, companyId, onSave, onClose }) => {
         </>}
         <div className="col-12">
           <h6>Precedents and Forms</h6>
-          <p className="small text-muted">Select documents in the required order. The solicitor downloads one ZIP containing separate, numbered documents. Each DOCX is generated independently; other formats remain unchanged. Nothing is saved to Matter Attachments automatically.</p>
+          <p className="small text-muted">Drag the handles to arrange documents in the required order. The solicitor downloads one ZIP containing separate, numbered documents. Each DOCX is generated independently; other formats remain unchanged. Nothing is saved to Matter Attachments automatically.</p>
           {libraryError && <div className="alert alert-warning" role="alert">{libraryError}</div>}
-          <ol className="ps-3">
+          <WorkflowSortableList as="ol" className="ps-3" onMove={moveLink}>
             {links.map((link, index) => {
               const file = files.find((item) => item.id === link.documentId && item.kind === link.kind);
               const legacy = !["PRECEDENT", "FORM"].includes(link.kind);
-              return <li key={`${link.kind}-${link.documentId}`} className="mb-2">
+              return <li key={`${link.kind}-${link.documentId}`} className="workflow-sortable-row mb-2">
                 <div className="d-flex align-items-center gap-2 flex-wrap">
+                  <WorkflowDragHandle index={index} count={links.length} label={file?.name || "document"} onMove={moveLink} />
                   <span className="flex-grow-1">{file?.name || (legacy ? "Legacy document — reselect from Precedents/Forms" : loading ? "Loading document…" : `Unavailable document #${link.documentId}`)}
                     <small className="d-block text-muted">{link.kind === "FORM" ? "Form" : link.kind === "PRECEDENT" ? "Precedent" : link.kind}{file?.type ? ` · ${file.type.toUpperCase()}` : ""}</small>
                   </span>
-                  <Button size="sm" color="primary" outline disabled={index === 0} aria-label={`Move document ${index + 1} up`} onClick={() => moveLink(index, -1)}>↑</Button>
-                  <Button size="sm" color="primary" outline disabled={index === links.length - 1} aria-label={`Move document ${index + 1} down`} onClick={() => moveLink(index, 1)}>↓</Button>
                   <Button size="sm" color="danger" outline onClick={() => setLinks(links.filter((_, i) => i !== index))}>Remove</Button>
                 </div>
               </li>;
             })}
-          </ol>
-          <div className="d-flex gap-2 flex-wrap">
-            <Button color="primary" disabled={loading || !!libraryError} onClick={() => setDocumentWindow({ name: "Select Precedents", type: "NORMAL" })}>{loading ? "Loading documents…" : "Select Precedents"}</Button>
-            <Button color="primary" outline disabled={loading || !!libraryError} onClick={() => setDocumentWindow({ name: "Select Forms", type: "FORM" })}>Select Forms</Button>
+          </WorkflowSortableList>
+          <div className="workflow-document-picker-actions">
+            <Button size="sm" color="primary" disabled={loading || !!libraryError} onClick={() => setDocumentWindow({ name: "Select Precedents", type: "NORMAL" })}>{loading ? "Loading documents…" : "Select Precedents"}</Button>
+            <Button size="sm" color="primary" disabled={loading || !!libraryError} onClick={() => setDocumentWindow({ name: "Select Forms", type: "FORM" })}>Select Forms</Button>
           </div>
           {documentWindow && <FileDirectoryModal
             isOpen
