@@ -390,7 +390,7 @@ const TeamPrecedentBrowser = ({ siteId, onChoose }) => {
       )}
       {config?.provider === "UNCONFIGURED" && (
         <div className="alert alert-info m-2">
-          An administrator must configure company storage under Admin → Company Info before library uploads are available.
+          Configure GENERAL OneDrive storage for this office before creating the shared Team Precedents library.
         </div>
       )}
       <div className="matter-folder-panels">
