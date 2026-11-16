@@ -9,6 +9,7 @@ import { fetchChecklistTaskGroups } from "pages/Edge/apis";
  */
 export const useTaskGroups = () => {
   const [taskGroups, setTaskGroups] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
@@ -23,6 +24,8 @@ export const useTaskGroups = () => {
       } catch (error) {
         // The picker degrades to "Default group" rather than blocking the screen.
         console.error("error", error);
+      } finally {
+        if (!cancelled) setLoading(false);
       }
     };
 
@@ -33,7 +36,7 @@ export const useTaskGroups = () => {
     };
   }, []);
 
-  return taskGroups;
+  return { taskGroups, loading };
 };
 
 /**

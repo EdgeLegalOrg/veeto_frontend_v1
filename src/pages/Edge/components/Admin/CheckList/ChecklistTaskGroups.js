@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
-import { Button, Input } from "reactstrap";
+import { Button, Input, Spinner } from "reactstrap";
+import WorkflowTaskSettings from "./WorkflowTaskSettings";
 import TaskGroupForm from "../TaskGroups/TaskGroupForm";
 import { useTaskGroups } from "./TaskGroupSelect";
 
@@ -24,12 +25,13 @@ let localKeySeed = 0;
 const ChecklistTaskGroups = (props) => {
   const { tasks, onChange } = props;
 
-  const taskGroups = useTaskGroups();
+  const { taskGroups, loading: groupsLoading } = useTaskGroups();
   const [refreshKey, setRefreshKey] = useState(0);
   const [draft, setDraft] = useState({});
   const [addGroupId, setAddGroupId] = useState("");
   const [editingGroup, setEditingGroup] = useState(null);
   const [groupFormOpen, setGroupFormOpen] = useState(false);
+  const [settingsTask, setSettingsTask] = useState(null);
 
   // Groups shown are the ones the checklist actually uses, in the order the
   // task group admin defines, plus any the user has just added.
@@ -157,7 +159,7 @@ const ChecklistTaskGroups = (props) => {
   };
 
   const sameTask = (a, b) =>
-    a.localKey ? a.localKey === b.localKey : a.taskId === b.taskId;
+    a.localKey ? a.localKey === b.localKey : a.id != null ? a.id === b.id : a.taskId === b.taskId;
 
   /**
    * Renames a task in place.
@@ -215,6 +217,15 @@ const ChecklistTaskGroups = (props) => {
   const unusedGroups = taskGroups.filter(
     (g) => !visibleGroupIds.includes(g.id)
   );
+
+  if (groupsLoading) {
+    return (
+      <div className="d-flex align-items-center justify-content-center gap-2 py-5 w-100" role="status" aria-live="polite" aria-busy="true">
+        <Spinner color="primary" size="sm" aria-hidden="true" />
+        <span>Loading task groups…</span>
+      </div>
+    );
+  }
 
   return (
     <div key={refreshKey}>
@@ -319,6 +330,7 @@ const ChecklistTaskGroups = (props) => {
                   onChange={(e) => handleRenameTask(task, e.target.value)}
                 />
 
+                <Button size="sm" color="primary" outline onClick={() => setSettingsTask(task)}>Schedule &amp; documents</Button>
                 {/* Moving a task between groups is the one edit that also
                     applies to matters already underway, where a task cannot be
                     deleted once started. */}
@@ -379,6 +391,10 @@ const ChecklistTaskGroups = (props) => {
         </div>
       ))}
 
+      {settingsTask && <WorkflowTaskSettings task={settingsTask} onClose={() => setSettingsTask(null)} onSave={(settings) => {
+        onChange(tasks.map((task) => sameTask(settingsTask, task) ? { ...task, ...settings } : task));
+        setSettingsTask(null);
+      }} />}
       <TaskGroupForm
         isOpen={groupFormOpen}
         close={() => setGroupFormOpen(false)}

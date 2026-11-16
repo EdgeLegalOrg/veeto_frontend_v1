@@ -25,6 +25,8 @@ import {
 import { Pager, SearchBox, haystack, usePaging } from "./paging";
 import { ConfirmModal, ErrorAlert, Loading, useLoad } from "./shared";
 
+import WorkflowTaskSettings from "../Edge/components/Admin/CheckList/WorkflowTaskSettings";
+
 const NEW_TASK = "new";
 const BATCH = 25;
 
@@ -44,6 +46,7 @@ const ChecklistTemplatesPane = ({ companyId }) => {
   const paging = usePaging(data, { filterFn: matches });
 
   const [editing, setEditing] = useState(null);
+  const [settingsIndex, setSettingsIndex] = useState(null);
   const [form, setForm] = useState({ name: "", description: "", checksum: null, rows: [] });
   const [removing, setRemoving] = useState(null);
   const [syncing, setSyncing] = useState(null);
@@ -71,6 +74,8 @@ const ChecklistTemplatesPane = ({ companyId }) => {
                 taskTitle: r.taskTitle || taskTitle(r.taskId),
                 mandatory: !!r.mandatory,
                 taskGroupId: r.taskGroupId || "",
+                configuration: r.configuration || null,
+                documentLinks: r.documentLinks || [],
               })),
           }
         : { name: "", description: "", checksum: null, rows: [] }
@@ -118,6 +123,8 @@ const ChecklistTemplatesPane = ({ companyId }) => {
           taskTitle: r.taskId ? taskTitle(r.taskId) : r.taskTitle,
           mandatory: r.mandatory,
           taskGroupId: r.taskGroupId ? Number(r.taskGroupId) : null,
+          configuration: r.configuration || null,
+          documentLinks: r.documentLinks || [],
         })),
       });
       toast.success(editing.id ? "Check list saved" : "Check list added");
@@ -295,6 +302,7 @@ const ChecklistTemplatesPane = ({ companyId }) => {
                     </option>
                   ))}
                 </Input>
+                <Button size="sm" outline color="primary" type="button" onClick={() => setSettingsIndex(i)}>Schedule &amp; documents</Button>
                 <label style={{ whiteSpace: "nowrap", margin: 0 }}>
                   <input type="checkbox" checked={r.mandatory} onChange={(e) => setRow(i, { mandatory: e.target.checked })} />{" "}
                   Required
@@ -342,6 +350,9 @@ const ChecklistTemplatesPane = ({ companyId }) => {
         </Form>
       </Modal>
 
+      {settingsIndex != null && <WorkflowTaskSettings companyId={companyId} task={form.rows[settingsIndex]} onClose={() => setSettingsIndex(null)} onSave={(settings) => {
+        setRow(settingsIndex, settings); setSettingsIndex(null);
+      }} />}
       <Modal isOpen={!!syncing} centered toggle={busy ? undefined : closeSync}>
         <ModalHeader toggle={busy ? undefined : closeSync}>Sync changes to matters</ModalHeader>
         <ModalBody>

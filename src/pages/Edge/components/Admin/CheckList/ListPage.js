@@ -18,6 +18,7 @@ import {
   Modal,
   ModalBody,
   ModalHeader,
+  Spinner,
 } from "reactstrap";
 import BreadCrumb from "../../../../../Components/Common/BreadCrumb";
 
@@ -25,9 +26,11 @@ const ListPage = () => {
   document.title = "Check List | Veeto";
   const [add, setAdd] = useState(false);
   const [edit, setEdit] = useState(false);
+  const [editLoading, setEditLoading] = useState(false);
   const [deleteAlert, setDeleteAlert] = useState(false);
   const [task, setTask] = useState([]);
   const [checkList, setCheckList] = useState([]);
+  const [listLoading, setListLoading] = useState(true);
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [syncOpen, setSyncOpen] = useState(false);
   const [selectedList, setSelectedList] = useState([]);
@@ -65,21 +68,26 @@ const ListPage = () => {
   };
 
   const openEditForm = async () => {
-    if (task?.length <= 0) {
-      let list = await fetchAllTask();
-
-      if (list && list?.length > 0) {
+    if (editLoading) return;
+    setEdit(true);
+    setEditLoading(true);
+    try {
+      if (task?.length <= 0) {
+        const list = await fetchAllTask();
+        if (!Array.isArray(list)) {
+          setEdit(false);
+          return;
+        }
         setTask(list);
-        setEdit(true);
       }
-      setLoading(false);
-    } else {
-      setEdit(true);
+    } finally {
+      setEditLoading(false);
       setLoading(false);
     }
   };
 
   const fetchList = async () => {
+    setListLoading(true);
     try {
       const { data } = await getCheckList();
       if (data.success) {
@@ -87,11 +95,11 @@ const ListPage = () => {
       } else {
         toast.error("Something went wrong, please try later.");
       }
-      setLoading(false);
     } catch (error) {
       console.error(error);
       toast.error("Something went wrong, please try later.");
-      setLoading(false);
+    } finally {
+      setListLoading(false);
     }
   };
 
@@ -104,14 +112,12 @@ const ListPage = () => {
     setSelectedList([id]);
     let data = checkList.filter((a) => a.id === id);
     setSelectedTemplate(data[0]);
-    setTimeout(() => {
-      openEditForm();
-    }, 30);
+    openEditForm();
   };
 
   const handleEdit = () => {
     if (selectedTemplate) {
-      setEdit(true);
+      openEditForm();
     } else {
       toast.warning("Please select one task");
     }
@@ -211,6 +217,7 @@ const ListPage = () => {
               <div className="d-flex align-items-center">
                 <Button
                   className="d-flex mx-1"
+                  disabled={listLoading || loading}
                   onClick={openAddForm}
                   color="success"
                 >
@@ -218,6 +225,7 @@ const ListPage = () => {
                 </Button>
                 <Button
                   className="d-flex mx-1"
+                  disabled={listLoading || loading}
                   onClick={handleEdit}
                   color="warning"
                 >
@@ -225,6 +233,7 @@ const ListPage = () => {
                 </Button>
                 <Button
                   className="d-flex mx-1"
+                  disabled={listLoading || loading}
                   onClick={handleSyncChanges}
                   color="info"
                   title="Push this checklist's tasks out to the matters using it"
@@ -233,6 +242,7 @@ const ListPage = () => {
                 </Button>
                 <Button
                   className="d-flex mx-1"
+                  disabled={listLoading || loading}
                   onClick={handleCheckDelete}
                   color="danger"
                 >
@@ -252,6 +262,7 @@ const ListPage = () => {
                         checkList?.length > 0 &&
                         selectedList?.length === checkList?.length
                       }
+                      disabled={listLoading || loading}
                       onChange={handleSelectAll}
                     />
                   </th>
@@ -260,8 +271,17 @@ const ListPage = () => {
                   </th>
                 </tr>
               </thead>
-              <tbody>
-                {checkList?.map((template) => (
+              <tbody aria-busy={listLoading}>
+                {listLoading ? (
+                  <tr>
+                    <td colSpan={2} className="text-center py-4">
+                      <div className="d-flex align-items-center justify-content-center gap-2" role="status" aria-live="polite">
+                        <Spinner size="sm" color="primary" aria-hidden="true" />
+                        <span>Loading checklists…</span>
+                      </div>
+                    </td>
+                  </tr>
+                ) : checkList?.map((template) => (
                   <tr
                     key={template.id}
                     onClick={(e) => {
@@ -319,7 +339,7 @@ const ListPage = () => {
                 setSelectedList([]);
               }}
               backdrop="static"
-              size="lg"
+              size="xl"
               centered
               scrollable={true}
             >
@@ -334,7 +354,12 @@ const ListPage = () => {
                 Edit Check List
               </ModalHeader>
               <ModalBody>
-                <EditCheckList
+                {editLoading ? (
+                  <div className="d-flex align-items-center justify-content-center gap-2 py-5" role="status" aria-live="polite">
+                    <Spinner color="primary" size="sm" aria-hidden="true" />
+                    <span>Loading checklist…</span>
+                  </div>
+                ) : <EditCheckList
                   data={{ data: selectedTemplate, task: task }}
                   close={() => {
                     setEdit(false);
@@ -342,7 +367,7 @@ const ListPage = () => {
                     setSelectedList([]);
                   }}
                   refresh={fetchList}
-                />
+                />}
               </ModalBody>
             </Modal>
           )}

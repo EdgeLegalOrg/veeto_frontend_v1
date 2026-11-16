@@ -67,11 +67,11 @@ const ChecklistTab = (props) => {
           props.refresh();
         }
       } else {
-        toast.error("There is some error occured. Please try later.");
+        toast.error("The task could not be updated. Please refresh and retry.");
       }
     } catch (error) {
       console.error("error", error);
-      toast.error("There is some error occured. Please try later.");
+      toast.error(error.response?.data?.message || "The task could not be updated. Please refresh and retry.");
     } finally {
       setLoading(false);
     }
@@ -83,7 +83,7 @@ const ChecklistTab = (props) => {
   const handleDueDateChange = (task, value) =>
     sendTaskAction(
       value
-        ? { taskId: task.id, dueDate: new Date(value).toISOString() }
+        ? { taskId: task.id, dueDateValue: value }
         : { taskId: task.id, clearDueDate: true }
     );
 
@@ -103,6 +103,10 @@ const ChecklistTab = (props) => {
 
   const renderGroupCard = (group) => {
     const percent = group.progressPercent || 0;
+    const flatten = (tasks) => tasks.flatMap((task) => [task, ...flatten(task.subTaskList || [])]);
+    const all = flatten(tasksInGroup(group.id));
+    const overdue = all.filter((task) => task.dueState === "OVERDUE").length;
+    const awaiting = all.filter((task) => task.dueState === "AWAITING_MATTER_DATE").length;
 
     // md={6} puts two per row at any width above mobile, so the pair fills the
     // tab.
@@ -110,6 +114,10 @@ const ChecklistTab = (props) => {
       <Col md={6} key={`group-${group.id ?? "ungrouped"}`}>
         <Card
           className="workflow-group-card h-100"
+          role="button"
+          tabIndex={0}
+          aria-label={`Open ${group.title} workflow tasks`}
+          onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setOpenGroupId(group.id ?? null); } }}
           onClick={() => setOpenGroupId(group.id ?? null)}
         >
           <CardBody>
@@ -157,6 +165,10 @@ const ChecklistTab = (props) => {
               {percent}%
             </Progress>
 
+            <div className="d-flex gap-2 flex-wrap mb-2">
+              {overdue > 0 && <span className="badge bg-danger-subtle text-danger">{overdue} overdue</span>}
+              {awaiting > 0 && <span className="badge bg-warning-subtle text-warning">{awaiting} awaiting matter date</span>}
+            </div>
             <div className="d-flex justify-content-between align-items-center">
               <span className="text-muted fs-12">
                 <i className="ri-calendar-event-line align-bottom me-1" />
@@ -200,6 +212,8 @@ const ChecklistTab = (props) => {
         isArchived={isArchived}
         onStatusAction={handleStatusAction}
         onDueDateChange={handleDueDateChange}
+        matter={props.data}
+        onChanged={props.refresh}
       />
 
       {loading && <LoadingPage />}

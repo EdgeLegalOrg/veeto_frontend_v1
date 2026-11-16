@@ -1,15 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { Button } from "reactstrap";
+import { Button, Spinner } from "reactstrap";
 import { toast } from "react-toastify";
 import { editCheckList } from "../../../apis";
-import LoadingPage from "../../../utils/LoadingPage";
 import { TextInputField } from "pages/Edge/components/InputField";
 import ChecklistTaskGroups from "./ChecklistTaskGroups";
 
-const initialState = {
-  name: "",
-  templateTaskList: [],
-};
+const initialState = { name: "", templateTaskList: [] };
 
 /**
  * Edit a checklist: its name, and the tasks grouped into task groups.
@@ -37,6 +33,7 @@ const EditCheckList = (props) => {
   };
 
   const handleSubmit = async () => {
+    if (loading) return;
     if (!formData.name?.trim()) {
       return setSubmitted(true);
     }
@@ -78,41 +75,50 @@ const EditCheckList = (props) => {
   };
 
   return (
-    <div>
-      <div className="row p-2">
-        <div className="col-md-8">
-          <TextInputField
-            name="name"
-            autoComplete="off"
-            label="Checklist Title"
-            value={formData.name}
-            onChange={handleChange}
-            required={true}
-            invalid={!formData.name && submitted}
-            invalidMessage={"Checklist Title is required"}
-          />
+    <div className="position-relative" aria-busy={loading}>
+      <fieldset disabled={loading} className="border-0 p-0 m-0" style={{ minWidth: 0 }}>
+        <div className="row p-2">
+          <div className="col-md-8">
+            <TextInputField
+              name="name"
+              autoComplete="off"
+              label="Checklist Title"
+              value={formData.name}
+              onChange={handleChange}
+              required={true}
+              invalid={!formData.name && submitted}
+              invalidMessage={"Checklist Title is required"}
+            />
+          </div>
         </div>
-      </div>
 
-      <div className="row mt-3 px-2">
-        <ChecklistTaskGroups tasks={selected} onChange={setSelected} />
-      </div>
+        <div className="row mt-3 px-2">
+          <ChecklistTaskGroups tasks={selected} onChange={setSelected} />
+        </div>
 
-      <div className="d-flex align-items-center justify-content-end p-2 border-top">
-        <Button className="mx-1" color="danger" onClick={props.close}>
-          Cancel
-        </Button>
-        <Button
-          className="mx-1"
-          color="success"
-          onClick={handleSubmit}
-          disabled={!selected.length}
+        <div className="d-flex align-items-center justify-content-end p-2 border-top">
+          <Button className="mx-1" color="danger" onClick={props.close}>
+            Cancel
+          </Button>
+          <Button className="mx-1" color="success" onClick={handleSubmit} disabled={loading || !selected.length}>
+            {loading && <Spinner size="sm" className="me-2" aria-hidden="true" />}
+            {loading ? "Updating…" : "Update"}
+          </Button>
+        </div>
+      </fieldset>
+      {loading && (
+        <div
+          className="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center rounded"
+          style={{ background: "var(--vz-secondary-bg, #fff)", opacity: 0.9, zIndex: 2 }}
+          role="status"
+          aria-live="polite"
         >
-          Update
-        </Button>
-      </div>
-
-      {loading && <LoadingPage />}
+          <div className="d-flex align-items-center gap-2 text-primary">
+            <Spinner size="sm" aria-hidden="true" />
+            <span>Updating checklist…</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Button,
   Card,
@@ -10,12 +10,14 @@ import {
   ModalHeader,
   Progress,
   Row,
+  Spinner,
   Table,
   UncontrolledDropdown,
   DropdownToggle,
   DropdownMenu,
   DropdownItem,
 } from "reactstrap";
+import WorkflowDocumentsModal from "./WorkflowDocumentsModal";
 import { toast } from "react-toastify";
 import {
   addTaskGroupComment,
@@ -51,38 +53,53 @@ const TaskGroupModal = (props) => {
     isArchived,
     onStatusAction,
     onDueDateChange,
+    matter,
+    onChanged,
   } = props;
 
   const [expanded, setExpanded] = useState({});
+  const [documentsTask, setDocumentsTask] = useState(null);
+  const [dueFilter, setDueFilter] = useState("ALL");
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
   const [savingComment, setSavingComment] = useState(false);
+  const [loadingComments, setLoadingComments] = useState(false);
+  const commentRequest = useRef(0);
 
   const groupId = group?.id ?? null;
 
   const loadComments = useCallback(async () => {
+    const request = ++commentRequest.current;
     // Ungrouped is synthetic and has no id to hang comments off.
     if (!trackerId || groupId == null) {
       setComments([]);
+      setLoadingComments(false);
       return;
     }
 
+    setLoadingComments(true);
+    setComments([]);
     try {
       const { data } = await fetchTaskGroupComments(trackerId, groupId);
 
-      if (data.success) {
+      if (request === commentRequest.current && data.success) {
         setComments(data.data?.commentList || []);
       }
     } catch (error) {
-      console.error("error", error);
+      if (request === commentRequest.current) console.error("error", error);
+    } finally {
+      if (request === commentRequest.current) setLoadingComments(false);
     }
   }, [trackerId, groupId]);
 
   useEffect(() => {
     if (isOpen) {
       setNewComment("");
+      setDueFilter("ALL");
+      setDocumentsTask(null);
       loadComments();
     }
+    return () => { commentRequest.current += 1; };
   }, [isOpen, loadComments]);
 
   const toggleExpanded = (taskId) =>
@@ -131,7 +148,7 @@ const TaskGroupModal = (props) => {
     return (
       <tr
         key={`task-${task.id}`}
-        className={isSubTask ? "workflow-subtask-row" : ""}
+        className={`${isSubTask ? "workflow-subtask-row" : ""} ${task.dueState === "OVERDUE" ? "workflow-overdue-row" : ""}`}
       >
         <td className="fw-medium">{label}</td>
         <td>
@@ -154,7 +171,7 @@ const TaskGroupModal = (props) => {
             ) : (
               <span className="d-inline-block me-2 workflow-toggle-spacer" />
             )}
-            <span>{task.taskTitle}</span>
+            <div><span>{task.taskTitle}</span>{task.taskDescription && <div className="small text-muted text-wrap mt-1">{task.taskDescription}</div>}</div>
             {!task.mandatory && (
               <span className="fs-12 ms-2 text-muted">(optional)</span>
             )}
@@ -164,17 +181,22 @@ const TaskGroupModal = (props) => {
           <span className={`badge ${meta.badge}`}>{meta.label}</span>
         </td>
         <td>
-          <input
-            type="date"
-            className="form-control form-control-sm workflow-due-date"
-            value={toDateInputValue(task.dueDate)}
-            disabled={isArchived}
-            onChange={(e) => onDueDateChange(task, e.target.value)}
-          />
+          {task.configuration?.matterDateField ? <>
+            <span>{task.dueState === "AWAITING_MATTER_DATE" ? "Awaiting matter date" : task.dueDateValue?.split("-").reverse().join("/") || "—"}</span>
+            <div className="small text-muted">{["COMPLETE", "NOT_APPLICABLE"].includes(task.dueState) ? "Recorded date" : `Follows ${task.configuration.matterDateField.toLowerCase().replaceAll("_", " ")}`}</div>
+          </> : <input type="date" className="form-control form-control-sm workflow-due-date"
+            value={task.dueDateValue ?? toDateInputValue(task.dueDate)} disabled={isArchived}
+            onChange={(e) => onDueDateChange(task, e.target.value)} />}
+          {task.dueState && !["NO_DUE_DATE", "AWAITING_MATTER_DATE", "COMPLETE", "NOT_APPLICABLE"].includes(task.dueState) && <span className={`badge mt-1 ${task.dueState === "OVERDUE" ? "bg-danger-subtle text-danger" : task.dueState === "DUE_TODAY" ? "bg-warning-subtle text-warning" : "bg-info-subtle text-info"}`}>{task.dueState === "DUE_TODAY" ? "Due today" : task.dueState === "OVERDUE" ? "Overdue" : "Upcoming"}</span>}
         </td>
         <td>{formatDateFunc(task.completionDate) || "-"}</td>
         <td>{task.startedByName || "-"}</td>
         <td>{task.completedByName || "-"}</td>
+        <td>
+          <Button size="sm" color="primary" outline onClick={() => setDocumentsTask(task)}>
+            <i className="ri-attachment-line me-1" />Documents ({task.documentLinks?.length || 0})
+          </Button>
+        </td>
         <td className="text-end">
           <UncontrolledDropdown>
             <DropdownToggle
@@ -208,10 +230,14 @@ const TaskGroupModal = (props) => {
     const rows = [];
 
     tasks.forEach((task, i) => {
+      const matches = (item) => dueFilter === "ALL" || (dueFilter === "COMPLETE" ? ["COMPLETE", "NOT_APPLICABLE"].includes(item.dueState) : item.dueState === dueFilter);
+      const children = task.subTaskList || [];
+      if (!matches(task) && !children.some(matches)) return;
       rows.push(renderRow(task, `${i + 1}`, false));
 
-      if (expanded[task.id] && task.subTaskList?.length) {
+      if ((expanded[task.id] || dueFilter !== "ALL") && task.subTaskList?.length) {
         task.subTaskList.forEach((subTask, j) => {
+          if (dueFilter !== "ALL" && !matches(subTask)) return;
           rows.push(renderRow(subTask, `${i + 1}.${j + 1}`, true));
         });
       }
@@ -220,7 +246,9 @@ const TaskGroupModal = (props) => {
     return rows;
   };
 
+  const renderedRows = renderRows();
   return (
+    <>
     <Modal
       isOpen={isOpen}
       toggle={close}
@@ -295,6 +323,7 @@ const TaskGroupModal = (props) => {
           </CardBody>
         </Card>
 
+        <div className="d-flex align-items-center gap-2 mb-3"><label htmlFor="workflow-due-filter">Show tasks</label><Input id="workflow-due-filter" type="select" className="w-auto" value={dueFilter} onChange={(e) => setDueFilter(e.target.value)}><option value="ALL">All tasks</option><option value="OVERDUE">Overdue</option><option value="DUE_TODAY">Due today</option><option value="UPCOMING">Upcoming</option><option value="AWAITING_MATTER_DATE">Awaiting matter date</option><option value="COMPLETE">Completed / Not Applicable</option></Input></div>
         <div className="table-responsive table-card workflow-task-table">
           <Table className="align-middle table-nowrap mb-0" hover>
             <thead className="table-light">
@@ -318,20 +347,21 @@ const TaskGroupModal = (props) => {
                 <th scope="col" style={{ width: "160px" }}>
                   Completed By
                 </th>
+                <th scope="col">Documents</th>
                 <th scope="col" style={{ width: "80px" }} className="text-end">
                   Action
                 </th>
               </tr>
             </thead>
             <tbody>
-              {tasks.length === 0 && (
+              {renderedRows.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="text-center py-4">
-                    No tasks in this group.
+                  <td colSpan={9} className="text-center py-4">
+                    No tasks match this filter.
                   </td>
                 </tr>
               )}
-              {renderRows()}
+              {renderedRows}
             </tbody>
           </Table>
         </div>
@@ -346,7 +376,13 @@ const TaskGroupModal = (props) => {
               </p>
             ) : (
               <>
-                {comments.length === 0 && (
+                {loadingComments && (
+                  <div className="d-flex align-items-center gap-2 text-muted mb-3" role="status" aria-live="polite">
+                    <Spinner size="sm" aria-hidden="true" />
+                    Loading comments…
+                  </div>
+                )}
+                {!loadingComments && comments.length === 0 && (
                   <p className="text-muted fs-13">No comments yet.</p>
                 )}
 
@@ -384,17 +420,17 @@ const TaskGroupModal = (props) => {
                     maxLength={4000}
                     placeholder="Add a comment..."
                     value={newComment}
-                    disabled={isArchived || savingComment}
+                    disabled={isArchived || savingComment || loadingComments}
                     onChange={(e) => setNewComment(e.target.value)}
                   />
                   <div className="text-end mt-2">
                     <Button
-                      color="success"
+                      color="primary"
                       size="sm"
-                      disabled={isArchived || savingComment || !newComment.trim()}
+                      disabled={isArchived || savingComment || loadingComments || !newComment.trim()}
                       onClick={handleAddComment}
                     >
-                      {savingComment ? "Adding..." : "Add Comment"}
+                      {savingComment ? <><Spinner size="sm" className="me-1" aria-hidden="true" />Adding...</> : "Add Comment"}
                     </Button>
                   </div>
                 </div>
@@ -404,6 +440,8 @@ const TaskGroupModal = (props) => {
         </Card>
       </ModalBody>
     </Modal>
+    {documentsTask && matter && <WorkflowDocumentsModal task={documentsTask} matter={matter} onClose={() => setDocumentsTask(null)} onChanged={onChanged} />}
+    </>
   );
 };
 

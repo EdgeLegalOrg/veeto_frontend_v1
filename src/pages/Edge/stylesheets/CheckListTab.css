@@ -53,7 +53,9 @@
 
 .workflow-group-card {
   cursor: pointer;
-  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  transition:
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
 }
 
 .workflow-group-card:hover {
@@ -139,4 +141,75 @@
 .sub-task-container .sub-task-item .form-check-input:checked {
   background-color: #299cdb;
   border-color: #299cdb;
+}
+
+/* VEET-12: task documents/settings retain the theme and isolate modal spacing from global form rules. */
+.workflow-document-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.65rem 0;
+  border-bottom: 1px solid var(--vz-border-color, #e9ebec);
+}
+.workflow-document-row strong {
+  overflow-wrap: anywhere;
+}
+.workflow-overdue-row {
+  border-left: 3px solid var(--vz-danger, #f06548);
+}
+/* Global property/contact modal styles must not override workflow dialog contrast or spacing. */
+:is(.workflow-group-modal, .workflow-settings-modal, .workflow-documents-modal, .workflow-sync-modal) .modal-content {
+  background: var(--vz-secondary-bg, #fff);
+  color: var(--vz-body-color, #495057);
+  border: 1px solid var(--vz-border-color, #e1e5ed);
+  border-radius: 0.5rem;
+}
+:is(.workflow-group-modal, .workflow-settings-modal, .workflow-documents-modal, .workflow-sync-modal) .modal-header {
+  padding: 1rem 1.25rem;
+  background: var(--vz-light, #f3f6f9);
+  color: var(--vz-heading-color, var(--vz-body-color, #344767));
+  border-bottom: 1px solid var(--vz-border-color, #e1e5ed);
+  justify-content: space-between;
+  gap: 1rem;
+}
+:is(.workflow-group-modal, .workflow-settings-modal, .workflow-documents-modal, .workflow-sync-modal) .modal-title {
+  color: inherit;
+  margin: 0;
+  min-width: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+:is(.workflow-group-modal, .workflow-settings-modal, .workflow-documents-modal, .workflow-sync-modal) .modal-header .btn-close {
+  flex-shrink: 0;
+  margin: 0 0 0 auto;
+  padding: 0.5rem;
+  opacity: 0.7;
+  filter: none;
+}
+:is(.workflow-group-modal, .workflow-settings-modal, .workflow-documents-modal, .workflow-sync-modal) .modal-header .btn-close:hover {
+  opacity: 1;
+}
+[data-bs-theme="dark"]
+  :is(.workflow-group-modal, .workflow-settings-modal, .workflow-documents-modal, .workflow-sync-modal)
+  .modal-header
+  .btn-close {
+  filter: invert(1) grayscale(100%) brightness(200%);
+}
+:is(.workflow-group-modal, .workflow-settings-modal, .workflow-documents-modal, .workflow-sync-modal) .modal-body {
+  padding: 1.25rem;
+}
+:is(.workflow-group-modal, .workflow-settings-modal, .workflow-documents-modal, .workflow-sync-modal) .modal-footer {
+  padding: 1rem 1.25rem;
+  border-top: 1px solid var(--vz-border-color, #e1e5ed);
+  gap: 0.5rem;
+}
+:is(.workflow-group-modal, .workflow-settings-modal, .workflow-documents-modal, .workflow-sync-modal) .modal-footer > * {
+  margin: 0;
+}
+@media (max-width: 600px) {
+  .workflow-document-row {
+    flex-wrap: wrap;
+  }
 }

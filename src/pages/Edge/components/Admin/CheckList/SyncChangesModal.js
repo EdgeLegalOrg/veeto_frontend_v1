@@ -1,16 +1,8 @@
 import React, { useEffect, useState } from "react";
-import {
-  Button,
-  Input,
-  Label,
-  Modal,
-  ModalBody,
-  ModalFooter,
-  ModalHeader,
-  Progress,
-} from "reactstrap";
+import { Button, Input, Label, Modal, ModalBody, ModalFooter, ModalHeader, Progress, Spinner } from "reactstrap";
 import { toast } from "react-toastify";
 import { syncCheckList } from "../../../apis";
+import "../../../stylesheets/CheckListTab.css";
 
 const SCOPES = [
   {
@@ -56,8 +48,7 @@ const SyncChangesModal = (props) => {
     tasksRemoved: into.tasksRemoved + (batch.tasksRemoved || 0),
     tasksMoved: into.tasksMoved + (batch.tasksMoved || 0),
     tasksRenamed: into.tasksRenamed + (batch.tasksRenamed || 0),
-    tasksRetainedInProgress:
-      into.tasksRetainedInProgress + (batch.tasksRetainedInProgress || 0),
+    tasksRetainedInProgress: into.tasksRetainedInProgress + (batch.tasksRetainedInProgress || 0),
     tasksAdopted: into.tasksAdopted + (batch.tasksAdopted || 0),
     mattersConsidered: batch.nextOffset ?? into.mattersConsidered,
     totalMatters: batch.totalMatters ?? into.totalMatters,
@@ -90,9 +81,7 @@ const SyncChangesModal = (props) => {
         const { data } = await syncCheckList(template.id, scope, offset);
 
         if (!data.success) {
-          toast.error(
-            data?.error?.message || "Something went wrong, please try later."
-          );
+          toast.error(data?.error?.message || "Something went wrong, please try later.");
           setProgress(null);
           return;
         }
@@ -103,11 +92,7 @@ const SyncChangesModal = (props) => {
         const total = batch.totalMatters || 0;
         const processed = Math.min(batch.nextOffset || 0, total || Infinity);
 
-        setProgress({
-          processed,
-          total,
-          percent: total > 0 ? Math.round((processed / total) * 100) : 100,
-        });
+        setProgress({ processed, total, percent: total > 0 ? Math.round((processed / total) * 100) : 100 });
 
         if (batch.complete) {
           break;
@@ -154,16 +139,22 @@ const SyncChangesModal = (props) => {
   return (
     // Not dismissable mid-run: the batches keep going regardless, and closing
     // would leave the sync running with nothing reporting the outcome.
-    <Modal isOpen={isOpen} toggle={syncing ? undefined : close} centered>
-      <ModalHeader toggle={syncing ? undefined : close}>
-        Sync Changes
-      </ModalHeader>
+    <Modal
+      isOpen={isOpen}
+      toggle={syncing ? undefined : close}
+      className="workflow-sync-modal"
+      size="lg"
+      centered
+      scrollable
+      backdrop="static"
+      keyboard={!syncing}
+    >
+      <ModalHeader toggle={syncing ? undefined : close}>Sync Changes</ModalHeader>
       <ModalBody>
         {!result ? (
           <>
             <p className="text-muted fs-13">
-              Push the current tasks of <strong>{template.name}</strong> out to
-              the matters using it.
+              Push the current tasks of <strong>{template.name}</strong> out to the matters using it.
             </p>
 
             {SCOPES.map((option) => (
@@ -173,13 +164,11 @@ const SyncChangesModal = (props) => {
                   className="form-check-input"
                   id={`scope-${option.value}`}
                   name="syncScope"
+                  disabled={syncing}
                   checked={scope === option.value}
                   onChange={() => setScope(option.value)}
                 />
-                <Label
-                  className="form-check-label"
-                  for={`scope-${option.value}`}
-                >
+                <Label className="form-check-label" for={`scope-${option.value}`}>
                   {option.label}
                 </Label>
                 <div className="form-text">{option.hint}</div>
@@ -187,27 +176,22 @@ const SyncChangesModal = (props) => {
             ))}
 
             <div className="alert alert-warning" role="alert">
-              A task that has been started is never removed from a matter, even
-              if it has been taken out of the checklist. It can move to another
-              group, but the work already recorded against it stays.
+              A task that has been started is never removed from a matter, even if it has been taken out of the checklist. It can move to
+              another group, but the work already recorded against it stays.
             </div>
 
             {progress && (
               <div className="mt-3">
                 <div className="d-flex justify-content-between mb-1">
                   <span className="text-muted fs-13">
-                    {progress.total > 0
-                      ? `Syncing matter ${progress.processed} of ${progress.total}`
-                      : "Counting matters..."}
+                    {progress.total > 0 ? `Syncing matter ${progress.processed} of ${progress.total}` : "Counting matters..."}
                   </span>
                   <span className="fw-semibold fs-13">{progress.percent}%</span>
                 </div>
                 <Progress
                   value={progress.percent}
                   className="sync-progress"
-                  barClassName={
-                    progress.percent >= 100 ? "bg-success" : "bg-info"
-                  }
+                  barClassName={progress.percent >= 100 ? "bg-success" : "bg-primary"}
                 >
                   {progress.percent}%
                 </Progress>
@@ -222,10 +206,7 @@ const SyncChangesModal = (props) => {
 
             <ul className="list-group list-group-flush">
               {rows.map(([label, value]) => (
-                <li
-                  className="list-group-item d-flex justify-content-between px-0 py-1"
-                  key={label}
-                >
+                <li className="list-group-item d-flex justify-content-between px-0 py-1" key={label}>
                   <span className="fs-13">{label}</span>
                   <span className="fw-semibold fs-13">{value ?? 0}</span>
                 </li>
@@ -235,21 +216,20 @@ const SyncChangesModal = (props) => {
             {result.tasksRetainedInProgress > 0 && (
               <div className="alert alert-info mt-3 mb-0" role="alert">
                 {result.tasksRetainedInProgress} task
-                {result.tasksRetainedInProgress === 1 ? " was" : "s were"} kept
-                on their matter despite no longer being in the checklist,
-                because work had already started. Those matters now differ from
-                the checklist.
+                {result.tasksRetainedInProgress === 1 ? " was" : "s were"} kept on their matter despite no longer being in the checklist,
+                because work had already started. Those matters now differ from the checklist.
               </div>
             )}
           </>
         )}
       </ModalBody>
       <ModalFooter>
-        <Button color="light" onClick={close} disabled={syncing}>
+        <Button color="primary" outline onClick={close} disabled={syncing}>
           {result ? "Close" : "Cancel"}
         </Button>
         {!result && (
-          <Button color="success" onClick={handleSync} disabled={syncing}>
+          <Button color="primary" onClick={handleSync} disabled={syncing}>
+            {syncing && <Spinner size="sm" className="me-2" aria-hidden="true" />}
             {syncing ? "Syncing..." : "Sync"}
           </Button>
         )}
