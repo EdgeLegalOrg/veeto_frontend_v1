@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button, Input, Modal, ModalHeader, ModalBody, ModalFooter, Table } from "reactstrap";
+import { templateErrorDetails, templateErrorMessage } from "../TemplateErrors/templateErrors";
 import fileDownload from "js-file-download";
 import { toast } from "react-toastify";
 import { formatDateTimeFunc } from "../../utils/utilFunc";
@@ -16,6 +17,8 @@ const showClassificationControls = false;
 const filename = (file) =>
   file.type && !file.name?.toLowerCase().endsWith(`.${file.type.toLowerCase()}`) ? `${file.name}.${file.type}` : file.name;
 const failure = async (error) => {
+  const validation = await templateErrorDetails(error);
+  if (validation) return templateErrorMessage(validation);
   let body = error.response?.data;
   if (body instanceof Blob) {
     try {

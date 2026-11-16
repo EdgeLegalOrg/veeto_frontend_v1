@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Button, Input, Modal, ModalHeader, ModalBody, ModalFooter } from "reactstrap";
+import TemplateErrorModal from "../TemplateErrors/TemplateErrorModal";
+import { templateErrorDetails } from "../TemplateErrors/templateErrors";
 import fileDownload from "js-file-download";
 import { toast } from "react-toastify";
 import { checkHasPermission } from "../../utils/utilFunc";
@@ -19,6 +21,7 @@ const TeamPrecedentPicker = ({ matter, onClose, onSaved, initialFile }) => {
   const [loading, setLoading] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [templateErrors, setTemplateErrors] = useState([]);
   const canSave = checkHasPermission("UpdateMatter") && (!matter?.flagArchived || checkHasPermission("EditArchivedMatter"));
   const saves = output !== "DOWNLOAD";
   const word = ["doc", "docx"].includes(chosen?.file.type?.toLowerCase());
@@ -106,7 +109,9 @@ const TeamPrecedentPicker = ({ matter, onClose, onSaved, initialFile }) => {
       } else toast.success("Document download ready.");
       onClose();
     } catch (err) {
-      setError(await precedentError(err));
+      const validation = await templateErrorDetails(err);
+      if (validation) setTemplateErrors([validation]);
+      else setError(await precedentError(err));
     } finally {
       setBusy(false);
     }
@@ -123,6 +128,7 @@ const TeamPrecedentPicker = ({ matter, onClose, onSaved, initialFile }) => {
     >
       <ModalHeader toggle={busy ? undefined : onClose}>Team Precedents — Matter #{matter.matterNumber}</ModalHeader>
       <ModalBody>
+        <TemplateErrorModal errors={templateErrors} onClose={() => setTemplateErrors([])} />
         {error && (
           <div className="alert alert-danger" role="alert">
             {error}

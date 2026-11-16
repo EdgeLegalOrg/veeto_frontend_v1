@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import "./style.css";
 import FolderItem from "./FolderItem";
+import TemplateErrorModal from "../TemplateErrors/TemplateErrorModal";
+import { templateErrorDetails } from "../TemplateErrors/templateErrors";
 import closeIcon from "../../icons/fileDirectory/close.svg";
 import searchFolder from "../../icons/fileDirectory/search-folder.svg";
 import searchFile from "../../icons/fileDirectory/search-file.svg";
@@ -27,6 +29,7 @@ const FileDirectoryModal = ({
   matterData,
 }) => {
   const [loading, setLoading] = useState(false);
+  const [templateErrors, setTemplateErrors] = useState([]);
   const [precedent, setPrecedent] = useState({});
   const [selected, setSelected] = useState("");
   const [files, setFiles] = useState([]);
@@ -56,6 +59,7 @@ const FileDirectoryModal = ({
   };
 
   const onClosehandler = () => {
+    setTemplateErrors([]);
     setSelected("");
     setSelectedBaseTemplate(null);
     setDefaultTemplateList([]);
@@ -365,8 +369,12 @@ const FileDirectoryModal = ({
         // The request asks for a blob, so a JSON error from the server arrives
         // as a Blob and has to be read out of it rather than taken off
         // error.response.data directly.
-        const message = await readBlobErrorMessage(error);
-        toast.error(message || "An error occurred. Unable to download file.");
+        const details = await templateErrorDetails(error);
+        if (details) setTemplateErrors([details]);
+        else {
+          const message = await readBlobErrorMessage(error);
+          toast.error(message || "An error occurred. Unable to download file.");
+        }
         setLoading(false);
       }
     } else {
@@ -383,6 +391,7 @@ const FileDirectoryModal = ({
         modal.type === "FORM" ? "form-modal" : ""
       }`}
     >
+      <TemplateErrorModal errors={templateErrors} onClose={() => setTemplateErrors([])} />
       {loading ? (
         <LoadingPage />
       ) : (

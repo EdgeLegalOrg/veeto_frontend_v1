@@ -105,7 +105,7 @@ const FolderUploadPicker = ({ entries, onFiles, onChange, disabled, idPrefix }) 
               />
             )}
             {entry.error && (
-              <div role="alert" className="small text-danger mt-2">
+              <div role="alert" className="small text-danger mt-2" style={{ whiteSpace: "pre-line", overflowWrap: "anywhere" }}>
                 {entry.error}
               </div>
             )}

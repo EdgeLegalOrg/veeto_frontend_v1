@@ -1,3 +1,4 @@
+import { templateErrorDetails, templateErrorMessage } from "../TemplateErrors/templateErrors";
 import { API } from "../../apis";
 import { documentFoldersApi } from "../Matters/Attachments/documentFoldersApi";
 
@@ -29,6 +30,8 @@ export const downloadName = (response, fallback) => {
   return disposition.match(/filename="([^"]+)"/i)?.[1] || fallback;
 };
 export const precedentError = async (error) => {
+  const validation = await templateErrorDetails(error);
+  if (validation) return templateErrorMessage(validation);
   let body = error.response?.data;
   if (body instanceof Blob) { try { body = JSON.parse(await body.text()); } catch { body = null; } }
   return body?.message || body?.error?.message || "Team Precedents operation failed. Refresh before retrying.";

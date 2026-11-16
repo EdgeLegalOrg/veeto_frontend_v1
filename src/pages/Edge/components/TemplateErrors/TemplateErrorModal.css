@@ -1,0 +1,30 @@
+.template-error-modal .modal-header {
+  background: var(--vz-light, #f3f6f9);
+  color: var(--vz-heading-color, #344767);
+  padding: 1rem 1.25rem;
+  gap: 1rem;
+}
+.template-error-modal .modal-title {
+  color: inherit;
+  font-size: 1.125rem;
+  overflow-wrap: anywhere;
+}
+.template-error-modal .modal-header .btn-close {
+  margin: 0 0 0 auto;
+  flex-shrink: 0;
+}
+.template-error-modal .modal-body {
+  padding: 1.25rem;
+  overflow-wrap: anywhere;
+}
+.template-error-modal .modal-footer {
+  padding: 1rem 1.25rem;
+}
+.template-error-modal code {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+[data-bs-theme="dark"] .template-error-modal .modal-header .btn-close {
+  filter: invert(1) grayscale(100%) brightness(200%);
+}
