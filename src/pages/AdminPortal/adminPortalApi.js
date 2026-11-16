@@ -204,6 +204,7 @@ export const saveStorage = (companyId, siteId, body) =>
 
 // ---- a company's checklists: tasks, check lists, task groups and the link to matter types
 const C = (companyId) => `${A}/companies/${companyId}/checklists`;
+export const listWorkflowDocuments = (companyId) => data(portal.get(`${C(companyId)}/documents`));
 export const listChecklistTasks = (companyId) => data(portal.get(`${C(companyId)}/tasks`));
 export const saveChecklistTask = (companyId, taskId, body) =>
   data(taskId ? portal.put(`${C(companyId)}/tasks/${taskId}`, body) : portal.post(`${C(companyId)}/tasks`, body));

@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Button, Input, Modal, ModalBody, ModalFooter, ModalHeader } from "reactstrap";
-import { documentFoldersApi } from "../../Matters/Attachments/documentFoldersApi";
+import { API } from "../../../apis";
+import { listWorkflowDocuments } from "../../../../AdminPortal/adminPortalApi";
 import "../../../stylesheets/CheckListTab.css";
-import { teamPrecedentsConfiguration } from "../../TeamPrecedents/api";
+import FileDirectoryModal from "../../FileDirectory";
 
 export const MATTER_DATE_OPTIONS = [
   ["INSTRUCTION_DATE", "Instruction Date"], ["EXCHANGE_DATE", "Exchange Date"],
@@ -24,7 +25,7 @@ const WorkflowTaskSettings = ({ task, companyId, onSave, onClose }) => {
   const [days, setDays] = useState(String(Math.abs(task.configuration?.dayOffset || 0)));
   const [links, setLinks] = useState(task.documentLinks || []);
   const [files, setFiles] = useState([]);
-  const [chosen, setChosen] = useState("");
+  const [documentWindow, setDocumentWindow] = useState(null);
   const [error, setError] = useState("");
   const [libraryError, setLibraryError] = useState("");
   const [loading, setLoading] = useState(true);
@@ -32,14 +33,18 @@ const WorkflowTaskSettings = ({ task, companyId, onSave, onClose }) => {
     let active = true;
     (async () => {
       try {
-        const owner = companyId || (await teamPrecedentsConfiguration()).data.companyId;
-        const response = await documentFoldersApi("TEAM_PRECEDENT", owner).list();
-        if (active) setFiles(response.data.files || []);
-      } catch { if (active) setLibraryError("Team Precedents could not be loaded. Existing links are retained."); }
+        const documents = companyId ? await listWorkflowDocuments(companyId) : (await API.get("/api/checklist/workflow-documents")).data;
+        if (active) setFiles(documents || []);
+      } catch { if (active) setLibraryError("Precedents and Forms could not be loaded. Existing selections are retained."); }
       finally { if (active) setLoading(false); }
     })();
     return () => { active = false; };
   }, [companyId]);
+  const moveLink = (index, delta) => {
+    const next = [...links];
+    [next[index], next[index + delta]] = [next[index + delta], next[index]];
+    setLinks(next);
+  };
   const change = (field, value) => setConfig((previous) => ({ ...previous, [field]: value }));
   const save = () => {
     if (config.matterDateField && (!/^\d+$/.test(days) || Number(days) > 36500)) return setError("Enter a whole-number offset between 0 and 36,500.");
@@ -47,6 +52,7 @@ const WorkflowTaskSettings = ({ task, companyId, onSave, onClose }) => {
       return setError("Choose a recipient and a valid whole-number reminder offset.");
     if (config.reminderEnabled && config.reminderRecipient === "CUSTOM" && (config.reminderDelivery === "IN_SYSTEM" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(config.reminderCustomEmail || "")))
       return setError("Custom Email requires Email or Both delivery and a valid email address.");
+    if (links.some((link) => !["PRECEDENT", "FORM"].includes(link.kind))) return setError("Remove legacy links and choose documents from Precedents and Forms before saving.");
     const next = { ...config, matterDateField: config.matterDateField || null,
       dayOffset: config.matterDateField ? Number(days) * (direction === "BEFORE" ? -1 : 1) : null,
       reminderDaysPrior: config.reminderEnabled ? Number(config.reminderDaysPrior) : null,
@@ -54,7 +60,7 @@ const WorkflowTaskSettings = ({ task, companyId, onSave, onClose }) => {
       reminderCustomEmail: config.reminderRecipient === "CUSTOM" ? (config.reminderCustomEmail || "").trim() : null };
     onSave({ configuration: next, documentLinks: links });
   };
-  return <Modal isOpen toggle={onClose} size="lg" centered scrollable className="workflow-settings-modal">
+  return <Modal isOpen toggle={documentWindow ? undefined : onClose} keyboard={!documentWindow} size="lg" centered scrollable className="workflow-settings-modal">
     <ModalHeader toggle={onClose}>Task settings — {task.taskTitle || "Task"}</ModalHeader>
     <ModalBody>
       {error && <div className="alert alert-danger" role="alert">{error}</div>}
@@ -76,10 +82,45 @@ const WorkflowTaskSettings = ({ task, companyId, onSave, onClose }) => {
           {config.reminderRecipient === "CUSTOM" && <div className="col-md-6"><label className="form-label">Custom email</label><Input type="email" maxLength={255} value={config.reminderCustomEmail || ""} onChange={(e) => change("reminderCustomEmail", e.target.value)} /><small className="text-muted">With Both delivery, the in-system alert follows the existing company-wide custom-email behaviour.</small></div>}
           <div className="col-12 small text-muted">One reminder per due date. A revised due date can issue one new reminder. Completed and Not Applicable tasks are excluded.</div>
         </>}
-        <div className="col-12"><h6>Linked Team Precedents</h6><p className="small text-muted">Multiple master links can be shared through the template. Private matter attachments are linked on the individual matter task.</p>
+        <div className="col-12">
+          <h6>Precedents and Forms</h6>
+          <p className="small text-muted">Select documents in the required order. The solicitor downloads one ZIP containing separate, numbered documents. Each DOCX is generated independently; other formats remain unchanged. Nothing is saved to Matter Attachments automatically.</p>
           {libraryError && <div className="alert alert-warning" role="alert">{libraryError}</div>}
-          {links.map((link) => <div key={`${link.kind}-${link.documentId}`} className="d-flex align-items-center justify-content-between mb-2"><span>{files.find((file) => file.id === link.documentId)?.name || `Linked precedent #${link.documentId}`}</span><Button size="sm" outline color="danger" onClick={() => setLinks(links.filter((item) => item !== link))}>Remove link</Button></div>)}
-          <div className="d-flex gap-2"><Input type="select" value={chosen} disabled={loading || !!libraryError || links.length >= 50} onChange={(e) => setChosen(e.target.value)}><option value="">{loading ? "Loading Team Precedents…" : "Choose a Team Precedent"}</option>{files.filter((file) => !links.some((link) => link.documentId === file.id)).map((file) => <option key={file.id} value={file.id}>{file.name}</option>)}</Input><Button color="primary" disabled={!chosen || links.length >= 50} onClick={() => { setLinks([...links, { kind: "TEAM_PRECEDENT", documentId: Number(chosen) }]); setChosen(""); }}>Add link</Button></div>
+          <ol className="ps-3">
+            {links.map((link, index) => {
+              const file = files.find((item) => item.id === link.documentId && item.kind === link.kind);
+              const legacy = !["PRECEDENT", "FORM"].includes(link.kind);
+              return <li key={`${link.kind}-${link.documentId}`} className="mb-2">
+                <div className="d-flex align-items-center gap-2 flex-wrap">
+                  <span className="flex-grow-1">{file?.name || (legacy ? "Legacy document — reselect from Precedents/Forms" : loading ? "Loading document…" : `Unavailable document #${link.documentId}`)}
+                    <small className="d-block text-muted">{link.kind === "FORM" ? "Form" : link.kind === "PRECEDENT" ? "Precedent" : link.kind}{file?.type ? ` · ${file.type.toUpperCase()}` : ""}</small>
+                  </span>
+                  <Button size="sm" color="primary" outline disabled={index === 0} aria-label={`Move document ${index + 1} up`} onClick={() => moveLink(index, -1)}>↑</Button>
+                  <Button size="sm" color="primary" outline disabled={index === links.length - 1} aria-label={`Move document ${index + 1} down`} onClick={() => moveLink(index, 1)}>↓</Button>
+                  <Button size="sm" color="danger" outline onClick={() => setLinks(links.filter((_, i) => i !== index))}>Remove</Button>
+                </div>
+              </li>;
+            })}
+          </ol>
+          <div className="d-flex gap-2 flex-wrap">
+            <Button color="primary" disabled={loading || !!libraryError} onClick={() => setDocumentWindow({ name: "Select Precedents", type: "NORMAL" })}>{loading ? "Loading documents…" : "Select Precedents"}</Button>
+            <Button color="primary" outline disabled={loading || !!libraryError} onClick={() => setDocumentWindow({ name: "Select Forms", type: "FORM" })}>Select Forms</Button>
+          </div>
+          {documentWindow && <FileDirectoryModal
+            isOpen
+            selectionMode
+            modal={documentWindow}
+            setModal={setDocumentWindow}
+            selectionFiles={files}
+            initialSelectedDocuments={links.filter((link) => ["PRECEDENT", "FORM"].includes(link.kind))}
+            maxSelections={50 - links.filter((link) => !["PRECEDENT", "FORM"].includes(link.kind)).length}
+            onClose={() => setDocumentWindow(null)}
+            onSelectDocuments={(selected) => {
+              setLinks([...links.filter((link) => !["PRECEDENT", "FORM"].includes(link.kind)), ...selected]);
+              setDocumentWindow(null);
+            }}
+          />}
+
         </div>
       </div>
     </ModalBody>

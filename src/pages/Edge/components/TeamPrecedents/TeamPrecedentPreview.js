@@ -12,8 +12,8 @@ const imageTypes = { png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", gi
 const previewLimit = 20 * 1024 * 1024;
 
 /** Read-only master preview. Uses company-authorised bytes without generating or saving a document. */
-const TeamPrecedentPreview = ({ companyId, file, onClose }) => {
-  const api = useMemo(() => teamPrecedentsApi(companyId), [companyId]);
+const TeamPrecedentPreview = ({ companyId, file, onClose, contentApi }) => {
+  const api = useMemo(() => contentApi || teamPrecedentsApi(companyId), [contentApi, companyId]);
   const extension = (file.type || file.name?.split(".").pop() || "").toLowerCase().replace(/^\./, "");
   const kind = ["heic", "heif"].includes(extension) ? "heic" : ["xls", "xlsx"].includes(extension) ? "spreadsheet" : null;
   const nativeType = extension === "pdf" ? "application/pdf" : imageTypes[extension];
