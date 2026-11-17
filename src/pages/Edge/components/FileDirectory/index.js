@@ -1,23 +1,42 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import "./style.css";
+import { createPortal } from "react-dom";
 import FolderItem from "./FolderItem";
+import TemplateErrorModal from "../TemplateErrors/TemplateErrorModal";
+import { templateErrorDetails } from "../TemplateErrors/templateErrors";
 import closeIcon from "../../icons/fileDirectory/close.svg";
 import searchFolder from "../../icons/fileDirectory/search-folder.svg";
 import searchFile from "../../icons/fileDirectory/search-file.svg";
 import Files from "./Files";
 import FileItem from "./FileItem";
 import resetIcon from "../../icons/fileDirectory/home.svg";
-import {
-  generatePrecedentApi,
-  getAllBaseTemplates,
-  getPrecedents,
-  userProfile,
-} from "../../apis";
+import { generatePrecedentApi, getAllBaseTemplates, getPrecedents, userProfile } from "../../apis";
 import LoadingPage from "./../../utils/LoadingPage";
 import { readBlobErrorMessage } from "./../../utils/utilFunc";
 import { toast } from "react-toastify";
 import { TextInputField } from "../InputField";
 import { convertTitleCase } from "./helperFunction";
+
+const EMPTY_SELECTION_FILES = [];
+
+// Same tree shape as the Matter Details browser. LETTER and NORMAL are both Precedents here.
+const selectionTreeFor = (documents) => {
+  const root = Object.create(null);
+  documents.forEach((file) => {
+    const paths = file.folderPaths?.length ? file.folderPaths : [["OTHER_TEMPLATES", "GENERAL"]];
+    paths.forEach((path) => {
+      let parent = root;
+      path.forEach((folder) => {
+        parent[folder] ||= Object.create(null);
+        parent = parent[folder];
+      });
+      const type = file.kind === "FORM" ? "FORM" : "NORMAL";
+      parent[type] ||= Object.create(null);
+      parent[type][file.id] = { id: file.id, contentName: file.name, contentType: file.type, isFile: true, kind: file.kind };
+    });
+  });
+  return root;
+};
 
 const FileDirectoryModal = ({
   modal,
@@ -25,8 +44,25 @@ const FileDirectoryModal = ({
   onClose,
   setModal,
   matterData,
+  selectionMode = false,
+  selectionFiles = EMPTY_SELECTION_FILES,
+  initialSelectedDocuments = EMPTY_SELECTION_FILES,
+  maxSelections = 50,
+  onSelectDocuments,
 }) => {
   const [loading, setLoading] = useState(false);
+  const [selectedDocuments, setSelectedDocuments] = useState(() => [...initialSelectedDocuments]);
+  const selectionTree = useMemo(() => selectionTreeFor(selectionFiles), [selectionFiles]);
+  const toggleDocument = (file) => {
+    setSelectedDocuments((previous) => {
+      const exists = previous.some((link) => link.documentId === file.id && link.kind === file.kind);
+      if (exists) return previous.filter((link) => link.documentId !== file.id || link.kind !== file.kind);
+      if (previous.length >= maxSelections) return previous;
+      return [...previous, { kind: file.kind, documentId: file.id }];
+    });
+  };
+  const selectionProps = selectionMode ? { multiple: true, selectedDocuments, onToggleDocument: toggleDocument } : {};
+  const [templateErrors, setTemplateErrors] = useState([]);
   const [precedent, setPrecedent] = useState({});
   const [selected, setSelected] = useState("");
   const [files, setFiles] = useState([]);
@@ -42,6 +78,19 @@ const FileDirectoryModal = ({
   const [initLoad, setInitLoad] = useState(true);
   const [submitted, setSubmitted] = useState(false);
 
+  useEffect(() => {
+    if (!selectionMode || !isOpen) return;
+    const escape = (event) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        event.stopPropagation();
+        onClose();
+      }
+    };
+    document.addEventListener("keyup", escape, true);
+    return () => document.removeEventListener("keyup", escape, true);
+  }, [selectionMode, isOpen, onClose]);
+
   const handleSelectForFolders = (folderId) => {
     setSelected(folderId);
     if (searchTermForMainContent) setSearchTermForMainContent("");
@@ -56,6 +105,11 @@ const FileDirectoryModal = ({
   };
 
   const onClosehandler = () => {
+    if (selectionMode) {
+      onClose();
+      return;
+    }
+    setTemplateErrors([]);
     setSelected("");
     setSelectedBaseTemplate(null);
     setDefaultTemplateList([]);
@@ -75,25 +129,13 @@ const FileDirectoryModal = ({
       const uniqueID = parentID ? `${parentID}_${key}` : key;
       const isTypeExist = modal?.type === key ? key : "";
       const isFolderType = modal?.type === key;
-      const item = {
-        id: uniqueID,
-        name: key,
-        children: [],
-        isTypeExist: isTypeExist,
-        isFolderType: isFolderType,
-      };
+      const item = { id: uniqueID, name: key, children: [], isTypeExist: isTypeExist, isFolderType: isFolderType };
       if (typeof data[key] === "object" && Object.keys(data[key])?.length > 0) {
         if (!isNaN(parseInt(Object.keys(data[key])[0]))) {
           // If the object has numeric keys, convert it to an array
           item.children = Object.keys(data[key])?.map((numKey) => {
             const obj = data[key][numKey];
-            return {
-              id: `${uniqueID}_${numKey}`,
-              name: numKey,
-              isTypeExist: isTypeExist,
-              isFolderType: isFolderType,
-              ...obj,
-            };
+            return { id: `${uniqueID}_${numKey}`, name: numKey, isTypeExist: isTypeExist, isFolderType: isFolderType, ...obj };
           });
         } else {
           // Otherwise, continue with the recursion
@@ -142,10 +184,7 @@ const FileDirectoryModal = ({
       Object.values(data[targetType]).forEach((item) => {
         if (item && item.isFile) {
           const breadcrumb = currentPath.map(convertTitleCase).join(" / ");
-          results.push({
-            ...item,
-            breadcrumb,
-          });
+          results.push({ ...item, breadcrumb });
         }
       });
     }
@@ -154,9 +193,7 @@ const FileDirectoryModal = ({
       if (["NORMAL", "FORM", "LETTER"].includes(key)) return;
       const child = data[key];
       if (child && typeof child === "object" && !Array.isArray(child)) {
-        results = results.concat(
-          getAllFilesWithBreadcrumbs(child, targetType, [...currentPath, key])
-        );
+        results = results.concat(getAllFilesWithBreadcrumbs(child, targetType, [...currentPath, key]));
       }
     });
 
@@ -208,18 +245,20 @@ const FileDirectoryModal = ({
 
   const updateInitialFiles = useCallback(() => {
     const filesWithIsFileTrue = findFilesByName(precedent, modal?.type);
-    setFiles(filesWithIsFileTrue);
+    setFiles(
+      selectionMode ? [...new Map(filesWithIsFileTrue.map((file) => [`${file.kind}:${file.id}`, file])).values()] : filesWithIsFileTrue,
+    );
     setIsFile(true);
-  }, [modal?.type, precedent]);
+  }, [modal?.type, precedent, selectionMode]);
 
   const filteredData = filterData(transformedData, searchTerm);
 
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && !selectionMode) {
       setInitLoad(true);
       initFunc();
     }
-  }, [isOpen]);
+  }, [isOpen, selectionMode]);
 
   const initFunc = async () => {
     try {
@@ -254,11 +293,7 @@ const FileDirectoryModal = ({
         const arr = [];
         specific.forEach((d) => arr.push({ display: d.name, value: d.id }));
         if (defaults.length > 0) {
-          arr.push({
-            display: "Defaults",
-            value: "__separator__",
-            disabled: true,
-          });
+          arr.push({ display: "Defaults", value: "__separator__", disabled: true });
           defaults.forEach((d) => arr.push({ display: d.name, value: d.id }));
         }
 
@@ -280,9 +315,7 @@ const FileDirectoryModal = ({
     try {
       let arr = [];
       arr.push(modal?.type);
-      let params = ["NORMAL", "LETTER", "FORM"].includes(modal?.type)
-        ? arr
-        : [];
+      let params = ["NORMAL", "LETTER", "FORM"].includes(modal?.type) ? arr : [];
       const { data } = await getPrecedents(params);
       if (data.success) {
         let d = data?.data?.contentRoot;
@@ -307,8 +340,12 @@ const FileDirectoryModal = ({
 
   // UseEffect to fetch data
   useEffect(() => {
-    if (modal?.type) fetchData();
-  }, [reset, modal?.type]);
+    if (selectionMode) {
+      setTransformedData(generateRecursiveArray(selectionTree));
+      setPrecedent(selectionTree);
+      setLoading(false);
+    } else if (modal?.type) fetchData();
+  }, [reset, modal?.type, selectionMode, selectionTree]);
 
   // useEffect to show all the files in right side initially
   useEffect(() => {
@@ -337,7 +374,7 @@ const FileDirectoryModal = ({
       let obj = {
         matterId: matterData?.id,
         docId: selectedFile.id,
-        basePrecedentId: isForm ? "" : (selectedBaseTemplate || ""),
+        basePrecedentId: isForm ? "" : selectedBaseTemplate || "",
         isForm: isForm,
       };
       try {
@@ -365,8 +402,12 @@ const FileDirectoryModal = ({
         // The request asks for a blob, so a JSON error from the server arrives
         // as a Blob and has to be read out of it rather than taken off
         // error.response.data directly.
-        const message = await readBlobErrorMessage(error);
-        toast.error(message || "An error occurred. Unable to download file.");
+        const details = await templateErrorDetails(error);
+        if (details) setTemplateErrors([details]);
+        else {
+          const message = await readBlobErrorMessage(error);
+          toast.error(message || "An error occurred. Unable to download file.");
+        }
         setLoading(false);
       }
     } else {
@@ -377,12 +418,14 @@ const FileDirectoryModal = ({
 
   if (!isOpen) return null;
 
-  return (
+  const content = (
     <div
-      className={`file_directory_modal ${
-        modal.type === "FORM" ? "form-modal" : ""
-      }`}
+      role={selectionMode ? "dialog" : undefined}
+      aria-modal={selectionMode ? "true" : undefined}
+      aria-label={selectionMode ? "Select workflow Precedents and Forms" : undefined}
+      className={`file_directory_modal ${modal.type === "FORM" ? "form-modal" : ""}`}
     >
+      <TemplateErrorModal errors={templateErrors} onClose={() => setTemplateErrors([])} />
       {loading ? (
         <LoadingPage />
       ) : (
@@ -409,15 +452,44 @@ const FileDirectoryModal = ({
                 onChange={handleSearchChangeForMainContent}
               />
             </div>
-            <button
-              type="button"
-              className="btn-close"
-              aria-label="Close"
-              onClick={onClosehandler}
-            ></button>
+            <button type="button" className="btn-close" aria-label="Close" autoFocus={selectionMode} onClick={onClosehandler}></button>
           </div>
+          {selectionMode && (
+            <div className="d-flex align-items-center gap-2 flex-wrap px-3 pt-3">
+              <button
+                type="button"
+                className={`btn btn-sm ${modal.type === "NORMAL" ? "btn-primary" : "btn-outline-primary"}`}
+                onClick={() => {
+                  setSelected("");
+                  setSearchTermForMainContent("");
+                  setModal({ name: "Select Precedents", type: "NORMAL" });
+                }}
+              >
+                Precedents
+              </button>
+              <button
+                type="button"
+                className={`btn btn-sm ${modal.type === "FORM" ? "btn-primary" : "btn-outline-primary"}`}
+                onClick={() => {
+                  setSelected("");
+                  setSearchTermForMainContent("");
+                  setModal({ name: "Select Forms", type: "FORM" });
+                }}
+              >
+                Forms
+              </button>
+              <span className="small text-muted">
+                Selected {selectedDocuments.length} / {maxSelections}. Arrange the order in task settings after selecting.
+              </span>
+              {selectedDocuments.length >= maxSelections && (
+                <span className="small text-warning" role="status">
+                  Selection limit reached.
+                </span>
+              )}
+            </div>
+          )}
           <div className="file_directory_modal-file-folder-content">
-            {modal.type === "NORMAL" && (
+            {!selectionMode && modal.type === "NORMAL" && (
               <div className="col-md-4 mt-3">
                 <TextInputField
                   type="select"
@@ -427,27 +499,12 @@ const FileDirectoryModal = ({
                   value={selectedBaseTemplate}
                   selected={selectedBaseTemplate}
                   optionArray={[
-                    {
-                      label: "Select",
-                      value: "",
-                      disabled: true,
-                      selected: !selectedBaseTemplate,
-                    },
-                    ...templateList.map((d) => ({
-                      label: d.display,
-                      value: d.value,
-                    })),
+                    { label: "Select", value: "", disabled: true, selected: !selectedBaseTemplate },
+                    ...templateList.map((d) => ({ label: d.display, value: d.value })),
                     ...(defaultTemplateList.length > 0
                       ? [
-                          {
-                            label: "── Defaults ──",
-                            value: "__separator__",
-                            disabled: true,
-                          },
-                          ...defaultTemplateList.map((d) => ({
-                            label: d.display,
-                            value: d.value,
-                          })),
+                          { label: "── Defaults ──", value: "__separator__", disabled: true },
+                          ...defaultTemplateList.map((d) => ({ label: d.display, value: d.value })),
                         ]
                       : []),
                   ]}
@@ -506,11 +563,7 @@ const FileDirectoryModal = ({
                 </div>
                 <div className="file_directory_folder-directory">
                   {isGlobalSearch ? (
-                    <Files
-                      files={globalSearchResults}
-                      selectedFile={selectedFile}
-                      setSelectedFile={setSelectedFile}
-                    />
+                    <Files {...selectionProps} files={globalSearchResults} selectedFile={selectedFile} setSelectedFile={setSelectedFile} />
                   ) : (
                     <>
                       {!isFile &&
@@ -528,13 +581,7 @@ const FileDirectoryModal = ({
                           />
                         ))}
 
-                      {isFile && (
-                        <Files
-                          files={files}
-                          selectedFile={selectedFile}
-                          setSelectedFile={setSelectedFile}
-                        />
-                      )}
+                      {isFile && <Files {...selectionProps} files={files} selectedFile={selectedFile} setSelectedFile={setSelectedFile} />}
                     </>
                   )}
                 </div>
@@ -542,25 +589,22 @@ const FileDirectoryModal = ({
             </div>
           </div>
           <div className="file_directory_modal-btns">
-            <button
-              type="button"
-              className="btn btn-light px-4"
-              onClick={onClosehandler}
-            >
+            <button type="button" className="btn btn-light px-4" onClick={onClosehandler}>
               Cancel
             </button>
             <button
               type="button"
               className="btn btn-primary px-4"
-              onClick={generatePrecedent}
+              onClick={selectionMode ? () => onSelectDocuments([...selectedDocuments]) : generatePrecedent}
             >
-              Generate
+              {selectionMode ? `Use selected documents (${selectedDocuments.length})` : "Generate"}
             </button>
           </div>
         </div>
       )}
     </div>
   );
+  return selectionMode ? createPortal(content, document.body) : content;
 };
 
 export default FileDirectoryModal;

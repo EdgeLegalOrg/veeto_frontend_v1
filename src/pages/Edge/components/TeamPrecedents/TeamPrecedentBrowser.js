@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button, Input, Modal, ModalHeader, ModalBody, ModalFooter, Table } from "reactstrap";
+import { templateErrorDetails, templateErrorMessage } from "../TemplateErrors/templateErrors";
 import fileDownload from "js-file-download";
 import { toast } from "react-toastify";
 import { formatDateTimeFunc } from "../../utils/utilFunc";
@@ -16,6 +17,8 @@ const showClassificationControls = false;
 const filename = (file) =>
   file.type && !file.name?.toLowerCase().endsWith(`.${file.type.toLowerCase()}`) ? `${file.name}.${file.type}` : file.name;
 const failure = async (error) => {
+  const validation = await templateErrorDetails(error);
+  if (validation) return templateErrorMessage(validation);
   let body = error.response?.data;
   if (body instanceof Blob) {
     try {
@@ -390,7 +393,7 @@ const TeamPrecedentBrowser = ({ siteId, onChoose }) => {
       )}
       {config?.provider === "UNCONFIGURED" && (
         <div className="alert alert-info m-2">
-          An administrator must configure company storage under Admin → Company Info before library uploads are available.
+          Configure GENERAL OneDrive storage for this office before creating the shared Team Precedents library.
         </div>
       )}
       <div className="matter-folder-panels">

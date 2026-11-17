@@ -1,4 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
+import TemplateErrorModal from "../../TemplateErrors/TemplateErrorModal";
+import { templateErrorDetails } from "../../TemplateErrors/templateErrors";
 import Dropzone from "react-dropzone";
 import closeBtn from "../../../images/close-white-btn.svg";
 import { IoMdClose } from "react-icons/io";
@@ -35,6 +37,7 @@ const MAX_FILES = 15;
 
 const AddNewTemplate = (props) => {
   const [formData, setFormData] = useState([]);
+  const [templateErrors, setTemplateErrors] = useState([]);
   const uploadedFiles = formData.map((entry) => entry.file);
   const [confirmScreen, setConfirmScreen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -214,6 +217,8 @@ const AddNewTemplate = (props) => {
     }
     if (loading) return;
     setLoading(true);
+    const validationErrors = [];
+    let failed = false;
 
     for (const entry of formData) {
       const { file, uploadId, ...details } = entry;
@@ -229,16 +234,22 @@ const AddNewTemplate = (props) => {
         if (data.success) {
           toast.success(`${details.name} uploaded`);
         } else {
+          failed = true;
           toast.error(`${details.name} could not be uploaded, please try again later.`);
+          continue;
         }
       } catch (error) {
-        toast.error(`${details.name} could not be uploaded, please try again later.`);
-        console.error(error);
+        failed = true;
+        const validation = await templateErrorDetails(error);
+        if (validation) validationErrors.push(validation);
+        else toast.error(`${details.name} could not be uploaded, please try again later.`);
+        continue;
       }
       setFormData((entries) => entries.filter((item) => item.uploadId !== uploadId));
     }
     setLoading(false);
-    closeFormToast();
+    setTemplateErrors(validationErrors);
+    if (!failed) closeFormToast();
     refreshList();
   };
 
@@ -355,6 +366,7 @@ const AddNewTemplate = (props) => {
 
   return (
     <div className="">
+      <TemplateErrorModal errors={templateErrors} onClose={() => setTemplateErrors([])} />
       <div className="mb-4">
         <div className="tempForm-gridContent">
           <input

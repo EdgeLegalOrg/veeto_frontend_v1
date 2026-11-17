@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { getFileIcon } from "./helperFunction";
 
 function Files(props) {
-  const { files, selectedFile, setSelectedFile } = props;
+  const { files, selectedFile, setSelectedFile, multiple = false, selectedDocuments = [], onToggleDocument } = props;
   const [sortedFiles, setSortedFiles] = useState([]);
 
   useEffect(() => {
@@ -22,6 +22,10 @@ function Files(props) {
   };
 
   const handleClick = (arg) => {
+    if (multiple) {
+      onToggleDocument(arg);
+      return;
+    }
     if (selectedFile && selectedFile.id === arg.id) {
       setSelectedFile(null);
     } else {
@@ -41,7 +45,8 @@ function Files(props) {
             <input
               type="checkbox"
               className="cp"
-              checked={selectedFile?.id === item.id}
+              aria-label={`Select ${item.contentName}`}
+              checked={multiple ? selectedDocuments.some((link) => link.documentId === item.id && link.kind === item.kind) : selectedFile?.id === item.id}
               onChange={() => {}}
             />
             <img src={getFileIcon(item?.contentType)} alt="file" />

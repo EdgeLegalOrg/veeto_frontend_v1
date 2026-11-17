@@ -1,4 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
+import TemplateErrorModal from "../../TemplateErrors/TemplateErrorModal";
+import { templateErrorDetails } from "../../TemplateErrors/templateErrors";
+import { toast } from "react-toastify";
 import Dropzone from "react-dropzone";
 import closeBtn from "../../../images/close-white-btn.svg";
 import { v1 as uuidv1 } from "uuid";
@@ -32,6 +35,7 @@ const initialData = {
 const EditTemplate = (props) => {
   const { closeForm, refreshList, file, matterList, docList } = props;
   const [formData, setFormData] = useState(file);
+  const [templateErrors, setTemplateErrors] = useState([]);
   const globalStorageType = useSelector(selectStorageType);
   const [uploadedFile, setUploadedFile] = useState(undefined);
   const [isEnableButton, setIsEnableButton] = useState(true);
@@ -120,6 +124,9 @@ const EditTemplate = (props) => {
       closeForm();
       // window.location.reload();
     } catch (err) {
+      const validation = await templateErrorDetails(err);
+      if (validation) setTemplateErrors([validation]);
+      else toast.error(err.response?.data?.error?.message || "The template could not be updated. Please try again.");
       console.error(err);
       setIsEnableButton(true);
       setLoading(false);
@@ -144,6 +151,7 @@ const EditTemplate = (props) => {
 
   return (
     <div className="">
+      <TemplateErrorModal errors={templateErrors} onClose={() => setTemplateErrors([])} />
       <div className="mb-4">
         {/* <div className="tempForm-header">
           <h2 className="tempForm-heading">Update Precedent</h2>
