@@ -6,6 +6,7 @@ import fileDownload from "js-file-download";
 import {
   fetchMatterBinderSequence,
   fetchAttachmentInlinePreview,
+  fetchAttachmentDocPdfPreview,
   fetchAttachmentEmailContent,
   downloadMatterAttach,
   exportMatterBinder,
@@ -14,6 +15,10 @@ import { formatDateFunc } from "../../../utils/utilFunc";
 import "./MasterFileBinderModal.css";
 
 const EMPTY_ITEMS = [];
+
+/** Legacy binary Word needs a server-converted PDF rather than the DOCX browser renderer. */
+const isLegacyWord = (item) => (item?.fileExtension || item?.name?.match(/\.([^.]+)$/)?.[1] || "")
+  .replace(/^\./, "").trim().toLowerCase() === "doc";
 
 /** Uses the stored extension with a filename fallback, independent of backend preview classification. */
 const browserPreviewKind = (item) => {
@@ -322,6 +327,7 @@ const MasterFileBinderModal = ({
     }
 
     let isSubscribed = true;
+    const controller = new AbortController();
     setLoadingDoc(true);
     setDocError(null);
     revokeCurrentBlob();
@@ -351,12 +357,16 @@ const MasterFileBinderModal = ({
           setDocError("Failed to load email message.");
           setLoadingDoc(false);
         });
-    } else if (previewType === "PDF" || previewType === "IMAGE") {
-      fetchAttachmentInlinePreview(attId)
+    } else if (previewType === "PDF" || previewType === "IMAGE" || isLegacyWord(currentItem)) {
+      const convertedWord = isLegacyWord(currentItem);
+      const preview = convertedWord
+        ? fetchAttachmentDocPdfPreview(matterId, attId, { signal: controller.signal })
+        : fetchAttachmentInlinePreview(attId, { signal: controller.signal });
+      preview
         .then((res) => {
           if (!isSubscribed) return;
           const mime =
-            previewType === "PDF"
+            previewType === "PDF" || convertedWord
               ? "application/pdf"
               : res.headers["content-type"] || "image/png";
           const blob = new Blob([res.data], { type: mime });
@@ -365,10 +375,24 @@ const MasterFileBinderModal = ({
           setDocBlobUrl(url);
           setLoadingDoc(false);
         })
-        .catch((err) => {
+        .catch(async (err) => {
           if (!isSubscribed) return;
-          console.error("Error streaming inline preview:", err);
-          setDocError("Failed to load document preview.");
+          let message = convertedWord
+            ? "This Word document could not be converted to PDF. Download the original to open it in Word."
+            : "Failed to load document preview.";
+          if (convertedWord && err.response?.status === 404) {
+            message = "Preview is unavailable for this document. You can still download the original.";
+          }
+          // Binary requests also receive JSON errors as blobs; recover the safe server explanation.
+          if (convertedWord && err.response?.data instanceof Blob
+              && err.response.data.type.includes("json")) {
+            try {
+              const error = JSON.parse(await err.response.data.text());
+              if (typeof error.message === "string") message = error.message;
+            } catch { /* Retain the readable fallback when the response is not valid JSON. */ }
+          }
+          if (!isSubscribed) return;
+          setDocError(message);
           setLoadingDoc(false);
         });
     } else {
@@ -378,9 +402,10 @@ const MasterFileBinderModal = ({
 
     return () => {
       isSubscribed = false;
+      controller.abort();
       revokeCurrentBlob();
     };
-  }, [currentItem, isOpen, revokeCurrentBlob]);
+  }, [currentItem, isOpen, matterId, revokeCurrentBlob]);
 
   // Navigation handlers
   /**
@@ -520,7 +545,7 @@ const MasterFileBinderModal = ({
         <div className="text-center py-5 m-auto">
           <Spinner color="primary" style={{ width: "2.5rem", height: "2.5rem" }} />
           <p className="mt-3 text-muted" style={{ fontSize: "13.5px" }}>
-            Loading document preview...
+            {isLegacyWord(currentItem) ? "Converting Word document to PDF..." : "Loading document preview..."}
           </p>
         </div>
       );
@@ -561,8 +586,8 @@ const MasterFileBinderModal = ({
       />;
     }
 
-    // 1. PDF
-    if (currentItem.previewType === "PDF" && docBlobUrl) {
+    // 1. Original PDF or temporary PDF converted from legacy Word.
+    if ((currentItem.previewType === "PDF" || isLegacyWord(currentItem)) && docBlobUrl) {
       return (
         <iframe
           src={`${docBlobUrl}#toolbar=1&view=FitH`}
@@ -590,7 +615,11 @@ const MasterFileBinderModal = ({
       const email = emailContent;
       const isOutgoing = email?.direction === "OUTGOING";
       const toDisplay = email?.toDisplay || email?.toIds?.join(", ");
-      const fromDisplay = email?.sender || "Unknown";
+      const fromDisplay = email?.sender?.trim() || "Unknown Sender";
+      // Message dates describe the email; upload dates describe filing into Veeto.
+      // Label the fallback explicitly rather than presenting upload time as the sent date.
+      const messageDate = email?.receivedDate || currentItem.receivedDate;
+      const displayedDate = messageDate || currentItem.uploadDate;
       const counterparty = isOutgoing ? toDisplay : email?.direction === "INCOMING" ? fromDisplay : null;
 
       return (
@@ -645,17 +674,11 @@ const MasterFileBinderModal = ({
                   </span>
                 </div>
 
-                <span className="binder-email-meta-label">Date:</span>
-                <span>
-                  {renderItemDate(email?.receivedDate || currentItem.receivedDate || currentItem.uploadDate)}
-                </span>
+                <span className="binder-email-meta-label">{messageDate ? "Date:" : "Uploaded:"}</span>
+                <span>{displayedDate ? renderItemDate(displayedDate) : "-"}</span>
 
-                {currentItem.uploadedBy && (
-                  <>
-                    <span className="binder-email-meta-label">Filed By:</span>
-                    <span>{currentItem.uploadedBy}</span>
-                  </>
-                )}
+                <span className="binder-email-meta-label">Sent By:</span>
+                <span>{fromDisplay}</span>
               </div>
             </div>
 
