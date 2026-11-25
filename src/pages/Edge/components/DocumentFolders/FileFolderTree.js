@@ -41,11 +41,18 @@ const FileFolderTree = ({
       if (!contents.has(file.folderId)) contents.set(file.folderId, []);
       contents.get(file.folderId).push(file);
     });
-    const byName = (a, b) => (a.name || "").localeCompare(b.name || "");
-    contents.forEach((entries) => entries.sort(byName));
-    unassigned.sort(byName);
+    const byFolderLabel = (a, b) => (folderLabel(a) || "").localeCompare(folderLabel(b) || "");
+    const timestamp = (value) => {
+      const time = new Date(value || 0).getTime();
+      return Number.isNaN(time) ? 0 : time;
+    };
+    const byRecentDate = (a, b) =>
+      timestamp(b.uploadDate) - timestamp(a.uploadDate) || (a.name || "").localeCompare(b.name || "");
+    children.forEach((entries) => entries.sort(byFolderLabel));
+    contents.forEach((entries) => entries.sort(byRecentDate));
+    unassigned.sort(byRecentDate);
     return { children, contents, unassigned };
-  }, [folders, files]);
+  }, [folders, files, folderLabel]);
 
   useEffect(() => {
     if (activeFileId != null && index.unassigned.some((file) => file.id === activeFileId)) setUnassignedOpen(true);
