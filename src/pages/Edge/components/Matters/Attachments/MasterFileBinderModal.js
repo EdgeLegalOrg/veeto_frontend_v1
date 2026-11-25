@@ -16,9 +16,18 @@ import "./MasterFileBinderModal.css";
 
 const EMPTY_ITEMS = [];
 
-/** Legacy binary Word needs a server-converted PDF rather than the DOCX browser renderer. */
-const isLegacyWord = (item) => (item?.fileExtension || item?.name?.match(/\.([^.]+)$/)?.[1] || "")
-  .replace(/^\./, "").trim().toLowerCase() === "doc";
+/** MSO and OpenOffice formats converted to PDF on the server for inline viewing. */
+const OFFICE_PDF_EXTENSIONS = new Set([
+  "doc", "docm", "dot", "dotx", "dotm", "rtf",
+  "xlsm", "xlsb", "xlt", "xltx", "xltm", "csv",
+  "ppt", "pptx", "pptm", "pps", "ppsx", "pot", "potx", "potm",
+  "odt", "ott", "ods", "ots", "odp", "otp", "odg", "otg", "odf",
+]);
+
+const getItemExtension = (item) => (item?.fileExtension || item?.name?.match(/\.([^.]+)$/)?.[1] || "")
+  .replace(/^\./, "").trim().toLowerCase();
+
+const isOfficePdfPreview = (item) => OFFICE_PDF_EXTENSIONS.has(getItemExtension(item));
 
 /** Uses the stored extension with a filename fallback, independent of backend preview classification. */
 const browserPreviewKind = (item) => {
@@ -357,16 +366,16 @@ const MasterFileBinderModal = ({
           setDocError("Failed to load email message.");
           setLoadingDoc(false);
         });
-    } else if (previewType === "PDF" || previewType === "IMAGE" || isLegacyWord(currentItem)) {
-      const convertedWord = isLegacyWord(currentItem);
-      const preview = convertedWord
+    } else if (previewType === "PDF" || previewType === "IMAGE" || isOfficePdfPreview(currentItem)) {
+      const convertedOffice = isOfficePdfPreview(currentItem);
+      const preview = convertedOffice
         ? fetchAttachmentDocPdfPreview(matterId, attId, { signal: controller.signal })
         : fetchAttachmentInlinePreview(attId, { signal: controller.signal });
       preview
         .then((res) => {
           if (!isSubscribed) return;
           const mime =
-            previewType === "PDF" || convertedWord
+            previewType === "PDF" || convertedOffice
               ? "application/pdf"
               : res.headers["content-type"] || "image/png";
           const blob = new Blob([res.data], { type: mime });
@@ -377,14 +386,14 @@ const MasterFileBinderModal = ({
         })
         .catch(async (err) => {
           if (!isSubscribed) return;
-          let message = convertedWord
-            ? "This Word document could not be converted to PDF. Download the original to open it in Word."
+          let message = convertedOffice
+            ? "This document could not be converted to PDF. Download the original to view it."
             : "Failed to load document preview.";
-          if (convertedWord && err.response?.status === 404) {
+          if (convertedOffice && err.response?.status === 404) {
             message = "Preview is unavailable for this document. You can still download the original.";
           }
           // Binary requests also receive JSON errors as blobs; recover the safe server explanation.
-          if (convertedWord && err.response?.data instanceof Blob
+          if (convertedOffice && err.response?.data instanceof Blob
               && err.response.data.type.includes("json")) {
             try {
               const error = JSON.parse(await err.response.data.text());
@@ -545,7 +554,7 @@ const MasterFileBinderModal = ({
         <div className="text-center py-5 m-auto">
           <Spinner color="primary" style={{ width: "2.5rem", height: "2.5rem" }} />
           <p className="mt-3 text-muted" style={{ fontSize: "13.5px" }}>
-            {isLegacyWord(currentItem) ? "Converting Word document to PDF..." : "Loading document preview..."}
+            {isOfficePdfPreview(currentItem) ? "Converting document to PDF..." : "Loading document preview..."}
           </p>
         </div>
       );
@@ -586,8 +595,8 @@ const MasterFileBinderModal = ({
       />;
     }
 
-    // 1. Original PDF or temporary PDF converted from legacy Word.
-    if ((currentItem.previewType === "PDF" || isLegacyWord(currentItem)) && docBlobUrl) {
+    // 1. Original PDF or temporary PDF converted from MSO / OpenOffice documents.
+    if ((currentItem.previewType === "PDF" || isOfficePdfPreview(currentItem)) && docBlobUrl) {
       return (
         <iframe
           src={`${docBlobUrl}#toolbar=1&view=FitH`}
