@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { fetchPropertyList, linkMatterProperty } from "../../../apis";
 import {
   Button,
@@ -11,7 +11,6 @@ import {
 } from "reactstrap";
 import { toast } from "react-toastify";
 import Pagination from "../../Pagination";
-import { MdFilterAlt, MdFilterAltOff } from "react-icons/md";
 
 const AddBtns = (props) => {
   const onClick = () => {
@@ -46,6 +45,7 @@ const LinkPropertyPage = (props) => {
   const [totalPages, setTotalPages] = useState(1);
   const [totalRecords, setTotalRecords] = useState(0);
   const [filterInput, setFilterInput] = useState(filterFields);
+  const filterMounted = useRef(false);
 
   const fetchList = async (filter = filterInput) => {
     setLoading(true);
@@ -247,8 +247,26 @@ const LinkPropertyPage = (props) => {
 
   const handleChangeFilter = (e) => {
     const { name, value } = e.target;
-    setFilterInput({ ...filterInput, [name]: value });
+    setFilterInput((prev) => ({ ...prev, [name]: value }));
   };
+
+  useEffect(() => {
+    if (!filterMounted.current) {
+      filterMounted.current = true;
+      return;
+    }
+    const timer = setTimeout(() => {
+      setPageNo(0);
+      fetchList({
+        ...filterInput,
+        pageNo: 0,
+        pageSize,
+        sortField,
+        sortOrder,
+      });
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [filterInput]);
 
   const openAddModal = () => {
     props.closeForm();
@@ -262,22 +280,25 @@ const LinkPropertyPage = (props) => {
         toggle={() => props.closeForm}
         backdrop="static"
         scrollable={true}
-        size="xl"
+        size="lg"
+        style={{ maxWidth: "960px", width: "92vw" }}
         centered
       >
         <ModalHeader toggle={() => props.closeForm()} className="bg-light p-3">
           Link Property
         </ModalHeader>
 
-        <ModalBody className="d-flex flex-column overflow-hidden bg-light">
-          <Button
-            type="submit"
-            color="success"
-            className="ms-auto me-3"
-            onClick={openAddModal}
-          >
-            Add property
-          </Button>
+        <ModalBody className="d-flex flex-column overflow-hidden">
+          {!loading && plist.length === 0 && (
+            <Button
+              type="submit"
+              color="success"
+              className="ms-auto me-3"
+              onClick={openAddModal}
+            >
+              Add property
+            </Button>
+          )}
           <div className="d-flex flex-column overflow-hidden h-100">
             <div className="flex-1 overflow-y-auto">
               <Table responsive={true} striped={true} hover={true}>
@@ -311,26 +332,6 @@ const LinkPropertyPage = (props) => {
                         onChange={handleChangeFilter}
                       />
                     </th>
-                    <th>
-                      <div className="d-flex justify-content-end">
-                        <Button
-                          type="button"
-                          color="success"
-                          className="mx-1"
-                          onClick={() => handleRefresh()}
-                        >
-                          <MdFilterAlt size={18} />
-                        </Button>
-                        <Button
-                          type="button"
-                          color="danger"
-                          className="mx-1"
-                          onClick={() => handleRefresh(true)}
-                        >
-                          <MdFilterAltOff size={18} />
-                        </Button>
-                      </div>
-                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -350,7 +351,6 @@ const LinkPropertyPage = (props) => {
                       <td>
                         <p className="mb-0">{p?.address}</p>
                       </td>
-                      <td colSpan={2}></td>
                     </tr>
                   ))}
                 </tbody>
@@ -409,6 +409,7 @@ const LinkPropertyPage = (props) => {
                 handleNextPage={handleNextPage}
                 handleJumpToPage={handleJumpToPage}
                 changeNumberOfRows={changeNumberOfRows}
+                hidePageSize={true}
               />
             </div>
           </div>

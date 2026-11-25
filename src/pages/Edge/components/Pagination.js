@@ -11,6 +11,7 @@ const Pagination = (props) => {
     handlePreviousPage,
     handleJumpToPage,
     changeNumberOfRows,
+    hidePageSize = false,
   } = props;
 
   const [longLeftShift, setLongLeftShift] = useState(false);
@@ -266,24 +267,26 @@ const Pagination = (props) => {
           Next
         </Button>
       </div>
-      <div className="d-flex">
-        <Input
-          type="select"
-          name="select"
-          onChange={changeNumberOfRows}
-          value={pageSize}
-        >
-          <option value={25} selected={pageSize === 25}>
-            25/page
-          </option>
-          <option value={50} selected={pageSize === 50}>
-            50/page
-          </option>
-          <option value={100} selected={pageSize === 100}>
-            100/page
-          </option>
-        </Input>
-      </div>
+      {!hidePageSize && (
+        <div className="d-flex">
+          <Input
+            type="select"
+            name="select"
+            onChange={changeNumberOfRows}
+            value={pageSize}
+          >
+            <option value={25} selected={pageSize === 25}>
+              25/page
+            </option>
+            <option value={50} selected={pageSize === 50}>
+              50/page
+            </option>
+            <option value={100} selected={pageSize === 100}>
+              100/page
+            </option>
+          </Input>
+        </div>
+      )}
     </div>
   );
 };
