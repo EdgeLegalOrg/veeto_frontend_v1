@@ -20,6 +20,8 @@ const FileFolderTree = ({
   onDrop,
   canDragFile,
   onFileDragStart,
+  canDragFolder,
+  onFolderDragStart,
   idPrefix,
 }) => {
   const [unassignedOpen, setUnassignedOpen] = useState(true);
@@ -104,6 +106,8 @@ const FileFolderTree = ({
             <li key={`folder-${folder.id}`} className="matter-folder-branch">
               <div
                 className="matter-folder-tree-row"
+                draggable={!!canDragFolder?.(folder)}
+                onDragStart={(event) => onFolderDragStart?.(event, folder)}
                 onDragOver={(event) => {
                   if (canDrop && (!canDropFolder || canDropFolder(folder))) event.preventDefault();
                 }}

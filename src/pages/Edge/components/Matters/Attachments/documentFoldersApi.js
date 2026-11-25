@@ -10,6 +10,7 @@ export const documentFoldersApi = (contextType, contextId) => {
     root: (provider) => API.post(`${url}/roots`, { provider }),
     create: (parentId, name) => API.post(`${url}/folders`, { parentId, name }),
     rename: (folder, name) => API.patch(`${url}/folders/${folder.id}`, { name, version: folder.version }),
+    moveFolder: (folder, parentId) => API.post(`${url}/folders/${folder.id}/move`, { parentId, version: folder.version }),
     remove: (id) => API.delete(`${url}/folders/${id}`),
     move: (fileId, folderId) => API.post(`${url}/files/${fileId}/move`, { folderId }),
     renameFile: (id, name) => API.patch(`${url}/files/${id}`, { name }),
