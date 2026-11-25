@@ -633,6 +633,10 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
     setBinder({ focus: file.id, ids: [...selected] });
   };
   const needle = query.trim().toLowerCase();
+  const timestamp = (value) => {
+    const time = new Date(value || 0).getTime();
+    return Number.isNaN(time) ? 0 : time;
+  };
   const visibleFolders = folders
     .filter(
       (folder) =>
@@ -646,14 +650,24 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
         (scope === "MATTER" ? true : (knownFolderIds.has(file.folderId) ? file.folderId : null) === folderId) &&
         (!needle || `${file.name} ${file.uploadedBy || ""}`.toLowerCase().includes(needle)),
     )
-    .sort((a, b) => (sort === "NAME" ? a.name.localeCompare(b.name) : new Date(b.uploadDate || 0) - new Date(a.uploadDate || 0)));
+    .sort((a, b) =>
+      sort === "NAME"
+        ? (a.name || "").localeCompare(b.name || "")
+        : timestamp(b.uploadDate) - timestamp(a.uploadDate) || (a.name || "").localeCompare(b.name || ""),
+    );
 
   const matchesFile = (file) => !needle || `${file.name} ${file.uploadedBy || ""}`.toLowerCase().includes(needle);
   const emailPanels = (current?.emailUploadGroupId && scope === "FOLDER" ? [current]
     : scope === "MATTER" ? folders.filter((folder) => folder.emailUploadGroupId)
     : folders.filter((folder) => folder.parentId === folderId && folder.emailUploadGroupId))
     .filter((folder) => !needle || folderLabel(folder).toLowerCase().includes(needle)
-      || (emailFilesByGroup.get(folder.emailUploadGroupId) || []).some(matchesFile));
+      || (emailFilesByGroup.get(folder.emailUploadGroupId) || []).some(matchesFile))
+    .sort((a, b) => {
+      if (sort === "NAME") return folderLabel(a).localeCompare(folderLabel(b));
+      const aDate = emailSources.get(a.id)?.uploadDate || a.createdDate;
+      const bDate = emailSources.get(b.id)?.uploadDate || b.createdDate;
+      return timestamp(bDate) - timestamp(aDate) || folderLabel(a).localeCompare(folderLabel(b));
+    });
   const panelGroups = new Set(emailPanels.map((folder) => folder.emailUploadGroupId));
   const renderFileRow = (file, nested = false, lastChild = false) => (
     <tr

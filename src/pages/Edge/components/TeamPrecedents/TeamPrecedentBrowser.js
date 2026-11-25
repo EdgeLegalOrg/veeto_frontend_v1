@@ -262,6 +262,10 @@ const TeamPrecedentBrowser = ({ siteId, onChoose }) => {
     setPreview(file);
   };
   const needle = query.trim().toLowerCase();
+  const timestamp = (value) => {
+    const time = new Date(value || 0).getTime();
+    return Number.isNaN(time) ? 0 : time;
+  };
   const visible = files
     .filter(
       (file) =>
@@ -269,10 +273,14 @@ const TeamPrecedentBrowser = ({ siteId, onChoose }) => {
         (!needle || `${file.name} ${file.uploadedBy || ""}`.toLowerCase().includes(needle)) &&
         (!showClassificationControls || ((!matterType || file.matterType === matterType) && (!subType || file.matterSubType === subType))),
     )
-    .sort((a, b) => (sort === "NAME" ? a.name.localeCompare(b.name) : new Date(b.uploadDate || 0) - new Date(a.uploadDate || 0)));
-  const childFolders = folders.filter(
-    (folder) => (folder.parentId ?? null) === folderId && (!needle || folder.name.toLowerCase().includes(needle)),
-  );
+    .sort((a, b) =>
+      sort === "NAME"
+        ? (a.name || "").localeCompare(b.name || "")
+        : timestamp(b.uploadDate) - timestamp(a.uploadDate) || (a.name || "").localeCompare(b.name || ""),
+    );
+  const childFolders = folders
+    .filter((folder) => (folder.parentId ?? null) === folderId && (!needle || folder.name.toLowerCase().includes(needle)))
+    .sort((a, b) => (a.name || "").localeCompare(b.name || ""));
   const upload = async () => {
     if (locked || !uploadFiles.length || uploadFiles.some((entry) => !entry.name.trim())) return;
     setBusy(true);
