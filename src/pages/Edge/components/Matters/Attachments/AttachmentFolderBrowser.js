@@ -1,3 +1,4 @@
+import { normalizeEmailDirection } from "../../../utils/emailDirection";
 import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { Button, Input, Table, Modal, ModalHeader, ModalBody, ModalFooter } from "reactstrap";
 import { useSelector } from "react-redux";
@@ -65,15 +66,20 @@ const initials = (name) =>
     .toUpperCase();
 const fileName = (file) =>
   file.type && !file.name?.toLowerCase().endsWith(`.${file.type.toLowerCase()}`) ? `${file.name}.${file.type}` : file.name;
-const EmailContext = ({ email }) =>
-  email?.direction ? (
+const EmailContext = ({ email }) => {
+  if (!email) return null;
+  const direction = normalizeEmailDirection(email.direction);
+  const isSent = direction === "SENT";
+  const isReceived = direction === "RECEIVED";
+  return (
     <div className="matter-folder-email-context">
-      <span className={`badge ${email.direction === "SENT" ? "bg-primary" : "bg-success"}`}>
-        {email.direction === "SENT" ? "Sent" : "Received"}
+      <span className={`badge ${isSent ? "bg-primary" : isReceived ? "bg-success" : "bg-secondary"}`}>
+        {isSent ? "Sent" : isReceived ? "Received" : "Email"}
       </span>
-      <span>{email.direction === "SENT" ? `To: ${email.recipient || "—"}` : `From: ${email.sender || "—"}`}</span>
+      <span>{isSent ? `To: ${email.recipient || "—"}` : isReceived ? `From: ${email.sender || "—"}` : "Direction unavailable"}</span>
     </div>
-  ) : null;
+  );
+};
 const UploadDate = ({ file }) => (
   <span title={file?.uploadDate ? formatDateTimeFunc(file.uploadDate) : ""}>
     {file?.uploadDate ? (

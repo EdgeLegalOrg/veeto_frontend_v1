@@ -1,3 +1,4 @@
+import FileTypeIcon from "../../FileTypeIcon";
 import React, { useEffect, useState } from "react";
 import { Button, Card, CardBody, Table } from "reactstrap";
 import fileDownload from "js-file-download";
@@ -68,7 +69,7 @@ const ReportComparison = ({ type, dateRange, comparisonRange, fetchReport, paylo
         <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
           <h5 className="mb-0 text-primary">Period Comparison</h5>
           <Button color="success" size="sm" onClick={exportComparison} disabled={!ready}>
-            <i className="ri-file-excel-2-line me-1" />Export Comparison
+            <FileTypeIcon type="csv" className="me-1" decorative />Export Comparison
           </Button>
         </div>
         {result?.error ? <div className="text-danger" role="alert">

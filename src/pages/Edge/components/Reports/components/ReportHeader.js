@@ -1,3 +1,4 @@
+import FileTypeIcon from "../../FileTypeIcon";
 import ReportComparisonControl from "./ReportComparisonControl";
 import React, { useRef } from "react";
 import { Row, Col, Button } from "reactstrap";
@@ -176,13 +177,9 @@ const ReportHeader = ({
               disabled={isExporting || exportDisabled}
               className="d-flex align-items-center waves-effect waves-light"
             >
-              <i
-                className={
-                  isExporting
-                    ? "ri-loader-4-line ri-spin align-middle fs-16 me-1"
-                    : "ri-file-excel-2-line align-middle fs-16 me-1"
-                }
-              ></i>
+              {isExporting
+                ? <i className="ri-loader-4-line ri-spin align-middle fs-16 me-1" />
+                : <FileTypeIcon type="csv" className="align-middle fs-16 me-1" decorative />}
               {isExporting ? "Exporting..." : "Export CSV"}
             </Button>
           </div>

@@ -151,7 +151,7 @@ const DocumentDetail = (props) => {
       <div className="docDetail-sectionDiv">
         <div className="docDetail-iconDiv">
           <img
-            src={returnFileIcon(docDetails?.type)}
+            src={returnFileIcon(docDetails?.type, docDetails?.direction, docDetails?.name)}
             alt="file-icon"
             className="docDetail-icon"
           />

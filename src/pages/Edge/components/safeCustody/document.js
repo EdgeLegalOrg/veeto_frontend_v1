@@ -162,7 +162,7 @@ const Document = (props) => {
                   <td>
                     <div className="d-flex align-items-center">
                       <img
-                        src={returnFileIcon(d.type)}
+                        src={returnFileIcon(d.type, d.direction, d.name)}
                         alt={d.type}
                         width="30px"
                         height="30px"

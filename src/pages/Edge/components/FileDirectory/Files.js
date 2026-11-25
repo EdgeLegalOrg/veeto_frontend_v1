@@ -49,7 +49,7 @@ function Files(props) {
               checked={multiple ? selectedDocuments.some((link) => link.documentId === item.id && link.kind === item.kind) : selectedFile?.id === item.id}
               onChange={() => {}}
             />
-            <img src={getFileIcon(item?.contentType)} alt="file" />
+            <img src={getFileIcon(item?.contentType, item?.direction, item?.contentName)} alt="file" width="20" height="20" style={{ objectFit: "contain", flexShrink: 0 }} />
             <div className="file_directory_file-info">
               <span className="file_directory_file-name">
                 {item.contentName}.{item?.contentType}

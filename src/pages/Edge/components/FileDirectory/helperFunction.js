@@ -1,3 +1,4 @@
+import { getProvidedFileIcon } from "../../utils/fileTypeIcons";
 import word from "../../icons/fileDirectory/ms-word.svg";
 import zip from "../../icons/fileDirectory/zip.svg";
 import excel from "../../icons/fileDirectory/ms-excel.svg";
@@ -11,7 +12,9 @@ export const convertTitleCase = (str) => {
   return convertedString;
 };
 
-export const getFileIcon = (fileFormat) => {
+export const getFileIcon = (fileFormat, direction, name = "") => {
+  const provided = getProvidedFileIcon(fileFormat, name, direction);
+  if (provided) return provided;
   switch (fileFormat) {
     case "doc":
     case "docx":

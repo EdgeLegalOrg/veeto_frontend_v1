@@ -1,0 +1,8 @@
+.veeto-file-type-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  object-fit: contain;
+  flex-shrink: 0;
+  vertical-align: middle;
+}

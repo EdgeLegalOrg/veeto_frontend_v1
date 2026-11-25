@@ -162,7 +162,7 @@ const AttachmentSection = (props) => {
               >
                 <div className="d-flex align-items-center">
                   <img
-                    src={returnFileIcon(a.type)}
+                    src={returnFileIcon(a.type, a.direction, a.name)}
                     alt={a.type}
                     width="30px"
                     height="30px"
@@ -251,7 +251,7 @@ const AttachmentSection = (props) => {
                 }}
               >
                 <img
-                  src={returnFileIcon(a.type)}
+                  src={returnFileIcon(a.type, a.direction, a.name)}
                   alt={a.type}
                   width="30px"
                   height="30px"

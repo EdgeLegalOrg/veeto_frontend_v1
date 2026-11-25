@@ -1,3 +1,5 @@
+import { normalizeEmailDirection } from "../../../utils/emailDirection";
+import FileTypeIcon from "../../FileTypeIcon";
 import DocxAttachmentPreview from "./DocxAttachmentPreview";
 import BrowserAttachmentPreview from "./BrowserAttachmentPreview";
 import React, { useEffect, useState, useMemo, useRef, useCallback } from "react";
@@ -519,25 +521,25 @@ const MasterFileBinderModal = ({
     const extension = (item.fileExtension || item.name?.match(/\.([^.]+)$/)?.[1] || "")
       .replace(/^\./, "").trim().toLowerCase();
     if (["doc", "docx", "docm", "dot", "dotx", "dotm"].includes(extension)) {
-      return <span className="binder-badge binder-badge-word"><i className="ri-file-word-2-line" aria-hidden="true" />Word</span>;
+      return <span className="binder-badge binder-badge-word"><FileTypeIcon type={extension} decorative />Word</span>;
     }
     if (["xls", "xlsx", "xlsm", "xlsb", "xlt", "xltx", "xltm"].includes(extension)) {
-      return <span className="binder-badge binder-badge-excel"><i className="ri-file-excel-2-line" aria-hidden="true" />Excel</span>;
+      return <span className="binder-badge binder-badge-excel"><FileTypeIcon type={extension} decorative />Excel</span>;
     }
     if (["heic", "heif"].includes(extension)) {
-      return <span className="binder-badge binder-badge-image"><i className="ri-image-line" aria-hidden="true" />{extension.toUpperCase()}</span>;
+      return <span className="binder-badge binder-badge-image"><FileTypeIcon type="image" decorative />{extension.toUpperCase()}</span>;
     }
     switch (item.previewType) {
       case "PDF":
-        return <span className="binder-badge binder-badge-pdf"><i className="ri-file-pdf-line" aria-hidden="true" />PDF</span>;
+        return <span className="binder-badge binder-badge-pdf"><FileTypeIcon type="pdf" decorative />PDF</span>;
       case "EMAIL_MSG":
-        return <span className="binder-badge binder-badge-msg"><i className="ri-mail-line" aria-hidden="true" />EMAIL</span>;
+        return <span className="binder-badge binder-badge-msg"><FileTypeIcon type="email" direction={item.direction} decorative />EMAIL</span>;
       case "IMAGE":
-        return <span className="binder-badge binder-badge-image"><i className="ri-image-line" aria-hidden="true" />IMAGE</span>;
+        return <span className="binder-badge binder-badge-image"><FileTypeIcon type="image" decorative />IMAGE</span>;
       case "OFFICE_DOC":
-        return <span className="binder-badge binder-badge-office"><i className="ri-file-line" aria-hidden="true" />OFFICE</span>;
+        return <span className="binder-badge binder-badge-office"><FileTypeIcon type={item.fileExtension} name={item.name} direction={item.direction} decorative />OFFICE</span>;
       default:
-        return <span className="binder-badge binder-badge-other"><i className="ri-file-line" aria-hidden="true" />FILE</span>;
+        return <span className="binder-badge binder-badge-other"><FileTypeIcon type={item.fileExtension} name={item.name} direction={item.direction} decorative />FILE</span>;
     }
   };
 
@@ -622,14 +624,15 @@ const MasterFileBinderModal = ({
     // 3. Outlook Email (.msg)
     if (currentItem.previewType === "EMAIL_MSG") {
       const email = emailContent;
-      const isOutgoing = email?.direction === "OUTGOING";
+      const direction = normalizeEmailDirection(email?.direction);
+      const isOutgoing = direction === "SENT";
       const toDisplay = email?.toDisplay || email?.toIds?.join(", ");
       const fromDisplay = email?.sender?.trim() || "Unknown Sender";
       // Message dates describe the email; upload dates describe filing into Veeto.
       // Label the fallback explicitly rather than presenting upload time as the sent date.
       const messageDate = email?.receivedDate || currentItem.receivedDate;
       const displayedDate = messageDate || currentItem.uploadDate;
-      const counterparty = isOutgoing ? toDisplay : email?.direction === "INCOMING" ? fromDisplay : null;
+      const counterparty = isOutgoing ? toDisplay : direction === "RECEIVED" ? fromDisplay : null;
 
       return (
         <div className="binder-scroll-canvas">
@@ -638,7 +641,7 @@ const MasterFileBinderModal = ({
               <div className="d-flex align-items-center mb-2">
                 <span
                   style={{
-                    backgroundColor: isOutgoing ? "#2563eb" : "#059669",
+                    backgroundColor: isOutgoing ? "#2563eb" : direction === "RECEIVED" ? "#059669" : "#64748b",
                     color: "#ffffff",
                     fontSize: "10.5px",
                     fontWeight: "700",
@@ -651,15 +654,15 @@ const MasterFileBinderModal = ({
                     gap: "4px",
                   }}
                 >
-                  <i className={isOutgoing ? "ri-arrow-right-up-line" : "ri-arrow-left-down-line"}></i>
-                  {isOutgoing ? "Outgoing Email" : "Incoming Email"}
+                  <i className={isOutgoing ? "ri-arrow-right-up-line" : direction === "RECEIVED" ? "ri-arrow-left-down-line" : "ri-mail-line"}></i>
+                  {isOutgoing ? "Outgoing Email" : direction === "RECEIVED" ? "Incoming Email" : "Email"}
                 </span>
               </div>
               <h3 className="binder-email-subject">
                 {email?.subject || getDocumentDisplayTitle(currentItem)}
               </h3>
               <div className="binder-email-meta-grid">
-                <span className="binder-email-meta-label">{isOutgoing ? "To:" : email?.direction === "INCOMING" ? "From:" : "Email:"}</span>
+                <span className="binder-email-meta-label">{isOutgoing ? "To:" : direction === "RECEIVED" ? "From:" : "Email:"}</span>
                 <div className="d-flex align-items-center gap-2">
                   <span
                     style={{
@@ -743,13 +746,7 @@ const MasterFileBinderModal = ({
       <div className="binder-scroll-canvas">
         <div className="binder-fallback-card">
           <div className="binder-fallback-icon">
-            <i
-              className={
-                currentItem.previewType === "OFFICE_DOC"
-                  ? "ri-file-word-2-line"
-                  : "ri-file-line"
-              }
-            ></i>
+            <FileTypeIcon type={currentItem.fileExtension} name={currentItem.name} direction={currentItem.direction} />
           </div>
           <h4 className="binder-fallback-title">{getDocumentDisplayTitle(currentItem)}</h4>
           <p className="binder-fallback-desc">
@@ -970,14 +967,14 @@ const MasterFileBinderModal = ({
                         {item.previewType === "EMAIL_MSG" ? (
                           <span className="text-truncate" style={{ maxWidth: "140px" }}>
                             • {isActive && emailContent
-                              ? (emailContent.direction === "OUTGOING"
+                              ? (normalizeEmailDirection(emailContent.direction) === "SENT"
                                 ? `To: ${emailContent.toDisplay || emailContent.toIds?.join(", ") || "Unknown"}`
-                                : emailContent.direction === "INCOMING"
+                                : normalizeEmailDirection(emailContent.direction) === "RECEIVED"
                                   ? `From: ${emailContent.sender || "Unknown"}`
                                   : "Email participant unavailable")
-                              : item.direction === "OUTGOING"
+                              : normalizeEmailDirection(item.direction) === "SENT"
                                 ? `To: ${item.recipient || "Unknown"}`
-                                : item.direction === "INCOMING"
+                                : normalizeEmailDirection(item.direction) === "RECEIVED"
                                   ? `From: ${item.sender || "Unknown"}`
                                   : "Email participant unavailable"}
                           </span>

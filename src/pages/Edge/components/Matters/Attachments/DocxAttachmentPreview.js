@@ -1,3 +1,4 @@
+import FileTypeIcon from "../../FileTypeIcon";
 import React, { useEffect, useRef, useState } from "react";
 import { Spinner } from "reactstrap";
 import { fetchAttachmentInlinePreview } from "../../../apis";
@@ -59,7 +60,7 @@ const DocxAttachmentPreview = ({ attachmentId, title, onDownload, loadPreview = 
   if (error) return (
     <div className="binder-scroll-canvas">
       <div className="binder-fallback-card">
-        <div className="binder-fallback-icon"><i className="ri-file-word-2-line" /></div>
+        <div className="binder-fallback-icon"><FileTypeIcon type="docx" /></div>
         <h4 className="binder-fallback-title">Preview Unavailable</h4>
         <p className="binder-fallback-desc">This Word document could not be previewed. Download it to open in Word.</p>
         <button className="btn btn-sm btn-primary mx-auto" onClick={onDownload}>

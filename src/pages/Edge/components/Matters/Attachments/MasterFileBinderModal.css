@@ -749,3 +749,6 @@
 .binder-sheet-table thead th { position: sticky; top: 0; z-index: 2; text-align: center; background: #f1f5f9; }
 .binder-sheet-table tbody th { position: sticky; left: 0; z-index: 1; min-width: 48px; text-align: right; background: #f1f5f9; }
 .binder-sheet-table thead th:first-child { left: 0; z-index: 3; min-width: 48px; }
+
+/* Supplied PNG icons occupy the same font-sized slots as the existing document glyphs. */
+.binder-badge .veeto-file-type-icon { font-size: 13px; line-height: 1; }
