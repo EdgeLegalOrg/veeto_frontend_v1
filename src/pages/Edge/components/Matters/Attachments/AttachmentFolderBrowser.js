@@ -118,7 +118,7 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
   const [refreshing, setRefreshing] = useState(false);
   const [loadError, setLoadError] = useState("");
   const [query, setQuery] = useState("");
-  const [scope, setScope] = useState("FOLDER");
+  const [scope, setScope] = useState("MATTER");
   const [sort, setSort] = useState("DATE_DESC");
   const [dialog, setDialog] = useState(null);
   const [value, setValue] = useState("");
@@ -354,7 +354,6 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
     if (busy) return;
     setFolderId(id);
     setActiveFileId(null);
-    setScope("FOLDER");
     setQuery("");
     revealFolder(id);
   };
@@ -682,7 +681,7 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
   const visibleFiles = files
     .filter(
       (file) =>
-        (scope === "MATTER" ? true : (knownFolderIds.has(file.folderId) ? file.folderId : null) === folderId) &&
+        (scope === "MATTER" && needle ? true : (knownFolderIds.has(file.folderId) ? file.folderId : null) === folderId) &&
         (!needle || `${file.name} ${file.uploadedBy || ""}`.toLowerCase().includes(needle)),
     )
     .sort((a, b) =>
@@ -693,9 +692,9 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
 
   const matchesFile = (file) => !needle || `${file.name} ${file.uploadedBy || ""}`.toLowerCase().includes(needle);
   const emailPanels = (
-    current?.emailUploadGroupId && scope === "FOLDER"
+    current?.emailUploadGroupId && (!needle || scope === "FOLDER")
       ? [current]
-      : scope === "MATTER"
+      : scope === "MATTER" && needle
         ? folders.filter((folder) => folder.emailUploadGroupId)
         : folders.filter((folder) => folder.parentId === folderId && folder.emailUploadGroupId)
   )
@@ -743,7 +742,7 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
           <span>{file.name}</span>
         </button>
         {!nested && ["msg", "eml"].includes(file.type?.toLowerCase()) && <EmailContext email={file} />}
-        {!nested && scope === "MATTER" && (
+        {!nested && scope === "MATTER" && needle && (
           <div className="small text-muted">{location(file.folderId) || "Location pending registration"}</div>
         )}
       </td>
@@ -1116,7 +1115,7 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
                           </div>
                           <div className="email-tree-details">
                             <EmailContext email={email} />
-                            {scope === "MATTER" && <div className="small text-muted">{location(folder.parentId)}</div>}
+                            {scope === "MATTER" && needle && <div className="small text-muted">{location(folder.parentId)}</div>}
                           </div>
                         </td>
                         <td>

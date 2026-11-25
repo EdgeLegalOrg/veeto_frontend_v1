@@ -39,7 +39,7 @@ const TeamPrecedentBrowser = ({ siteId, onChoose }) => {
   const [expanded, setExpanded] = useState(new Set());
   const [selected, setSelected] = useState(new Set());
   const [query, setQuery] = useState("");
-  const [scope, setScope] = useState("FOLDER");
+  const [scope, setScope] = useState("LIBRARY");
   const [sort, setSort] = useState("DATE");
   const [matterType, setMatterType] = useState("");
   const [subType, setSubType] = useState("");
@@ -119,7 +119,7 @@ const TeamPrecedentBrowser = ({ siteId, onChoose }) => {
     setActiveFileId(null);
     setSelected(new Set());
     setExpanded(new Set());
-    setScope("FOLDER");
+    setScope("LIBRARY");
     setPreview(null);
     load();
     return () => {
@@ -168,7 +168,6 @@ const TeamPrecedentBrowser = ({ siteId, onChoose }) => {
     if (busy) return;
     setFolderId(id);
     setActiveFileId(null);
-    setScope("FOLDER");
     setQuery("");
     const next = new Set(expanded),
       seen = new Set();
@@ -298,7 +297,7 @@ const TeamPrecedentBrowser = ({ siteId, onChoose }) => {
   const visible = files
     .filter(
       (file) =>
-        (scope === "LIBRARY" || (knownFolderIds.has(file.folderId) ? file.folderId : null) === folderId) &&
+        ((scope === "LIBRARY" && needle) || (knownFolderIds.has(file.folderId) ? file.folderId : null) === folderId) &&
         (!needle || `${file.name} ${file.uploadedBy || ""}`.toLowerCase().includes(needle)) &&
         (!showClassificationControls || ((!matterType || file.matterType === matterType) && (!subType || file.matterSubType === subType))),
     )
@@ -308,7 +307,11 @@ const TeamPrecedentBrowser = ({ siteId, onChoose }) => {
         : timestamp(b.uploadDate) - timestamp(a.uploadDate) || (a.name || "").localeCompare(b.name || ""),
     );
   const childFolders = folders
-    .filter((folder) => (folder.parentId ?? null) === folderId && (!needle || folder.name.toLowerCase().includes(needle)))
+    .filter(
+      (folder) =>
+        ((scope === "LIBRARY" && needle) || (folder.parentId ?? null) === folderId) &&
+        (!needle || folder.name.toLowerCase().includes(needle)),
+    )
     .sort((a, b) => (a.name || "").localeCompare(b.name || ""));
   const upload = async () => {
     if (locked || !uploadFiles.length || uploadFiles.some((entry) => !entry.name.trim())) return;
@@ -650,7 +653,7 @@ const TeamPrecedentBrowser = ({ siteId, onChoose }) => {
                         <AttachmentTypeIcon type={file.type} name={file.name} />
                         {file.name}
                       </button>
-                      {scope === "LIBRARY" && (
+                      {scope === "LIBRARY" && needle && (
                         <div className="small text-muted">{location(file.folderId) || "Library location unavailable"}</div>
                       )}
                       {showClassificationControls && file.matterType && (
