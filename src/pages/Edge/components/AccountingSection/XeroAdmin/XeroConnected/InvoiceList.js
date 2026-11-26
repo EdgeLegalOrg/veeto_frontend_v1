@@ -18,22 +18,18 @@ import { getEligibleInvoice, uploadInvoiceToXero } from "../../../../apis";
 import LoadingPage from "../../../../utils/LoadingPage";
 import { toast } from "react-toastify";
 import ResponseAlert from "./ResponseAlert";
-import Pagination from "../../../Pagination";
+import { useContinuousXeroList } from "./useContinuousXeroList";
+import { ContinuousListStatus, ContinuousRowSpace } from "./ContinuousListStatus";
 import upArrow from "../../../../images/upArrow.svg";
 import downArrow from "../../../../images/downArrow.svg";
 import upArrowColoured from "../../../../images/upArrowColoured.svg";
 import downArrowColoured from "../../../../images/downArrowColoured.svg";
 
 const InvoiceList = (props) => {
-  const [list, setList] = useState([]);
   const [invoiceStatus, setInvoiceStatus] = useState([]);
   const [selected, setSelected] = useState([]);
   const [loading, setLoading] = useState(false);
   const [responseAlert, setResponseAlert] = useState(null);
-  const [pageNo, setPageNo] = useState(0);
-  const [pageSize, setPageSize] = useState(100);
-  const [totalRecords, setTotalRecords] = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
   const [sortField, setSortField] = useState("invoiceNumber");
   const [sortOrder, setSortOrder] = useState("desc");
   const [filterInput, setFilterInput] = useState({
@@ -42,6 +38,14 @@ const InvoiceList = (props) => {
     invoiceDate: "",
     totalAmount: "",
     status: "",
+  });
+
+  const { list, totalRecords, loadingRows, hasMore, error, loadMore, reload, scrollRef, sentinelRef, headerRef,
+    visibleRows, topSpace, bottomSpace, rowOffset } = useContinuousXeroList({
+    fetchPage: getEligibleInvoice, resultKey: "invoiceList", rowKey: (row) => row.id,
+    initialQuery: { ...filterInput, sortOn: sortField, sortType: sortOrder.toUpperCase() },
+    refreshList: props.refreshList, active: props.active,
+    onLoaded: () => props.handleRefresh?.(false), onReset: () => setSelected([]),
   });
 
   const siteId =
@@ -56,16 +60,6 @@ const InvoiceList = (props) => {
     fetchEnums();
   }, []);
 
-  useEffect(() => {
-    fetchInvoiceList(pageNo, pageSize, filterInput, sortField, sortOrder);
-  }, [pageNo, pageSize]);
-
-  useEffect(() => {
-    if (props.refreshList) {
-      fetchInvoiceList(pageNo, pageSize, filterInput, sortField, sortOrder);
-    }
-  }, [props.refreshList]);
-
   const handleChangeFilter = (e) => {
     const { name, value } = e.target;
     setFilterInput((prev) => ({ ...prev, [name]: value }));
@@ -73,21 +67,18 @@ const InvoiceList = (props) => {
 
   const handleSearch = (filters = filterInput) => {
     setSelected([]);
-    setPageNo(0);
-    fetchInvoiceList(0, pageSize, filters, sortField, sortOrder);
+    fetchInvoiceList(filters, sortField, sortOrder);
   };
 
   const handleSortByLabel = (field) => {
     if (sortField !== field) {
       setSortField(field);
       setSortOrder("asc");
-      setPageNo(0);
-      fetchInvoiceList(0, pageSize, filterInput, field, "asc");
+      fetchInvoiceList(filterInput, field, "asc");
     } else {
       const newOrder = sortOrder === "asc" ? "desc" : "asc";
       setSortOrder(newOrder);
-      setPageNo(0);
-      fetchInvoiceList(0, pageSize, filterInput, field, newOrder);
+      fetchInvoiceList(filterInput, field, newOrder);
     }
   };
   const handleInvoiceStatusChange = (e) => {
@@ -103,39 +94,13 @@ const InvoiceList = (props) => {
     const reset = { invoiceNumber: "", matterNumber: "", invoiceDate: "", totalAmount: "", status: "" };
     setFilterInput(reset);
     setSelected([]);
-    setPageNo(0);
     setSortField("invoiceNumber");
     setSortOrder("desc");
-    fetchInvoiceList(0, pageSize, reset, "invoiceNumber", "desc");
+    fetchInvoiceList(reset, "invoiceNumber", "desc");
   };
 
-  const fetchInvoiceList = async (page = pageNo, size = pageSize, filters = filterInput, sortF = sortField, sortO = sortOrder) => {
-    setLoading(true);
-    try {
-      const { data } = await getEligibleInvoice({ page, pageSize: size, sortOn: sortF, sortType: sortO.toUpperCase(), ...filters });
-      if (!data.success) {
-        toast.warning("Something went wrong, please try later.");
-        return;
-      }
-      setList(data?.data?.invoiceList || []);
-      setTotalRecords(data?.metadata?.page?.totalRecords || 0);
-      setTotalPages(data?.metadata?.page?.totalPages || 1);
-      if (props.handleRefresh) props.handleRefresh(false);
-    } catch (error) {
-      console.error(error);
-      toast.warning("Something went wrong, please try later.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handlePreviousPage = () => { setSelected([]); setPageNo((p) => p - 1); };
-  const handleNextPage = () => { setSelected([]); setPageNo((p) => p + 1); };
-  const handleJumpToPage = (num) => { setSelected([]); setPageNo(num - 1); };
-  const changeNumberOfRows = (e) => {
-    setSelected([]);
-    setPageSize(Number(e.target.value));
-    setPageNo(0);
+  const fetchInvoiceList = (filters = filterInput, sortF = sortField, sortO = sortOrder) => {
+    reload({ ...filters, sortOn: sortF, sortType: sortO.toUpperCase() });
   };
 
   const fetchEnums = () => {
@@ -228,14 +193,18 @@ const InvoiceList = (props) => {
     if (props.active) {
       return (
         <>
-          <div className="mx-2 max-50vh">
-            <Table responsive={true} striped={true} hover={true}>
-              <thead className="mb-2 bg-light">
+          <div className="mx-2 mb-2 small text-muted" role="status">
+            Loaded {list.length} of {totalRecords} · {selected.length} selected. Select all applies to loaded records.
+          </div>
+          <div ref={scrollRef} className="mx-2 xero-continuous-scroll">
+            <Table striped={true} hover={true} className="xero-continuous-table" aria-rowcount={totalRecords + 1}>
+              <thead ref={headerRef} className="mb-2 bg-light">
                 <tr>
                   <th>
                     <Input
                       type="checkbox"
                       onChange={handleSelectAll}
+                      aria-label="Select all loaded invoices"
                       checked={
                         list.length > 0 && selected.length === list.length
                       }
@@ -329,14 +298,16 @@ const InvoiceList = (props) => {
                 </tr>
               </thead>
               <tbody>
-                {list?.map((invoice) => (
+                <ContinuousRowSpace height={topSpace} />
+                {visibleRows.map((invoice, i) => (
                   <tr
                     key={invoice.id}
                     onClick={() => handleSelect(invoice.id)}
                     className="pe-cursor"
+                    aria-rowindex={rowOffset + i + 2}
                   >
                     <td>
-                      <Input type="checkbox" checked={isSelected(invoice.id)} />
+                      <Input type="checkbox" checked={isSelected(invoice.id)} readOnly aria-label={`Select invoice ${invoice.invoiceNumStr}`} />
                     </td>
                     <td>
                       {/*
@@ -347,7 +318,7 @@ const InvoiceList = (props) => {
 						
                       </p>
 					  */}
-                      <p className="mb-0">{invoice.invoiceNumStr}</p>
+                      <p className="mb-0" title={invoice.invoiceNumStr}>{invoice.invoiceNumStr}</p>
                     </td>
                     <td>
                       <p className="mb-0">{invoice.matterNumber}</p>
@@ -370,21 +341,14 @@ const InvoiceList = (props) => {
                     <td></td>
                   </tr>
                 ))}
+                <ContinuousRowSpace height={bottomSpace} />
               </tbody>
             </Table>
-            {loading && <LoadingPage />}
+            <ContinuousListStatus sentinelRef={sentinelRef} loading={loadingRows} error={error}
+              hasMore={hasMore} loadMore={loadMore} count={list.length} />
           </div>
-            <Pagination
-              pageNo={pageNo}
-              pageSize={pageSize}
-              totalPages={totalPages}
-              totalRecords={totalRecords}
-              handlePreviousPage={handlePreviousPage}
-              handleNextPage={handleNextPage}
-              handleJumpToPage={handleJumpToPage}
-              changeNumberOfRows={changeNumberOfRows}
-            />
-          <Button color="success" className="m-4" onClick={handlePostInvoice}>
+          {loading && <LoadingPage />}
+          <Button color="success" className="m-4" disabled={loading || !selected.length} onClick={handlePostInvoice}>
             Post Invoice
           </Button>
 

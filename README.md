@@ -88,3 +88,11 @@ The invoice **TIMED** picker uses compact bordered entries instead of repeated s
 ## Accounting invoice-list pagination
 
 The invoice list keeps page number and page size in one pagination state and supplies both on every request. Choosing 100 rows therefore retains `pageSize=100` on Next, Previous and numbered-page navigation. Page-size changes and filter/sort refreshes start at page 1; Reset returns to page 1 with 25 rows. The visible range is updated alongside successful response rows. Failed or superseded requests cannot publish a mismatched range, and empty results cannot produce a negative page index. This change does not modify the shared pagination component or backend API.
+
+## Continuous Xero export lists
+
+Xero-connected Invoices and Payments show one scrollable list without page buttons or a page-size selector. The existing API pages are appended in batches of 100 when the end approaches. Load more and Retry remain available for keyboard access and failed requests. Filters, sorting and refresh replace the applied query and clear selections; typing unsubmitted filters does not change later batches of the currently displayed results. Selections persist while additional pages load. **Select all** selects only loaded records, including loaded rows outside the visible window; new batches are not silently selected.
+
+Above 400 loaded records, fixed-height virtual rows render only the viewport and an overscan buffer. Spacer rows preserve scroll height; data and selection remain independent of mounted rows. Headers stay visible and the existing Post Invoice/Post Payment actions remain explicit. Duplicate row identities are filtered, page requests are serial, and old query responses are ignored. No new dependency or database migration is required. The backend adds stable invoice/payment identity tie-breakers for equal sort values. Offset pagination is not a frozen snapshot: refresh after records are added/exported by another user.
+
+Validation uses the production build without adding test files or manually operating the application. Manual acceptance should cover more than 400 invoices/payments, scrolling in both directions, selection across batches, all-loaded selection, filters/sort/reset, slow/failed requests with Retry, tab switches and posting followed by refresh.

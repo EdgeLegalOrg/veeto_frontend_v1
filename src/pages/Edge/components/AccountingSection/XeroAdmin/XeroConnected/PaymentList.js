@@ -18,22 +18,18 @@ import { getEligiblePayments, uploadPaymentToXero } from "../../../../apis";
 import LoadingPage from "../../../../utils/LoadingPage";
 import { toast } from "react-toastify";
 import ResponseAlert from "./ResponseAlert";
-import Pagination from "../../../Pagination";
+import { useContinuousXeroList } from "./useContinuousXeroList";
+import { ContinuousListStatus, ContinuousRowSpace } from "./ContinuousListStatus";
 import upArrow from "../../../../images/upArrow.svg";
 import downArrow from "../../../../images/downArrow.svg";
 import upArrowColoured from "../../../../images/upArrowColoured.svg";
 import downArrowColoured from "../../../../images/downArrowColoured.svg";
 
 const PaymentList = (props) => {
-  const [list, setList] = useState([]);
   const [type, setType] = useState([]);
   const [selected, setSelected] = useState([]);
   const [loading, setLoading] = useState(false);
   const [responseAlert, setResponseAlert] = useState(null);
-  const [pageNo, setPageNo] = useState(0);
-  const [pageSize, setPageSize] = useState(100);
-  const [totalRecords, setTotalRecords] = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
   const [sortField, setSortField] = useState("paymentDate");
   const [sortOrder, setSortOrder] = useState("desc");
   const [filterInput, setFilterInput] = useState({
@@ -42,6 +38,14 @@ const PaymentList = (props) => {
     paymentDate: "",
     amount: "",
     paymentType: "",
+  });
+
+  const { list, totalRecords, loadingRows, hasMore, error, loadMore, reload, scrollRef, sentinelRef, headerRef,
+    visibleRows, topSpace, bottomSpace, rowOffset } = useContinuousXeroList({
+    fetchPage: getEligiblePayments, resultKey: "invoicePaymentList", rowKey: (row) => `${row.paymentId}_${row.invoiceId}`,
+    initialQuery: { ...filterInput, sortOn: sortField, sortType: sortOrder.toUpperCase() },
+    refreshList: props.refreshList, active: props.active,
+    onLoaded: () => props.handleRefresh?.(false), onReset: () => setSelected([]),
   });
 
   const siteId =
@@ -56,16 +60,6 @@ const PaymentList = (props) => {
     fetchEnums();
   }, []);
 
-  useEffect(() => {
-    fetchPaymentList(pageNo, pageSize, filterInput, sortField, sortOrder);
-  }, [pageNo, pageSize]);
-
-  useEffect(() => {
-    if (props.refreshList) {
-      fetchPaymentList(pageNo, pageSize, filterInput, sortField, sortOrder);
-    }
-  }, [props.refreshList]);
-
   const handleChangeFilter = (e) => {
     const { name, value } = e.target;
     setFilterInput((prev) => ({ ...prev, [name]: value }));
@@ -73,21 +67,18 @@ const PaymentList = (props) => {
 
   const handleSearch = (filters = filterInput) => {
     setSelected([]);
-    setPageNo(0);
-    fetchPaymentList(0, pageSize, filters, sortField, sortOrder);
+    fetchPaymentList(filters, sortField, sortOrder);
   };
 
   const handleSortByLabel = (field) => {
     if (sortField !== field) {
       setSortField(field);
       setSortOrder("asc");
-      setPageNo(0);
-      fetchPaymentList(0, pageSize, filterInput, field, "asc");
+      fetchPaymentList(filterInput, field, "asc");
     } else {
       const newOrder = sortOrder === "asc" ? "desc" : "asc";
       setSortOrder(newOrder);
-      setPageNo(0);
-      fetchPaymentList(0, pageSize, filterInput, field, newOrder);
+      fetchPaymentList(filterInput, field, newOrder);
     }
   };
 
@@ -95,10 +86,9 @@ const PaymentList = (props) => {
     const reset = { paymentNumber: "", matterNumber: "", paymentDate: "", amount: "", paymentType: "" };
     setFilterInput(reset);
     setSelected([]);
-    setPageNo(0);
     setSortField("paymentDate");
     setSortOrder("desc");
-    fetchPaymentList(0, pageSize, reset, "paymentDate", "desc");
+    fetchPaymentList(reset, "paymentDate", "desc");
   };
 
   const  handlePaymentTypeChange = (e)=>{
@@ -110,45 +100,8 @@ const PaymentList = (props) => {
   handleSearch(updated);
   }
 
-  const fetchPaymentList = async (
-    page = pageNo,
-    size = pageSize,
-    filters = filterInput,
-    sortF = sortField,
-    sortO = sortOrder,
-  ) => {
-    setLoading(true);
-    try {
-      const { data } = await getEligiblePayments({
-        page,
-        pageSize: size,
-        sortOn: sortF,
-        sortType: sortO.toUpperCase(),
-        ...filters,
-      });
-      if (!data.success) {
-        toast.error("Something went wrong, please try later.");
-        return;
-      }
-      setList(data?.data?.invoicePaymentList || []);
-      setTotalRecords(data?.metadata?.page?.totalRecords || 0);
-      setTotalPages(data?.metadata?.page?.totalPages || 1);
-      if (props.handleRefresh) props.handleRefresh(false);
-    } catch (error) {
-      console.error(error);
-      toast.error("Something went wrong, please try later.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handlePreviousPage = () => { setSelected([]); setPageNo((p) => p - 1); };
-  const handleNextPage = () => { setSelected([]); setPageNo((p) => p + 1); };
-  const handleJumpToPage = (num) => { setSelected([]); setPageNo(num - 1); };
-  const changeNumberOfRows = (e) => {
-    setSelected([]);
-    setPageSize(Number(e.target.value));
-    setPageNo(0);
+  const fetchPaymentList = (filters = filterInput, sortF = sortField, sortO = sortOrder) => {
+    reload({ ...filters, sortOn: sortF, sortType: sortO.toUpperCase() });
   };
 
   const fetchEnums = () => {
@@ -289,14 +242,18 @@ const PaymentList = (props) => {
     if (props.active) {
       return (
         <>
-          <div className="mx-2 max-50vh">
-            <Table responsive={true} striped={true} hover={true}>
-              <thead className="mb-2 bg-light">
+          <div className="mx-2 mb-2 small text-muted" role="status">
+            Loaded {list.length} of {totalRecords} · {selected.length} selected. Select all applies to loaded records.
+          </div>
+          <div ref={scrollRef} className="mx-2 xero-continuous-scroll">
+            <Table striped={true} hover={true} className="xero-continuous-table" aria-rowcount={totalRecords + 1}>
+              <thead ref={headerRef} className="mb-2 bg-light">
                 <tr>
                   <th>
                     <Input
                       type="checkbox"
                       onChange={handleSelectAll}
+                      aria-label="Select all loaded payments"
                       checked={
                         list.length > 0 && selected.length === list.length
                       }
@@ -407,14 +364,16 @@ const PaymentList = (props) => {
                 </tr>
               </thead>
               <tbody>
-                {list?.map((payment, i) => (
+                <ContinuousRowSpace height={topSpace} />
+                {visibleRows.map((payment, i) => (
                   <tr
                     key={`${payment.paymentId}_${payment.invoiceId}`}
                     onClick={() => handleSelect(payment)}
                     className="pe-cursor"
+                    aria-rowindex={rowOffset + i + 2}
                   >
                     <td>
-                      <Input type="checkbox" checked={isSelected(payment)} />
+                      <Input type="checkbox" checked={isSelected(payment)} readOnly aria-label={`Select payment ${payment.paymentNumStr}`} />
                     </td>
                     <td>
                       {/*<p className="mb-0">
@@ -422,7 +381,7 @@ const PaymentList = (props) => {
                           ? `${siteCode}-${payment.paymentNumber}`
                           : payment.paymentNumber}
 					</p>*/}
-                      <p className="mb-0">{payment.paymentNumStr}</p>
+                      <p className="mb-0" title={payment.paymentNumStr}>{payment.paymentNumStr}</p>
                     </td>
                     <td>
                       <p className="mb-0">{payment.matterNumber}</p>
@@ -446,21 +405,14 @@ const PaymentList = (props) => {
                     <td></td>
                   </tr>
                 ))}
+                <ContinuousRowSpace height={bottomSpace} />
               </tbody>
             </Table>
-            {loading && <LoadingPage />}
+            <ContinuousListStatus sentinelRef={sentinelRef} loading={loadingRows} error={error}
+              hasMore={hasMore} loadMore={loadMore} count={list.length} />
           </div>
-            <Pagination
-              pageNo={pageNo}
-              pageSize={pageSize}
-              totalPages={totalPages}
-              totalRecords={totalRecords}
-              handlePreviousPage={handlePreviousPage}
-              handleNextPage={handleNextPage}
-              handleJumpToPage={handleJumpToPage}
-              changeNumberOfRows={changeNumberOfRows}
-            />
-          <Button color="success" className="m-4" onClick={handlePostPayment}>
+          {loading && <LoadingPage />}
+          <Button color="success" className="m-4" disabled={loading || !selected.length} onClick={handlePostPayment}>
             Post Payment
           </Button>
 
