@@ -290,7 +290,7 @@ const Attachid = (props) => {
                       }
                     >
                       <img
-                        src={returnFileIcon(data.type)}
+                        src={returnFileIcon(data.type, data.direction, data.name)}
                         alt={data.type}
                         width="30px"
                         height="30px"

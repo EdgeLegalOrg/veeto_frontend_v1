@@ -1,3 +1,4 @@
+import { getProvidedFileIcon } from "./fileTypeIcons";
 import excel from '../images/fileIcons/excel.png';
 import image from '../images/fileIcons/image.png';
 import mail from '../images/fileIcons/mail.png';
@@ -8,7 +9,10 @@ import other from '../images/fileIcons/other.png';
 const normalizeType = (type) =>
   type ? type.toLowerCase().replace(/^\./, "") : type;
 
-export const returnFileIcon = (type) => {
+export const returnFileIcon = (type, direction, name = "") => {
+  const provided = getProvidedFileIcon(type, name, direction);
+  if (provided) return provided;
+  // Preserve existing artwork when the supplied pack has no equivalent (e.g. neutral email).
   switch (normalizeType(type)) {
     case 'doc':
     case 'docx':

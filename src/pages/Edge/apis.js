@@ -393,6 +393,13 @@ export const exportMatterBinder = (matterId, attachmentIds, requestConfig = {}) 
     responseType: "blob",
   });
 
+/** Fetches a temporary PDF conversion of one legacy DOC attachment for binder viewing. */
+export const fetchAttachmentDocPdfPreview = (matterId, attachmentId, requestConfig = {}) =>
+  API.get(`/api/matter/${matterId}/binder/attachments/${attachmentId}/preview`, {
+    ...requestConfig,
+    responseType: "blob",
+  });
+
 /**
  * Fetches an original attachment as a blob for the existing inline preview.
  *

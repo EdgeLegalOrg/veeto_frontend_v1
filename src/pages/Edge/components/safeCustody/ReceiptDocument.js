@@ -210,7 +210,7 @@ const ReceiptDocument = (props) => {
                           <td>
                             <div className="document-nameDiv">
                               <img
-                                src={returnFileIcon(attachment.type)}
+                                src={returnFileIcon(attachment.type, attachment.direction, attachment.name)}
                                 alt={d.type}
                                 width="30px"
                                 height="30px"

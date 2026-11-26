@@ -31,7 +31,7 @@ const PrecendentFileContainer = (props) => {
           {filtered.map((f, i) => (
             <div className='flx tree-file' key={`${f.contentName}_${i}`}>
               <img
-                src={returnFileIcon(f.contentType)}
+                src={returnFileIcon(f.contentType, f.direction, f.contentName)}
                 alt='file'
                 className='tree-file-icon'
               />

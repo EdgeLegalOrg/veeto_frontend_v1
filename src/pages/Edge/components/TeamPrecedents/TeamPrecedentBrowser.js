@@ -39,7 +39,7 @@ const TeamPrecedentBrowser = ({ siteId, onChoose }) => {
   const [expanded, setExpanded] = useState(new Set());
   const [selected, setSelected] = useState(new Set());
   const [query, setQuery] = useState("");
-  const [scope, setScope] = useState("FOLDER");
+  const [scope, setScope] = useState("LIBRARY");
   const [sort, setSort] = useState("DATE");
   const [matterType, setMatterType] = useState("");
   const [subType, setSubType] = useState("");
@@ -119,7 +119,7 @@ const TeamPrecedentBrowser = ({ siteId, onChoose }) => {
     setActiveFileId(null);
     setSelected(new Set());
     setExpanded(new Set());
-    setScope("FOLDER");
+    setScope("LIBRARY");
     setPreview(null);
     load();
     return () => {
@@ -168,7 +168,6 @@ const TeamPrecedentBrowser = ({ siteId, onChoose }) => {
     if (busy) return;
     setFolderId(id);
     setActiveFileId(null);
-    setScope("FOLDER");
     setQuery("");
     const next = new Set(expanded),
       seen = new Set();
@@ -188,8 +187,22 @@ const TeamPrecedentBrowser = ({ siteId, onChoose }) => {
     });
   const openDialog = (type, item) => {
     setDialog({ type, item });
-    setValue(item?.name || "");
+    setValue(type === "MOVE_FOLDER" ? "" : item?.name || "");
     setClassification({ matterType: item?.matterType || "", matterSubType: item?.matterSubType || "" });
+  };
+  const descendants = (id) => {
+    const result = new Set([id]);
+    let changed = true;
+    while (changed) {
+      changed = false;
+      folders.forEach((folder) => {
+        if (result.has(folder.parentId) && !result.has(folder.id)) {
+          result.add(folder.id);
+          changed = true;
+        }
+      });
+    }
+    return result;
   };
   const download = async (file, versionId) => {
     try {
@@ -223,11 +236,26 @@ const TeamPrecedentBrowser = ({ siteId, onChoose }) => {
     const raw = event.dataTransfer.getData("application/x-veeto-team-precedent");
     if (raw) {
       try {
-        const file = JSON.parse(raw);
-        if (file.companyId !== config.companyId) throw new Error();
-        operation(() => apiRef.current.move(file.id, target), "File moved.");
+        const dragged = JSON.parse(raw);
+        if (dragged.companyId !== config.companyId) throw new Error();
+        if (dragged.folderId != null) {
+          const draggedFolder = folders.find((folder) => folder.id === dragged.folderId);
+          if (!draggedFolder || !draggedFolder.parentId) {
+            toast.info("This folder cannot be moved.");
+            return;
+          }
+          if (descendants(draggedFolder.id).has(target)) {
+            toast.info("A folder cannot be moved into itself or one of its subfolders.");
+            return;
+          }
+          if (draggedFolder.parentId === target) return;
+          setDialog({ type: "MOVE_FOLDER", item: draggedFolder });
+          setValue(String(target));
+          return;
+        }
+        operation(() => apiRef.current.move(dragged.id, target), "File moved.");
       } catch {
-        toast.info("Files can only move within this company's library.");
+        toast.info("Items can only move within this company's library.");
       }
     } else {
       if (Array.from(event.dataTransfer.items || []).some((item) => item.webkitGetAsEntry?.()?.isDirectory)) {
@@ -262,17 +290,29 @@ const TeamPrecedentBrowser = ({ siteId, onChoose }) => {
     setPreview(file);
   };
   const needle = query.trim().toLowerCase();
+  const timestamp = (value) => {
+    const time = new Date(value || 0).getTime();
+    return Number.isNaN(time) ? 0 : time;
+  };
   const visible = files
     .filter(
       (file) =>
-        (scope === "LIBRARY" || (knownFolderIds.has(file.folderId) ? file.folderId : null) === folderId) &&
+        ((scope === "LIBRARY" && needle) || (knownFolderIds.has(file.folderId) ? file.folderId : null) === folderId) &&
         (!needle || `${file.name} ${file.uploadedBy || ""}`.toLowerCase().includes(needle)) &&
         (!showClassificationControls || ((!matterType || file.matterType === matterType) && (!subType || file.matterSubType === subType))),
     )
-    .sort((a, b) => (sort === "NAME" ? a.name.localeCompare(b.name) : new Date(b.uploadDate || 0) - new Date(a.uploadDate || 0)));
-  const childFolders = folders.filter(
-    (folder) => (folder.parentId ?? null) === folderId && (!needle || folder.name.toLowerCase().includes(needle)),
-  );
+    .sort((a, b) =>
+      sort === "NAME"
+        ? (a.name || "").localeCompare(b.name || "")
+        : timestamp(b.uploadDate) - timestamp(a.uploadDate) || (a.name || "").localeCompare(b.name || ""),
+    );
+  const childFolders = folders
+    .filter(
+      (folder) =>
+        ((scope === "LIBRARY" && needle) || (folder.parentId ?? null) === folderId) &&
+        (!needle || folder.name.toLowerCase().includes(needle)),
+    )
+    .sort((a, b) => (a.name || "").localeCompare(b.name || ""));
   const upload = async () => {
     if (locked || !uploadFiles.length || uploadFiles.some((entry) => !entry.name.trim())) return;
     setBusy(true);
@@ -312,6 +352,7 @@ const TeamPrecedentBrowser = ({ siteId, onChoose }) => {
     if (dialog.type === "RENAME_FOLDER") operation(() => apiRef.current.rename(dialog.item, value.trim()), "Folder renamed.");
     if (dialog.type === "RENAME_FILE") operation(() => apiRef.current.renameFile(dialog.item.id, value.trim()), "File renamed.");
     if (dialog.type === "MOVE") operation(() => apiRef.current.move(dialog.item.id, Number(value)), "File moved.");
+    if (dialog.type === "MOVE_FOLDER") operation(() => apiRef.current.moveFolder(dialog.item, Number(value)), "Folder moved.");
     if (dialog.type === "DELETE_FOLDER") operation(() => apiRef.current.remove(dialog.item.id), "Folder deleted.");
     if (dialog.type === "DELETE_FILES")
       operation(async () => {
@@ -351,6 +392,15 @@ const TeamPrecedentBrowser = ({ siteId, onChoose }) => {
               onClick={() => openDialog("RENAME_FOLDER", current)}
             >
               Rename folder
+            </Button>
+            <Button
+              size="sm"
+              outline
+              color="primary"
+              disabled={locked || !current?.parentId}
+              onClick={() => openDialog("MOVE_FOLDER", current)}
+            >
+              Move folder
             </Button>
           </>
         )}
@@ -424,6 +474,14 @@ const TeamPrecedentBrowser = ({ siteId, onChoose }) => {
               event.dataTransfer.setData(
                 "application/x-veeto-team-precedent",
                 JSON.stringify({ id: file.id, companyId: config.companyId }),
+              );
+            }}
+            canDragFolder={(folder) => canManage && !!folder.parentId && !locked}
+            onFolderDragStart={(event, folder) => {
+              event.dataTransfer.effectAllowed = "move";
+              event.dataTransfer.setData(
+                "application/x-veeto-team-precedent",
+                JSON.stringify({ folderId: folder.id, companyId: config.companyId }),
               );
             }}
           />
@@ -521,7 +579,19 @@ const TeamPrecedentBrowser = ({ siteId, onChoose }) => {
               </thead>
               <tbody>
                 {childFolders.map((folder) => (
-                  <tr key={`folder-${folder.id}`} onDragOver={(event) => event.preventDefault()} onDrop={(event) => drop(event, folder.id)}>
+                  <tr
+                    key={`folder-${folder.id}`}
+                    draggable={canManage && !!folder.parentId && !locked}
+                    onDragStart={(event) => {
+                      event.dataTransfer.effectAllowed = "move";
+                      event.dataTransfer.setData(
+                        "application/x-veeto-team-precedent",
+                        JSON.stringify({ folderId: folder.id, companyId: config.companyId }),
+                      );
+                    }}
+                    onDragOver={(event) => event.preventDefault()}
+                    onDrop={(event) => drop(event, folder.id)}
+                  >
                     <td />
                     <td>
                       <button className="matter-folder-name" onClick={() => openFolder(folder.id)}>
@@ -530,10 +600,30 @@ const TeamPrecedentBrowser = ({ siteId, onChoose }) => {
                       </button>
                     </td>
                     <td>{folder.createdDate ? formatDateTimeFunc(folder.createdDate) : "—"}</td>
-                    <td>{folder.createdBy?.trim() ? <span className="matter-folder-avatar" title={folder.createdBy} aria-label={folder.createdBy} tabIndex={0}>
-                      {folder.createdBy.split(/[\s@]+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase()}
-                    </span> : "—"}</td>
-                    <td />
+                    <td>
+                      {folder.createdBy?.trim() ? (
+                        <span className="matter-folder-avatar" title={folder.createdBy} aria-label={folder.createdBy} tabIndex={0}>
+                          {folder.createdBy
+                            .split(/[\s@]+/)
+                            .filter(Boolean)
+                            .slice(0, 2)
+                            .map((part) => part[0])
+                            .join("")
+                            .toUpperCase()}
+                        </span>
+                      ) : (
+                        "—"
+                      )}
+                    </td>
+                    <td>
+                      <div className="matter-folder-actions">
+                        {canManage && !!folder.parentId && (
+                          <Button size="sm" outline color="primary" disabled={locked} onClick={() => openDialog("MOVE_FOLDER", folder)}>
+                            Move
+                          </Button>
+                        )}
+                      </div>
+                    </td>
                   </tr>
                 ))}
                 {visible.map((file) => (
@@ -563,7 +653,7 @@ const TeamPrecedentBrowser = ({ siteId, onChoose }) => {
                         <AttachmentTypeIcon type={file.type} name={file.name} />
                         {file.name}
                       </button>
-                      {scope === "LIBRARY" && (
+                      {scope === "LIBRARY" && needle && (
                         <div className="small text-muted">{location(file.folderId) || "Library location unavailable"}</div>
                       )}
                       {showClassificationControls && file.matterType && (
@@ -689,6 +779,7 @@ const TeamPrecedentBrowser = ({ siteId, onChoose }) => {
               RENAME_FOLDER: "Rename folder",
               RENAME_FILE: "Rename file",
               MOVE: "Move file",
+              MOVE_FOLDER: "Move folder",
               DELETE_FOLDER: "Delete empty folder",
               DELETE_FILES: "Delete selected masters",
               CLASSIFY: "Matter classification",
@@ -720,6 +811,40 @@ const TeamPrecedentBrowser = ({ siteId, onChoose }) => {
                       source.id === target.id &&
                       source.storageConfigId === target.storageConfigId &&
                       folder.id !== dialog.item.folderId
+                    );
+                  })
+                  .map((folder) => (
+                    <option key={folder.id} value={folder.id}>
+                      {location(folder.id)}
+                    </option>
+                  ))}
+              </Input>
+            </>
+          )}
+          {dialog?.type === "MOVE_FOLDER" && (
+            <>
+              <div className="alert alert-warning mb-3" role="alert">
+                Are you sure you want to move this folder?
+              </div>
+              <div className="matter-folder-dialog-context mb-3">
+                <span className="matter-folder-dialog-caption">Folder</span>
+                <span>{dialog.item.name}</span>
+              </div>
+              <label className="form-label">Destination folder</label>
+              <Input type="select" value={value} disabled={busy} onChange={(event) => setValue(event.target.value)}>
+                <option value="">Choose destination</option>
+                {folders
+                  .filter((folder) => {
+                    const source = rootOf(dialog.item.id),
+                      target = rootOf(folder.id);
+                    return (
+                      source &&
+                      target &&
+                      source.provider === target.provider &&
+                      source.id === target.id &&
+                      source.storageConfigId === target.storageConfigId &&
+                      !descendants(dialog.item.id).has(folder.id) &&
+                      folder.id !== dialog.item.parentId
                     );
                   })
                   .map((folder) => (
@@ -812,12 +937,20 @@ const TeamPrecedentBrowser = ({ siteId, onChoose }) => {
               color={dialog?.type?.startsWith("DELETE") ? "danger" : "primary"}
               disabled={
                 locked ||
-                (["CREATE", "RENAME_FOLDER", "RENAME_FILE", "MOVE"].includes(dialog?.type) && !value.trim()) ||
+                (["CREATE", "RENAME_FOLDER", "RENAME_FILE", "MOVE", "MOVE_FOLDER"].includes(dialog?.type) && !value.trim()) ||
                 (dialog?.type === "UPLOAD" && (!uploadFiles.length || uploadFiles.some((entry) => !entry.name.trim())))
               }
               onClick={submit}
             >
-              {busy ? "Processing…" : dialog?.type?.startsWith("DELETE") ? "Delete" : dialog?.type === "UPLOAD" ? "Upload" : "Save"}
+              {busy
+                ? "Processing…"
+                : dialog?.type?.startsWith("DELETE")
+                  ? "Delete"
+                  : dialog?.type === "UPLOAD"
+                    ? "Upload"
+                    : dialog?.type === "MOVE_FOLDER"
+                      ? "Move folder"
+                      : "Save"}
             </Button>
           )}
         </ModalFooter>

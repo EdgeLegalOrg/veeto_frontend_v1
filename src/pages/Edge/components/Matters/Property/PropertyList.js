@@ -250,7 +250,7 @@ const PropertyList = (props) => {
       </div> */}
 
       <Table responsive={true} striped={true} hover={true}>
-        <thead className="mb-2 bg-light">
+        {/* <thead className="mb-2 bg-light">
           <tr>
             <th>
               <Input
@@ -338,7 +338,7 @@ const PropertyList = (props) => {
               />
             </th>
           </tr>
-        </thead>
+        </thead> */}
         <tbody>
           {filteredList?.map((property) => (
             <tr

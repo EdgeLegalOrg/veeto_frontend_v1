@@ -68,3 +68,11 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/d
 ### `yarn build` fails to minify
 
 This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+
+## Document icons
+
+The supplied Veeto PNG artwork is stored in `src/pages/Edge/images/fileIcons/veeto/` without image modifications. `utils/fileTypeIcons.js` provides the shared extension/MIME/filename mapping; `components/FileTypeIcon.js` renders it at the surrounding icon size. The legacy `returnFileIcon` and File Directory helpers use the same mapping, so document lists, Precedents/Forms, contacts, Safe Custody, staff attachments, Admin templates, folder trees, Team Precedents, binder indicators and report exports remain consistent.
+
+Sent/received artwork recognises both `SENT`/`RECEIVED` and `OUTGOING`/`INCOMING`. Unknown email direction keeps the existing neutral email icon; ordinary folders keep their existing folder icon. Unknown file types use the supplied generic file icon. Navigation/action icons, paperclip tree connectors, provider logos, warnings and loaders retain their existing artwork. PNGs keep their original colours and aspect ratio; displayed sizes remain controlled by each existing view. Icon recognition does not change file filters, previews or upload/download behaviour.
+
+Email direction is normalised through `utils/emailDirection.js` for the artwork, attachment Sent/Received labels and To/From details, and binder preview/index. `OUTGOING`/`SENT` mean Sent/To; `INCOMING`/`RECEIVED` mean Received/From. Missing or unrecognised directions show neutral email artwork and labels rather than defaulting to Received. This is display-only; stored email metadata and parser decisions are unchanged.

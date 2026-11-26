@@ -1,3 +1,5 @@
+import { normalizeEmailDirection } from "../../../utils/emailDirection";
+import FileTypeIcon from "../../FileTypeIcon";
 import DocxAttachmentPreview from "./DocxAttachmentPreview";
 import BrowserAttachmentPreview from "./BrowserAttachmentPreview";
 import React, { useEffect, useState, useMemo, useRef, useCallback } from "react";
@@ -6,6 +8,7 @@ import fileDownload from "js-file-download";
 import {
   fetchMatterBinderSequence,
   fetchAttachmentInlinePreview,
+  fetchAttachmentDocPdfPreview,
   fetchAttachmentEmailContent,
   downloadMatterAttach,
   exportMatterBinder,
@@ -14,6 +17,19 @@ import { formatDateFunc } from "../../../utils/utilFunc";
 import "./MasterFileBinderModal.css";
 
 const EMPTY_ITEMS = [];
+
+/** MSO and OpenOffice formats converted to PDF on the server for inline viewing. */
+const OFFICE_PDF_EXTENSIONS = new Set([
+  "doc", "docm", "dot", "dotx", "dotm", "rtf",
+  "xlsm", "xlsb", "xlt", "xltx", "xltm", "csv",
+  "ppt", "pptx", "pptm", "pps", "ppsx", "pot", "potx", "potm",
+  "odt", "ott", "ods", "ots", "odp", "otp", "odg", "otg", "odf",
+]);
+
+const getItemExtension = (item) => (item?.fileExtension || item?.name?.match(/\.([^.]+)$/)?.[1] || "")
+  .replace(/^\./, "").trim().toLowerCase();
+
+const isOfficePdfPreview = (item) => OFFICE_PDF_EXTENSIONS.has(getItemExtension(item));
 
 /** Uses the stored extension with a filename fallback, independent of backend preview classification. */
 const browserPreviewKind = (item) => {
@@ -322,6 +338,7 @@ const MasterFileBinderModal = ({
     }
 
     let isSubscribed = true;
+    const controller = new AbortController();
     setLoadingDoc(true);
     setDocError(null);
     revokeCurrentBlob();
@@ -351,12 +368,16 @@ const MasterFileBinderModal = ({
           setDocError("Failed to load email message.");
           setLoadingDoc(false);
         });
-    } else if (previewType === "PDF" || previewType === "IMAGE") {
-      fetchAttachmentInlinePreview(attId)
+    } else if (previewType === "PDF" || previewType === "IMAGE" || isOfficePdfPreview(currentItem)) {
+      const convertedOffice = isOfficePdfPreview(currentItem);
+      const preview = convertedOffice
+        ? fetchAttachmentDocPdfPreview(matterId, attId, { signal: controller.signal })
+        : fetchAttachmentInlinePreview(attId, { signal: controller.signal });
+      preview
         .then((res) => {
           if (!isSubscribed) return;
           const mime =
-            previewType === "PDF"
+            previewType === "PDF" || convertedOffice
               ? "application/pdf"
               : res.headers["content-type"] || "image/png";
           const blob = new Blob([res.data], { type: mime });
@@ -365,10 +386,24 @@ const MasterFileBinderModal = ({
           setDocBlobUrl(url);
           setLoadingDoc(false);
         })
-        .catch((err) => {
+        .catch(async (err) => {
           if (!isSubscribed) return;
-          console.error("Error streaming inline preview:", err);
-          setDocError("Failed to load document preview.");
+          let message = convertedOffice
+            ? "This document could not be converted to PDF. Download the original to view it."
+            : "Failed to load document preview.";
+          if (convertedOffice && err.response?.status === 404) {
+            message = "Preview is unavailable for this document. You can still download the original.";
+          }
+          // Binary requests also receive JSON errors as blobs; recover the safe server explanation.
+          if (convertedOffice && err.response?.data instanceof Blob
+              && err.response.data.type.includes("json")) {
+            try {
+              const error = JSON.parse(await err.response.data.text());
+              if (typeof error.message === "string") message = error.message;
+            } catch { /* Retain the readable fallback when the response is not valid JSON. */ }
+          }
+          if (!isSubscribed) return;
+          setDocError(message);
           setLoadingDoc(false);
         });
     } else {
@@ -378,9 +413,10 @@ const MasterFileBinderModal = ({
 
     return () => {
       isSubscribed = false;
+      controller.abort();
       revokeCurrentBlob();
     };
-  }, [currentItem, isOpen, revokeCurrentBlob]);
+  }, [currentItem, isOpen, matterId, revokeCurrentBlob]);
 
   // Navigation handlers
   /**
@@ -485,25 +521,25 @@ const MasterFileBinderModal = ({
     const extension = (item.fileExtension || item.name?.match(/\.([^.]+)$/)?.[1] || "")
       .replace(/^\./, "").trim().toLowerCase();
     if (["doc", "docx", "docm", "dot", "dotx", "dotm"].includes(extension)) {
-      return <span className="binder-badge binder-badge-word"><i className="ri-file-word-2-line" aria-hidden="true" />Word</span>;
+      return <span className="binder-badge binder-badge-word"><FileTypeIcon type={extension} decorative />Word</span>;
     }
     if (["xls", "xlsx", "xlsm", "xlsb", "xlt", "xltx", "xltm"].includes(extension)) {
-      return <span className="binder-badge binder-badge-excel"><i className="ri-file-excel-2-line" aria-hidden="true" />Excel</span>;
+      return <span className="binder-badge binder-badge-excel"><FileTypeIcon type={extension} decorative />Excel</span>;
     }
     if (["heic", "heif"].includes(extension)) {
-      return <span className="binder-badge binder-badge-image"><i className="ri-image-line" aria-hidden="true" />{extension.toUpperCase()}</span>;
+      return <span className="binder-badge binder-badge-image"><FileTypeIcon type="image" decorative />{extension.toUpperCase()}</span>;
     }
     switch (item.previewType) {
       case "PDF":
-        return <span className="binder-badge binder-badge-pdf"><i className="ri-file-pdf-line" aria-hidden="true" />PDF</span>;
+        return <span className="binder-badge binder-badge-pdf"><FileTypeIcon type="pdf" decorative />PDF</span>;
       case "EMAIL_MSG":
-        return <span className="binder-badge binder-badge-msg"><i className="ri-mail-line" aria-hidden="true" />EMAIL</span>;
+        return <span className="binder-badge binder-badge-msg"><FileTypeIcon type="email" direction={item.direction} decorative />EMAIL</span>;
       case "IMAGE":
-        return <span className="binder-badge binder-badge-image"><i className="ri-image-line" aria-hidden="true" />IMAGE</span>;
+        return <span className="binder-badge binder-badge-image"><FileTypeIcon type="image" decorative />IMAGE</span>;
       case "OFFICE_DOC":
-        return <span className="binder-badge binder-badge-office"><i className="ri-file-line" aria-hidden="true" />OFFICE</span>;
+        return <span className="binder-badge binder-badge-office"><FileTypeIcon type={item.fileExtension} name={item.name} direction={item.direction} decorative />OFFICE</span>;
       default:
-        return <span className="binder-badge binder-badge-other"><i className="ri-file-line" aria-hidden="true" />FILE</span>;
+        return <span className="binder-badge binder-badge-other"><FileTypeIcon type={item.fileExtension} name={item.name} direction={item.direction} decorative />FILE</span>;
     }
   };
 
@@ -520,7 +556,7 @@ const MasterFileBinderModal = ({
         <div className="text-center py-5 m-auto">
           <Spinner color="primary" style={{ width: "2.5rem", height: "2.5rem" }} />
           <p className="mt-3 text-muted" style={{ fontSize: "13.5px" }}>
-            Loading document preview...
+            {isOfficePdfPreview(currentItem) ? "Converting document to PDF..." : "Loading document preview..."}
           </p>
         </div>
       );
@@ -561,8 +597,8 @@ const MasterFileBinderModal = ({
       />;
     }
 
-    // 1. PDF
-    if (currentItem.previewType === "PDF" && docBlobUrl) {
+    // 1. Original PDF or temporary PDF converted from MSO / OpenOffice documents.
+    if ((currentItem.previewType === "PDF" || isOfficePdfPreview(currentItem)) && docBlobUrl) {
       return (
         <iframe
           src={`${docBlobUrl}#toolbar=1&view=FitH`}
@@ -588,10 +624,15 @@ const MasterFileBinderModal = ({
     // 3. Outlook Email (.msg)
     if (currentItem.previewType === "EMAIL_MSG") {
       const email = emailContent;
-      const isOutgoing = email?.direction === "OUTGOING";
+      const direction = normalizeEmailDirection(email?.direction);
+      const isOutgoing = direction === "SENT";
       const toDisplay = email?.toDisplay || email?.toIds?.join(", ");
-      const fromDisplay = email?.sender || "Unknown";
-      const counterparty = isOutgoing ? toDisplay : email?.direction === "INCOMING" ? fromDisplay : null;
+      const fromDisplay = email?.sender?.trim() || "Unknown Sender";
+      // Message dates describe the email; upload dates describe filing into Veeto.
+      // Label the fallback explicitly rather than presenting upload time as the sent date.
+      const messageDate = email?.receivedDate || currentItem.receivedDate;
+      const displayedDate = messageDate || currentItem.uploadDate;
+      const counterparty = isOutgoing ? toDisplay : direction === "RECEIVED" ? fromDisplay : null;
 
       return (
         <div className="binder-scroll-canvas">
@@ -600,7 +641,7 @@ const MasterFileBinderModal = ({
               <div className="d-flex align-items-center mb-2">
                 <span
                   style={{
-                    backgroundColor: isOutgoing ? "#2563eb" : "#059669",
+                    backgroundColor: isOutgoing ? "#2563eb" : direction === "RECEIVED" ? "#059669" : "#64748b",
                     color: "#ffffff",
                     fontSize: "10.5px",
                     fontWeight: "700",
@@ -613,15 +654,15 @@ const MasterFileBinderModal = ({
                     gap: "4px",
                   }}
                 >
-                  <i className={isOutgoing ? "ri-arrow-right-up-line" : "ri-arrow-left-down-line"}></i>
-                  {isOutgoing ? "Outgoing Email" : "Incoming Email"}
+                  <i className={isOutgoing ? "ri-arrow-right-up-line" : direction === "RECEIVED" ? "ri-arrow-left-down-line" : "ri-mail-line"}></i>
+                  {isOutgoing ? "Outgoing Email" : direction === "RECEIVED" ? "Incoming Email" : "Email"}
                 </span>
               </div>
               <h3 className="binder-email-subject">
                 {email?.subject || getDocumentDisplayTitle(currentItem)}
               </h3>
               <div className="binder-email-meta-grid">
-                <span className="binder-email-meta-label">{isOutgoing ? "To:" : email?.direction === "INCOMING" ? "From:" : "Email:"}</span>
+                <span className="binder-email-meta-label">{isOutgoing ? "To:" : direction === "RECEIVED" ? "From:" : "Email:"}</span>
                 <div className="d-flex align-items-center gap-2">
                   <span
                     style={{
@@ -645,17 +686,11 @@ const MasterFileBinderModal = ({
                   </span>
                 </div>
 
-                <span className="binder-email-meta-label">Date:</span>
-                <span>
-                  {renderItemDate(email?.receivedDate || currentItem.receivedDate || currentItem.uploadDate)}
-                </span>
+                <span className="binder-email-meta-label">{messageDate ? "Date:" : "Uploaded:"}</span>
+                <span>{displayedDate ? renderItemDate(displayedDate) : "-"}</span>
 
-                {currentItem.uploadedBy && (
-                  <>
-                    <span className="binder-email-meta-label">Filed By:</span>
-                    <span>{currentItem.uploadedBy}</span>
-                  </>
-                )}
+                <span className="binder-email-meta-label">Sent By:</span>
+                <span>{fromDisplay}</span>
               </div>
             </div>
 
@@ -711,13 +746,7 @@ const MasterFileBinderModal = ({
       <div className="binder-scroll-canvas">
         <div className="binder-fallback-card">
           <div className="binder-fallback-icon">
-            <i
-              className={
-                currentItem.previewType === "OFFICE_DOC"
-                  ? "ri-file-word-2-line"
-                  : "ri-file-line"
-              }
-            ></i>
+            <FileTypeIcon type={currentItem.fileExtension} name={currentItem.name} direction={currentItem.direction} />
           </div>
           <h4 className="binder-fallback-title">{getDocumentDisplayTitle(currentItem)}</h4>
           <p className="binder-fallback-desc">
@@ -938,14 +967,14 @@ const MasterFileBinderModal = ({
                         {item.previewType === "EMAIL_MSG" ? (
                           <span className="text-truncate" style={{ maxWidth: "140px" }}>
                             • {isActive && emailContent
-                              ? (emailContent.direction === "OUTGOING"
+                              ? (normalizeEmailDirection(emailContent.direction) === "SENT"
                                 ? `To: ${emailContent.toDisplay || emailContent.toIds?.join(", ") || "Unknown"}`
-                                : emailContent.direction === "INCOMING"
+                                : normalizeEmailDirection(emailContent.direction) === "RECEIVED"
                                   ? `From: ${emailContent.sender || "Unknown"}`
                                   : "Email participant unavailable")
-                              : item.direction === "OUTGOING"
+                              : normalizeEmailDirection(item.direction) === "SENT"
                                 ? `To: ${item.recipient || "Unknown"}`
-                                : item.direction === "INCOMING"
+                                : normalizeEmailDirection(item.direction) === "RECEIVED"
                                   ? `From: ${item.sender || "Unknown"}`
                                   : "Email participant unavailable"}
                           </span>

@@ -13,7 +13,7 @@ const PrecedentFile = (props) => {
   return (
     <div className='flx tree-file'>
       <img
-        src={returnFileIcon(data.contentType)}
+        src={returnFileIcon(data.contentType, data.direction, data.contentName)}
         alt='file'
         className='tree-file-icon'
       />

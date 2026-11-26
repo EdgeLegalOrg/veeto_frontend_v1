@@ -9,6 +9,7 @@ export const teamPrecedentsApi = (companyId) => {
     ...documentFoldersApi("TEAM_PRECEDENT", companyId),
     download: (id, versionId) => API.get(`${base}/${id}${versionId ? `/versions/${versionId}` : ""}/download`, { responseType: "blob" }),
     preview: (id, options = {}) => API.get(`${base}/${id}/download`, { ...options, responseType: "blob" }),
+    previewPdf: (id, options = {}) => API.get(`${base}/${id}/preview-pdf`, { ...options, responseType: "blob" }),
     history: (id) => API.get(`${base}/${id}/versions`),
     classify: (file, fields) => API.put(`${base}/${file.id}/classification`, { version: file.version, ...fields }),
     replace: (file, replacement) => {

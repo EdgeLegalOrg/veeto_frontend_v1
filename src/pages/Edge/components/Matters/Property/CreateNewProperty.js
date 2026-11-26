@@ -75,7 +75,7 @@ const CreateNewProperty = (props) => {
       centered
     >
       <ModalHeader toggle={() => props.closeForm()} className="bg-light p-3">
-        Add new property
+        Property
       </ModalHeader>
       <ModalBody className="">
         <AddProperty

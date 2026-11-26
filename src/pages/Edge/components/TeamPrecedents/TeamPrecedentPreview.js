@@ -9,6 +9,12 @@ import "./TeamPrecedentPreview.css";
 import { downloadName, precedentError, teamPrecedentsApi } from "./api";
 
 const imageTypes = { png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", gif: "image/gif", bmp: "image/bmp", webp: "image/webp", avif: "image/avif" };
+const officePdfExtensions = new Set([
+  "doc", "docm", "dot", "dotx", "dotm", "rtf",
+  "xlsm", "xlsb", "xlt", "xltx", "xltm", "csv",
+  "ppt", "pptx", "pptm", "pps", "ppsx", "pot", "potx", "potm",
+  "odt", "ott", "ods", "ots", "odp", "otp", "odg", "otg", "odf",
+]);
 const previewLimit = 20 * 1024 * 1024;
 
 /** Read-only master preview. Uses company-authorised bytes without generating or saving a document. */
@@ -16,7 +22,8 @@ const TeamPrecedentPreview = ({ companyId, file, onClose, contentApi }) => {
   const api = useMemo(() => contentApi || teamPrecedentsApi(companyId), [contentApi, companyId]);
   const extension = (file.type || file.name?.split(".").pop() || "").toLowerCase().replace(/^\./, "");
   const kind = ["heic", "heif"].includes(extension) ? "heic" : ["xls", "xlsx"].includes(extension) ? "spreadsheet" : null;
-  const nativeType = extension === "pdf" ? "application/pdf" : imageTypes[extension];
+  const isOfficePdf = officePdfExtensions.has(extension) && typeof api.previewPdf === "function";
+  const nativeType = extension === "pdf" || isOfficePdf ? "application/pdf" : imageTypes[extension];
   const [url, setUrl] = useState(null);
   const [loading, setLoading] = useState(!!nativeType);
   const [error, setError] = useState("");
@@ -48,22 +55,33 @@ const TeamPrecedentPreview = ({ companyId, file, onClose, contentApi }) => {
     setLoading(true); setError("");
     (async () => {
       try {
-        const response = await loadPreview(file.id, { signal: controller.signal });
+        const response = isOfficePdf
+          ? await api.previewPdf(file.id, { timeout: 45000, signal: controller.signal })
+          : await loadPreview(file.id, { signal: controller.signal });
         if (!active) return;
         objectUrl = URL.createObjectURL(new Blob([response.data], { type: nativeType }));
         setUrl(objectUrl);
-      } catch (err) { if (active) setError("This file could not be previewed. Download it to view the original."); }
+      } catch (err) {
+        if (!active) return;
+        if (isOfficePdf) {
+          setError(err.response?.status === 404
+            ? "Preview is unavailable for this document. Download it to view the original."
+            : await precedentError(err));
+        } else {
+          setError("This file could not be previewed. Download it to view the original.");
+        }
+      }
       finally { if (active) setLoading(false); }
     })();
     return () => { active = false; controller.abort(); if (objectUrl) URL.revokeObjectURL(objectUrl); };
-  }, [file.id, nativeType, loadPreview]);
+  }, [file.id, nativeType, isOfficePdf, api, loadPreview]);
 
   let content;
   if (error) content = <div className="alert alert-warning m-3" role="alert">{error}</div>;
   else if (extension === "docx") content = <DocxAttachmentPreview attachmentId={file.id} title={file.name} onDownload={download} loadPreview={loadPreview} />;
   else if (kind) content = <BrowserAttachmentPreview item={item} kind={kind} title={file.name} onDownload={download} imageCache={imageCache} loadPreview={loadPreview} />;
-  else if (loading) content = <div className="m-auto text-center" role="status"><Spinner color="primary" /><p className="mt-2">Loading preview…</p></div>;
-  else if (url && extension === "pdf") content = <iframe title={file.name} src={url} style={{ width: "100%", height: "100%", border: 0 }} />;
+  else if (loading) content = <div className="m-auto text-center" role="status"><Spinner color="primary" /><p className="mt-2">{isOfficePdf ? "Converting document to PDF…" : "Loading preview…"}</p></div>;
+  else if (url && (extension === "pdf" || isOfficePdf)) content = <iframe title={file.name} src={url} style={{ width: "100%", height: "100%", border: 0 }} />;
   else if (url && nativeType) content = <div className="overflow-auto w-100 text-center"><img src={url} alt={file.name} style={{ maxWidth: "100%", height: "auto" }} onError={() => setError("This image could not be displayed. Download it to view the original.")} /></div>;
   else content = <p className="m-auto p-4 text-muted">Preview is unavailable for this file type. Download the original to open it.</p>;
 

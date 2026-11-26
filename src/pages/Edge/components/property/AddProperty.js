@@ -650,14 +650,7 @@ function AddProperty(props) {
 
         <div className="registered-section">
           <div className="bg-light d-flex align-items-center justify-content-between p-2">
-            <h5 className="mb-0">Add/Edit Registered Lots</h5>
-            <Button
-              color="success"
-              type="button"
-              onClick={() => setAddReg(true)}
-            >
-              + Add
-            </Button>
+            <h5 className="mb-0">Registered Lots</h5>
           </div>
           <Table responsive={true} striped={true} hover={true}>
             <thead>
@@ -729,17 +722,19 @@ function AddProperty(props) {
             </thead>
             <tbody>{renderRegisteredLots()}</tbody>
           </Table>
-        </div>
-        <div className="unregistered-section">
-          <div className="bg-light d-flex align-items-center justify-content-between p-2">
-            <h5 className="mb-0">Add/Edit Unregistered Lots</h5>
+          <div className="d-flex justify-content-end px-2 pb-2">
             <Button
               color="success"
-              onClick={() => setAddUnreg(true)}
               type="button"
+              onClick={() => setAddReg(true)}
             >
               + Add
             </Button>
+          </div>
+        </div>
+        <div className="unregistered-section">
+          <div className="bg-light d-flex align-items-center justify-content-between p-2">
+            <h5 className="mb-0">Unregistered Lots</h5>
           </div>
           <Table responsive={true} striped={true} hover={true}>
             <thead>
@@ -801,6 +796,15 @@ function AddProperty(props) {
             </thead>
             <tbody className="">{renderUnregisteredLots()}</tbody>
           </Table>
+          <div className="d-flex justify-content-end px-2 pb-2">
+            <Button
+              color="success"
+              onClick={() => setAddUnreg(true)}
+              type="button"
+            >
+              + Add
+            </Button>
+          </div>
         </div>
         <div className="d-flex align-items-center justify-content-end p-2 border-top">
           <Button

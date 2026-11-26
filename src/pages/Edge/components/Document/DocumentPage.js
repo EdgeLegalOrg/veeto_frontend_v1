@@ -413,7 +413,7 @@ const DocumentPage = () => {
                           <td>
                             <div className="document-largeRowDiv">
                               <img
-                                src={returnFileIcon(doc?.type)}
+                                src={returnFileIcon(doc?.type, doc?.direction, doc?.name)}
                                 alt="file"
                                 className="document-fileIcon pe-cursor"
                               />

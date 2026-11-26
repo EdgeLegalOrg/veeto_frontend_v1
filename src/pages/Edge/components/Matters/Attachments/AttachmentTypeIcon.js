@@ -1,8 +1,11 @@
+import { normalizeEmailDirection } from "../../../utils/emailDirection";
 import React from "react";
+import FileTypeIcon from "../../FileTypeIcon";
+import { normalizeFileIconType } from "../../../utils/fileTypeIcons";
 
 /** Compact type indicator shared by folder navigation and attachment rows. */
 const AttachmentTypeIcon = ({ type, name = "", direction }) => {
-  const extension = (type || name.split(".").pop() || "").toLowerCase().replace(/^\./, "");
+  const extension = normalizeFileIconType(type, name);
   let icon = "ri-file-line",
     label = "File",
     color = "text-secondary";
@@ -11,7 +14,7 @@ const AttachmentTypeIcon = ({ type, name = "", direction }) => {
     label = "Folder";
     color = "text-warning";
   } else if (["email", "msg", "eml"].includes(extension)) {
-    icon = direction === "SENT" ? "ri-mail-send-line" : "ri-mail-line";
+    icon = normalizeEmailDirection(direction) === "SENT" ? "ri-mail-send-line" : "ri-mail-line";
     label = "Email";
     color = "text-primary";
   } else if (["doc", "docx", "docm", "dot", "dotx", "rtf", "odt"].includes(extension)) {
@@ -44,7 +47,8 @@ const AttachmentTypeIcon = ({ type, name = "", direction }) => {
     icon = "ri-file-music-line";
     label = "Audio";
   }
-  return <i className={`${icon} ${color} matter-attachment-type-icon`} role="img" aria-label={label} title={label} />;
+  return <FileTypeIcon type={type} name={name} direction={direction} className="matter-attachment-type-icon"
+    fallback={<i className={`${icon} ${color} matter-attachment-type-icon`} role="img" aria-label={label} title={label} />} />;
 };
 
 export default AttachmentTypeIcon;

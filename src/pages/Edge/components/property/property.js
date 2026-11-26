@@ -2877,7 +2877,7 @@ function RenderProperty() {
                 }}
                 className="bg-light p-3"
               >
-                Add New Property
+                Property
               </ModalHeader>
               <ModalBody>
                 <AddProperty
