@@ -40,6 +40,7 @@ const EditTimeBilling = (props) => {
   const [loading, setLoading] = useState(false);
   const [requiredFields, setRequiredFields] = useState([]);
   const [submitted, setSubmitted] = useState(false);
+  const [savedEntry, setSavedEntry] = useState(null);
 
   const isRequired = (field) => {
     return requiredFields.includes(field);
@@ -151,9 +152,23 @@ const EditTimeBilling = (props) => {
     }
   };
 
+  // Retrying a failed post-save refresh must not submit a second update with an old checksum.
+  const finishSavedEdit = async (entry) => {
+    setLoading(true);
+    try {
+      if (props.refreshSavedEntry) await props.refreshSavedEntry(entry);
+      else await props.refresh(); // Existing matter refresh callbacks take no entry argument.
+      props.close(true);
+    } catch (error) {
+      toast.warning("The entry was saved, but its latest figures could not be loaded. Please retry the refresh.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSubmit = async () => {
     let d = { ...data };
-    d.matterId = props?.data?.id;
+    d.matterId = props?.data?.id ?? data.matterId;
 
     setLoading(true);
 
@@ -181,8 +196,9 @@ const EditTimeBilling = (props) => {
         setLoading(true);
         let res = await editTimeBilling(d);
         if (res?.data?.success) {
-          props.refresh();
-          props.close(true);
+          const saved = res?.data?.data || d;
+          setSavedEntry(saved);
+          await finishSavedEdit(saved);
         } else {
           toast.warning("Something went wrong, please try later.");
         }
@@ -200,6 +216,15 @@ const EditTimeBilling = (props) => {
 
     setData({ ...data, [name]: value });
   };
+
+  if (savedEntry) return (
+    <div className="p-3" role="status">
+      <p>The time-billing entry has been saved. Refresh its latest figures before continuing.</p>
+      <Button color="primary" disabled={loading} onClick={() => finishSavedEdit(savedEntry)}>
+        {loading ? "Refreshing..." : "Retry refresh"}
+      </Button>
+    </div>
+  );
 
   return (
     <Fragment>

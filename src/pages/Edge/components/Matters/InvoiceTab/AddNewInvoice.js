@@ -481,6 +481,7 @@ const AddNewInvoice = (props) => {
             onChange={handleChange}
           />
           <SelectedTimedList
+            matterId={props.data?.id}
             selectedList={formData.timeBillingList}
             onChange={handleChange}
           />

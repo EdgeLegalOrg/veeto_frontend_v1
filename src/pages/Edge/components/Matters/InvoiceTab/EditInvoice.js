@@ -662,6 +662,7 @@ const EditInvoice = (props) => {
             type="edit"
           />
           <SelectedTimedList
+            matterId={props.data?.id}
             selectedList={formData.timeBillingList}
             onChange={handleChange}
             disabled={checkForDisable()}

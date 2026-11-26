@@ -76,3 +76,9 @@ The supplied Veeto PNG artwork is stored in `src/pages/Edge/images/fileIcons/vee
 Sent/received artwork recognises both `SENT`/`RECEIVED` and `OUTGOING`/`INCOMING`. Unknown email direction keeps the existing neutral email icon; ordinary folders keep their existing folder icon. Unknown file types use the supplied generic file icon. Navigation/action icons, paperclip tree connectors, provider logos, warnings and loaders retain their existing artwork. PNGs keep their original colours and aspect ratio; displayed sizes remain controlled by each existing view. Icon recognition does not change file filters, previews or upload/download behaviour.
 
 Email direction is normalised through `utils/emailDirection.js` for the artwork, attachment Sent/Received labels and To/From details, and binder preview/index. `OUTGOING`/`SENT` mean Sent/To; `INCOMING`/`RECEIVED` mean Received/From. Missing or unrecognised directions show neutral email artwork and labels rather than defaulting to Received. This is display-only; stored email metadata and parser decisions are unchanged.
+
+## Editing selected invoice time-billing entries
+
+Selected time-billing rows open the existing editor with their owning matter ID. Service-line choices use hourly `{ display, value, raw }` options, and staff are requested afresh for every editor opening; there is no staff response cache. Both option requests finish before the editor opens, with a loading indicator and retryable load errors.
+
+Saving an entry updates the underlying time-billing record immediately. The selected invoice row is then refreshed from the matter API to obtain server-calculated amounts and the new checksum. If refreshing fails after a successful update, **Retry refresh** repeats only the read, not the update. Existing main Time Billing refresh callbacks keep their no-argument behaviour. No calculation formulas or backend endpoints are changed.
