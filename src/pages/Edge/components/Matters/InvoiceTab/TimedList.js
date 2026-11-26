@@ -1,133 +1,71 @@
-import React, { useEffect, useState } from 'react';
-import CustomSideDrawer from '../../customComponents/CustomSideDrawer';
-import { formatDateFunc } from 'pages/Edge/utils/utilFunc';
+import React, { useEffect, useMemo, useState } from "react";
+import CustomSideDrawer from "../../customComponents/CustomSideDrawer";
+import { formatCurrency, formatDateFunc } from "pages/Edge/utils/utilFunc";
+import "./TimedList.css";
 
+// Keep the existing billing-date order, with entry ID resolving dates that are equal.
+const compareEntries = (a, b) => new Date(a.billingDate || 0) - new Date(b.billingDate || 0) || (a.id || 0) - (b.id || 0);
+
+/** Compact unbilled-entry picker shared by Add Invoice and Edit Invoice. */
 const TimedList = (props) => {
-  const [timedList, setTimedList] = useState([]);
   const [selected, setSelected] = useState([]);
 
   useEffect(() => {
-    if (props.timedList && props.active) {
-      sortList(props.timedList);
-    }
-  }, [props.timedList, props.active]);
-
-  useEffect(() => {
-    if (props.formData && props.formData.timeBillingList && props.active) {
-      setSelected(props?.formData?.timeBillingList);
-    }
+    if (props.active) setSelected(props.formData?.timeBillingList || []);
   }, [props.formData, props.active]);
 
-  const sortList = (arg) => {
-    if (!arg) {
-      setTimedList([]);
-      return;
-    }
-    let newArray = [...arg].sort(
-      (a, b) =>
-        new Date(a.billingDate || 0) - new Date(b.billingDate || 0) ||
-        ((a.id || 0) - (b.id || 0))
-    );
+  const available = useMemo(() => {
+    const selectedIds = new Set(selected.map((entry) => entry.id));
+    return (props.timedList || [])
+      .filter((entry) => !entry.invoiceId && !selectedIds.has(entry.id))
+      .slice().sort(compareEntries);
+  }, [props.timedList, selected]);
 
-    setTimedList(newArray);
+  const handleSelect = (entry) => {
+    // Selecting an available entry adds it immediately, as in the existing picker.
+    const next = [...selected, entry].sort(compareEntries);
+    setSelected(next);
+    props.onChange?.("timeBillingList", next);
   };
 
-  const isSelected = (arg) => {
-    for (let a in selected) {
-      if (selected[a] && selected[a].id === arg.id) {
-        return true;
-      }
-    }
-
-    return false;
-  };
-
-  const handleClose = () => {
-    if (props.close) {
-      props.close();
-    }
-  };
-
-  const handleSelect = (val) => {
-    const checked = isSelected(val);
-    let arr = [];
-    if (!checked) {
-      arr = [...selected, val].sort(
-        (a, b) =>
-          new Date(a.billingDate || 0) - new Date(b.billingDate || 0) ||
-          ((a.id || 0) - (b.id || 0))
-      );
-    } else {
-      arr = selected.filter((c) => val.id != c.id);
-    }
-
-    setSelected(arr);
-
-    setTimeout(() => {
-      updateValue(arr);
-    }, 10);
-  };
-
-  const updateValue = (arg) => {
-    if (props.onChange) {
-      props.onChange('timeBillingList', arg);
-    }
-  };
-
-  const renderTimedList = (timed) => {
-    let shouldShow = !isSelected(timed) && !timed.invoiceId;
-    if (shouldShow) {
-      return (
-        <div
-          className='bt-container'
-          key={timed.id}
-          onClick={() => handleSelect(timed)}
-        >
-          {/* <input
-            type='checkbox'
-            style={{ marginTop: '4px' }}
-            checked={isSelected(timed)}
-          /> */}
-          <div className='border-bottom p-2'>
-            <label>Billing Date</label>
-            <p className='mb-0'>{formatDateFunc(timed.billingDate)}</p>
+  const body = () => (
+    <div className="timed-entry-picker">
+      <div className="timed-entry-picker-summary">
+        <div>
+          <strong>Choose time entries</strong>
+          <div className="small text-muted" role="status" aria-live="polite">
+            {available.length} available · {selected.length} selected
           </div>
-          <div className='border-bottom p-2'>
-            <label>Units</label>
-            <p className='mb-0'>{timed.units}</p>
-          </div>
-          <div className='border-bottom p-2'>
-            <label>Description</label>
-            <p className='mb-0'>{timed.description}</p>
-          </div>
-        </div>
-      );
-    } else {
-      return <></>;
-    }
-  };
-
-  const body = () => {
-    return (
-      <div className='bt-container px-2'>
-        <div className='bt-list-container'>
-          {timedList.map((timed) => renderTimedList(timed))}
         </div>
       </div>
-    );
-  };
-
-  return (
-    <div>
-      <CustomSideDrawer
-        active={props.active}
-        onClose={handleClose}
-        heading={'Time Billing'}
-        body={body}
-        doneBtn={true}
-      />
+      {available.length ? (
+        <ul className="timed-entry-picker-list">
+          {available.map((entry) => (
+            <li key={entry.id}>
+              <button type="button" className="timed-entry-picker-row" onClick={() => handleSelect(entry)}
+                aria-label={`Add time billing: ${entry.description || "No description"}, ${formatDateFunc(entry.billingDate) || "No date"}, ${entry.units ?? 0} units`}>
+                <span className="timed-entry-picker-content">
+                  <span className="timed-entry-picker-meta">
+                    <span>{formatDateFunc(entry.billingDate) || "No date"}</span>
+                    <span>{entry.units ?? 0} {Number(entry.units) === 1 ? "unit" : "units"}</span>
+                    <strong>{entry.total == null ? "—" : formatCurrency(entry.total)}</strong>
+                  </span>
+                  <span className="timed-entry-picker-description">{entry.description?.trim() || "No description"}</span>
+                </span>
+                <span className="timed-entry-picker-add" aria-hidden="true">+</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <div className="timed-entry-picker-empty" role="status">
+          {selected.length ? "No more unbilled entries available to add." : "No unbilled time entries available."}
+        </div>
+      )}
     </div>
   );
+
+  return <CustomSideDrawer active={props.active} onClose={props.close} heading="Time Billing" body={body} />;
 };
 
 export default TimedList;
