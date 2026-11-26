@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { Container, Card, Button } from "reactstrap";
+import React, { useState, useEffect, useRef } from "react";
+import { Container, Card } from "reactstrap";
 import BreadCrumb from "../../../../../Components/Common/BreadCrumb";
 import { getInvoiceList } from "../../../apis";
 import LoadingPage from "../../../utils/LoadingPage";
@@ -16,8 +16,6 @@ const initialFilters = {
   createdBy: "",
   sortOn: "",
   sortType: "",
-  pageNo: 0,
-  pageSize: 25,
 };
 
 const InvoiceListPage = (props) => {
@@ -26,76 +24,66 @@ const InvoiceListPage = (props) => {
   const [loading, setLoading] = useState(false);
   const [filterInput, setFilterInput] = useState(initialFilters);
 
-  const [pageNo, setPageNo] = useState(0);
-  const [pageSize, setPageSize] = useState(25);
+  // Request offsets and the visible range always use the same pagination values.
+  const [pagination, setPagination] = useState({ pageNo: 0, pageSize: 25 });
+  const { pageNo, pageSize } = pagination;
+  const requestVersion = useRef(0);
 
   const [totalPages, setTotalPages] = useState(1);
   const [totalRecords, setTotalRecords] = useState(0);
 
-  const fetchList = async (filters = filterInput) => {
+  const fetchList = async (filters = filterInput, paging = { pageNo: 0, pageSize }) => {
+    const version = ++requestVersion.current;
+    const requestedPage = { pageNo: paging.pageNo, pageSize: Number(paging.pageSize) };
+    setLoading(true);
     try {
-      setLoading(true);
-      const { data } = await getInvoiceList(filters);
+      const { data } = await getInvoiceList({ ...filters, ...requestedPage });
+      // Ignore a slower earlier request (or a response after leaving the page).
+      if (version !== requestVersion.current) return;
       if (data.success) {
-        setList(data?.data?.invoiceList);
+        setList(data?.data?.invoiceList || []);
         setTotalPages(data.metadata.page.totalPages);
         setTotalRecords(data?.metadata?.page?.totalRecords);
+        // Publish the range with the returned rows, not ahead of a failed request.
+        setPagination({ ...requestedPage, pageNo: data.metadata.page.pageNumber ?? requestedPage.pageNo });
       } else {
         toast.error("Something went wrong, please try later.");
       }
-      setLoading(false);
     } catch (error) {
-      console.error(error);
-      setLoading(false);
+      if (version === requestVersion.current) {
+        console.error(error);
+        toast.error("Unable to load invoices. Please try again.");
+      }
+    } finally {
+      if (version === requestVersion.current) setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchList();
+    return () => { requestVersion.current += 1; };
   }, []);
 
   const handleResetFilter = () => {
-    fetchList(initialFilters);
     setFilterInput(initialFilters);
+    fetchList(initialFilters, { pageNo: 0, pageSize: 25 });
   };
 
-  const handlePreviousPage = () => {
-    let pg = pageNo - 1;
-    setPageNo(pg);
-
-    fetchList({ ...filterInput, pageNo: pg });
+  const goToPage = (nextPage) => {
+    const boundedPage = Math.max(0, Math.min(nextPage, Math.max(0, totalPages - 1)));
+    fetchList(filterInput, { pageNo: boundedPage, pageSize });
   };
 
-  const handleNextPage = () => {
-    let pg = pageNo + 1;
-    setPageNo(pg);
+  const handlePreviousPage = () => goToPage(pageNo - 1);
+  const handleNextPage = () => goToPage(pageNo + 1);
+  const handleJumpToPage = (num) => goToPage(num - 1);
 
-    fetchList({ ...filterInput, pageNo: pg });
-  };
-
-  const handleJumpToPage = (num) => {
-    setPageNo(num - 1);
-    fetchList({ ...filterInput, pageNo: num - 1 });
-  };
-
-  const changeNumberOfRows = (e) => {
-    setPageSize(e.target.value);
-    let currSize = e.target.value;
-
-    let tempTotalPages = Math.ceil(totalRecords / currSize);
-    let tempPageNo = tempTotalPages - 1;
-
-    if (tempPageNo < pageNo) {
-      setPageNo(tempPageNo);
-    } else {
-      tempPageNo = pageNo;
-    }
-
-    fetchList({
-      ...filterInput,
-      pageNo: tempPageNo,
-      pageSize: currSize,
-    });
+  const changeNumberOfRows = (event) => {
+    const nextSize = Number(event.target.value);
+    if (!Number.isInteger(nextSize) || nextSize <= 0) return;
+    // Page-size changes and filter/sort refreshes start at the first page.
+    // An empty result must never produce a negative page index.
+    fetchList(filterInput, { pageNo: 0, pageSize: nextSize });
   };
 
   return (
