@@ -1,16 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Table, Button, Input } from "reactstrap";
 import { v4 as uuidv4 } from "uuid";
-import {
-  AiOutlineClose,
-  AiOutlineArrowDown,
-  AiOutlineArrowUp,
-} from "react-icons/ai";
+import { AiOutlineClose } from "react-icons/ai";
 import { findDisplayname } from "../../../utils/utilFunc";
-import {
-  TextInputField,
-  SelectInputField,
-} from "pages/Edge/components/InputField";
+import { TextInputField, SelectInputField } from "pages/Edge/components/InputField";
 
 import { normalizeInvoiceServiceLine } from "../../../utils/invoiceServiceLines";
 
@@ -19,6 +12,9 @@ const ServiceLineSelected = (props) => {
   const [serviceType, setServiceType] = useState([]);
   const [taxType, setTaxType] = useState([]);
   const [billingFrequency, setBillingFrequency] = useState([]);
+  const [dragIndex, setDragIndex] = useState(null);
+  const [dragOverIndex, setDragOverIndex] = useState(null);
+  const [dragReadyIndex, setDragReadyIndex] = useState(null);
 
   useEffect(() => {
     if (props.serviceList) {
@@ -132,56 +128,43 @@ const ServiceLineSelected = (props) => {
     }
   };
 
-  const swap = (index, type) => {
-    let arr = [...selectedList];
-
-    if (type === "up") {
-      let temp = arr[index];
-      arr[index] = arr[index - 1];
-      arr[index - 1] = temp;
-    } else {
-      let temp = arr[index];
-      arr[index] = arr[index + 1];
-      arr[index + 1] = temp;
-    }
-
+  const reorder = (fromIndex, toIndex) => {
+    if (fromIndex == null || toIndex == null || fromIndex === toIndex) return;
+    const arr = [...selectedList];
+    const [moved] = arr.splice(fromIndex, 1);
+    arr.splice(toIndex, 0, moved);
     setSelectedList(arr);
-    if (props.onChange) {
-      props.onChange("serviceLineList", arr);
-    }
+    props.onChange?.("serviceLineList", arr);
   };
 
   const sequence = (index) => {
-    let isDisable = props.disabled;
+    const count = selectedList.length;
     return (
-      <div className="ac">
-        {index > 0 && (
-          <AiOutlineArrowUp
-            size={25}
-            className={isDisable ? "" : "cp"}
-            onClick={() => {
-              if (isDisable) {
-                return;
-              } else {
-                swap(index, "up");
-              }
+      <div className="ac d-flex align-items-center justify-content-center gap-2">
+        {!props.disabled && (
+          <button
+            type="button"
+            className="workflow-drag-handle btn btn-light btn-sm"
+            disabled={count < 2}
+            title="Drag to reorder. Keyboard: Alt + Up / Down."
+            aria-label={`Reorder item, position ${index + 1} of ${count}. Use Alt and Up or Down to move.`}
+            onMouseDown={() => setDragReadyIndex(index)}
+            onMouseUp={() => setDragReadyIndex(null)}
+            onKeyDown={(event) => {
+              if (!event.altKey || !["ArrowUp", "ArrowDown"].includes(event.key)) return;
+              event.preventDefault();
+              event.stopPropagation();
+              const to = index + (event.key === "ArrowUp" ? -1 : 1);
+              if (to >= 0 && to < count) reorder(index, to);
             }}
-          />
-        )}
-        <p className="sls-label mr-tb10">{index + 1}</p>
-        {index >= 0 && index < selectedList.length - 1 && (
-          <AiOutlineArrowDown
-            size={25}
-            className={isDisable ? "" : "cp"}
-            onClick={() => {
-              if (isDisable) {
-                return;
-              } else {
-                swap(index, "down");
-              }
+            style={{
+              cursor: count < 2 ? "default" : dragIndex === index ? "grabbing" : "grab",
             }}
-          />
+          >
+            <i className="ri-menu-line" aria-hidden="true" />
+          </button>
         )}
+        <p className="sls-label mr-tb10 mb-0">{index + 1}.</p>
       </div>
     );
   };
@@ -213,8 +196,42 @@ const ServiceLineSelected = (props) => {
             </thead>
             <tbody>
               {selectedList.map((service, i) => (
-                <tr key={service.uid || service.id || i}>
-                  <td>{sequence(i)}</td>
+                <tr
+                  key={service.uid || service.id || i}
+                  draggable={!props.disabled && dragReadyIndex === i}
+                  onDragStart={(e) => {
+                    if (props.disabled) return;
+                    setDragIndex(i);
+                    e.dataTransfer.effectAllowed = "move";
+                    e.dataTransfer.setData("text/plain", String(i));
+                  }}
+                  onDragOver={(e) => {
+                    if (props.disabled || dragIndex == null) return;
+                    e.preventDefault();
+                    if (dragOverIndex !== i) setDragOverIndex(i);
+                  }}
+                  onDrop={(e) => {
+                    if (props.disabled) return;
+                    e.preventDefault();
+                    reorder(dragIndex, i);
+                    setDragIndex(null);
+                    setDragOverIndex(null);
+                    setDragReadyIndex(null);
+                  }}
+                  onDragEnd={() => {
+                    setDragIndex(null);
+                    setDragOverIndex(null);
+                    setDragReadyIndex(null);
+                  }}
+                  style={
+                    dragOverIndex === i && dragIndex !== i
+                      ? { borderTop: "2px solid #0d6efd" }
+                      : dragIndex === i
+                        ? { opacity: 0.6 }
+                        : undefined
+                  }
+                >
+                  <td className="align-middle">{sequence(i)}</td>
                   <td>
                     <TextInputField
                       type="textarea"
@@ -226,13 +243,8 @@ const ServiceLineSelected = (props) => {
                     />
                     <div className="d-flex mt-2 justify-content-between align-items-center">
                       <div>
-                        <span className="">
-                          {findDisplayname(serviceType, service.type)}
-                        </span>
-                        <span>{`[${findDisplayname(
-                          billingFrequency,
-                          service.billingFrequency
-                        )}]`}</span>
+                        <span className="">{findDisplayname(serviceType, service.type)}</span>
+                        <span>{`[${findDisplayname(billingFrequency, service.billingFrequency)}]`}</span>
                       </div>
                       <div className="d-flex">{displayTaxType(service, i)}</div>
                     </div>
@@ -274,12 +286,7 @@ const ServiceLineSelected = (props) => {
                     />
                   </td>
                   <td>
-                    <Button
-                      onClick={(e) => handleDelete(e, service)}
-                      disabled={props.disabled}
-                      color="danger"
-                      size="md"
-                    >
+                    <Button onClick={(e) => handleDelete(e, service)} disabled={props.disabled} color="danger" size="md">
                       <AiOutlineClose size={18} />
                     </Button>
                   </td>
