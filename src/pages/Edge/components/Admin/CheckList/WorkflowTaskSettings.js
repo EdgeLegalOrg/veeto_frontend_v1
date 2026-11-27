@@ -262,9 +262,9 @@ const WorkflowTaskSettings = ({ task, companyId, onSave, onClose }) => {
           <div className="col-12">
             <h6>Precedents and Forms</h6>
             <p className="small text-muted">
-              Drag the handles to arrange documents in the required order. The solicitor downloads one ZIP containing separate, numbered
-              documents. Each DOCX is generated independently; other formats remain unchanged. Nothing is saved to Matter Attachments
-              automatically.
+              Drag the handles to arrange documents in the required order. The solicitor selects which documents to generate and downloads
+              them as separate, numbered files in this order. Each DOCX is generated independently; other formats remain unchanged.
+              Nothing is saved to Matter Attachments automatically.
             </p>
             {libraryError && (
               <div className="alert alert-warning" role="alert">
