@@ -95,6 +95,7 @@ function AddProperty(props) {
   const [addReg, setAddReg] = useState(false);
   const [addUnreg, setAddUnreg] = useState(false);
   const [isEnable, setIsEnable] = useState(true);
+  const [saveError, setSaveError] = useState("");
   const [confirmAddress, setConfirmAddress] = useState(false);
   const [warningData, setWarningData] = useState([]);
   const [submitted, setSubmitted] = useState(false);
@@ -200,6 +201,7 @@ function AddProperty(props) {
   };
 
   const handleNewProperty = async () => {
+    setSaveError("");
     setIsEnable(false);
     const formData = {
       ...propertyDetails,
@@ -216,6 +218,14 @@ function AddProperty(props) {
         requestId: uuidv1(),
         data: formData,
       });
+      if (!data?.success) {
+        setSaveError(
+          data?.error?.message ||
+            "Unable to save property. Please try again."
+        );
+        setIsEnable(true);
+        return;
+      }
       setPropertyDetails(initialData);
       setIsEnable(true);
       if (props.setBoolVal) {
@@ -229,6 +239,11 @@ function AddProperty(props) {
       props.close();
     } catch (err) {
       setIsEnable(true);
+      setSaveError(
+        err?.response?.data?.error?.message ||
+          err?.response?.data?.message ||
+          "Unable to save property. Please try again."
+      );
       console.error(err);
     }
   };
@@ -477,6 +492,11 @@ function AddProperty(props) {
   return (
     <div className="">
       <form onSubmit={handleSubmit}>
+        {saveError && (
+          <div className="alert alert-warning mt-2 mb-0" role="alert">
+            {saveError}
+          </div>
+        )}
         <div className="mb-4">
           <div className="row mt-4">
             <div className="col-md-3">
@@ -832,7 +852,7 @@ function AddProperty(props) {
             disabled={!isEnable}
             className="mx-1"
           >
-            Save
+            {isEnable ? "Save" : "Saving..."}
           </Button>
         </div>
       </form>

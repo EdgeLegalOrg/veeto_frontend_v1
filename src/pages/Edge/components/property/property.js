@@ -2860,7 +2860,7 @@ function RenderProperty() {
               }}
               backdrop="static"
               scrollable={true}
-              size="lg"
+              size="xl"
               centered
             >
               <ModalHeader

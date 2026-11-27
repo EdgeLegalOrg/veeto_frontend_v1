@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { getFileIcon } from "./helperFunction";
+import { documentComparator } from "../DocumentFolders/documentSort";
 
 function Files(props) {
   const { files, selectedFile, setSelectedFile, multiple = false, selectedDocuments = [], onToggleDocument } = props;
@@ -15,9 +16,7 @@ function Files(props) {
   }, [files]);
 
   const sortFiles = (arg) => {
-    arg.sort((a, b) => {
-      return a?.contentName?.localeCompare(b?.contentName);
-    });
+    arg.sort(documentComparator("NAME", { name: (file) => file.contentName, id: (file) => `${file.kind || ""}-${file.id}` }));
     return arg;
   };
 

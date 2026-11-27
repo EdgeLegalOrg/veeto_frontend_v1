@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import AttachmentTypeIcon from "../Matters/Attachments/AttachmentTypeIcon";
 import "./FileFolderTree.css";
+import { documentComparator, documentTimestamp } from "./documentSort";
 
 /** Storage hierarchy from the loaded listing; collapsed branches do not mount file rows. */
 const FileFolderTree = ({
@@ -14,6 +15,8 @@ const FileFolderTree = ({
   onFilePreview,
   folderLabel = (folder) => folder.name,
   folderDirection,
+  folderDate = (folder) => folder.createdDate,
+  sort = "DATE",
   disabled,
   canDrop,
   canDropFolder,
@@ -43,112 +46,136 @@ const FileFolderTree = ({
       if (!contents.has(file.folderId)) contents.set(file.folderId, []);
       contents.get(file.folderId).push(file);
     });
-    const byFolderLabel = (a, b) => (folderLabel(a) || "").localeCompare(folderLabel(b) || "");
-    const timestamp = (value) => {
-      const time = new Date(value || 0).getTime();
-      return Number.isNaN(time) ? 0 : time;
-    };
-    const byRecentDate = (a, b) =>
-      timestamp(b.uploadDate) - timestamp(a.uploadDate) || (a.name || "").localeCompare(b.name || "");
-    children.forEach((entries) => entries.sort(byFolderLabel));
-    contents.forEach((entries) => entries.sort(byRecentDate));
-    unassigned.sort(byRecentDate);
+    const foldersByOrder = documentComparator(sort, {
+      isFolder: (folder) => !folder.emailUploadGroupId,
+      name: folderLabel,
+      date: folderDate,
+    });
+    children.forEach((entries) => entries.sort(foldersByOrder));
+    contents.forEach((entries) => entries.sort(documentComparator(sort)));
+    unassigned.sort(documentComparator(sort));
     return { children, contents, unassigned };
-  }, [folders, files, folderLabel]);
+  }, [folders, files, folderLabel, folderDate, sort]);
 
   useEffect(() => {
     if (activeFileId != null && index.unassigned.some((file) => file.id === activeFileId)) setUnassignedOpen(true);
   }, [activeFileId, index]);
 
-  const fileRows = (entries) =>
-    entries.map((file) => (
-      <li key={`file-${file.id}`} className="matter-folder-branch">
-        <div
-          className="matter-folder-tree-row"
-          draggable={!!canDragFile?.(file)}
-          onDragStart={(event) => onFileDragStart?.(event, file)}
-          onDragOver={(event) => event.preventDefault()}
-          onDrop={(event) => {
-            event.preventDefault();
-            event.stopPropagation();
-          }}
+  const fileRow = (file) => (
+    <li key={`file-${file.id}`} className="matter-folder-branch">
+      <div
+        className="matter-folder-tree-row"
+        draggable={!!canDragFile?.(file)}
+        onDragStart={(event) => onFileDragStart?.(event, file)}
+        onDragOver={(event) => event.preventDefault()}
+        onDrop={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+        }}
+      >
+        <span className="matter-folder-tree-spacer" aria-hidden="true" />
+        <button
+          type="button"
+          className="matter-folder-tree-node document-tree-file"
+          disabled={disabled}
+          title={file.name}
+          aria-label={`Preview ${file.name}`}
+          aria-current={activeFileId === file.id ? "true" : undefined}
+          onClick={() => onFilePreview(file)}
         >
-          <span className="matter-folder-tree-spacer" aria-hidden="true" />
-          <button
-            type="button"
-            className="matter-folder-tree-node document-tree-file"
-            disabled={disabled}
-            title={file.name}
-            aria-label={`Preview ${file.name}`}
-            aria-current={activeFileId === file.id ? "true" : undefined}
-            onClick={() => onFilePreview(file)}
-          >
-            <AttachmentTypeIcon type={file.type} name={file.name} direction={file.direction} />
-            <span>{file.name}</span>
-          </button>
-        </div>
-      </li>
-    ));
+          <AttachmentTypeIcon type={file.type} name={file.name} direction={file.direction} />
+          <span>{file.name}</span>
+        </button>
+      </div>
+    </li>
+  );
+
+  const fileRows = (entries) => entries.map(fileRow);
 
   const branches = (parentId = null, visited = new Set()) => {
     const childFolders = (index.children.get(parentId) || []).filter((folder) => !visited.has(folder.id));
+    const regularFolders = childFolders.filter((folder) => !folder.emailUploadGroupId);
+    const emailFolders = childFolders.filter((folder) => !!folder.emailUploadGroupId);
     const childFiles = parentId == null ? [] : index.contents.get(parentId) || [];
     if (!childFolders.length && !childFiles.length) return null;
+
+    const renderFolderNode = (folder) => {
+      const hasChildren = !!index.children.get(folder.id)?.length || !!index.contents.get(folder.id)?.length;
+      const opened = expanded.has(folder.id);
+      return (
+        <li key={`folder-${folder.id}`} className="matter-folder-branch">
+          <div
+            className="matter-folder-tree-row"
+            draggable={!!canDragFolder?.(folder)}
+            onDragStart={(event) => onFolderDragStart?.(event, folder)}
+            onDragOver={(event) => {
+              if (canDrop && (!canDropFolder || canDropFolder(folder))) event.preventDefault();
+            }}
+            onDrop={(event) => {
+              if (!canDrop || (canDropFolder && !canDropFolder(folder))) { event.preventDefault(); event.stopPropagation(); return; }
+              onDrop?.(event, folder.id);
+            }}
+          >
+            {hasChildren ? (
+              <button
+                type="button"
+                className="matter-folder-tree-toggle"
+                disabled={disabled}
+                aria-label={`${opened ? "Collapse" : "Expand"} ${folderLabel(folder)}`}
+                aria-expanded={opened}
+                aria-controls={`${idPrefix}-folder-${folder.id}-children`}
+                onClick={() => onToggle(folder.id)}
+              >
+                <span aria-hidden="true">{opened ? "▾" : "▸"}</span>
+              </button>
+            ) : (
+              <span className="matter-folder-tree-spacer" aria-hidden="true" />
+            )}
+            <button
+              type="button"
+              className="matter-folder-tree-node"
+              disabled={disabled}
+              title={folderLabel(folder)}
+              aria-current={folderId === folder.id && activeFileId == null ? "true" : undefined}
+              onClick={() => onFolderSelect(folder.id)}
+            >
+              <AttachmentTypeIcon type={folder.emailUploadGroupId ? "email" : "folder"} direction={folderDirection?.(folder)} />
+              <span>{folderLabel(folder)}</span>
+              {folder.emailUploadGroupId && <i className="ri-lock-line text-muted" title="Read-only email folder" aria-label="Read-only email folder" />}
+            </button>
+          </div>
+          {hasChildren && opened && branches(folder.id, new Set([...visited, folder.id]))}
+        </li>
+      );
+    };
+
+    const nonFolderEntries = [
+      ...emailFolders.map((folder) => ({
+        kind: "email",
+        item: folder,
+        date: documentTimestamp(folderDate(folder)),
+        name: folderLabel(folder) || "",
+      })),
+      ...childFiles.map((file) => ({
+        kind: "file",
+        item: file,
+        date: documentTimestamp(file.uploadDate),
+        name: file.name || "",
+      })),
+    ].sort(documentComparator(sort, {
+      date: (entry) => entry.date,
+      id: (entry) => `${entry.kind}-${entry.item.id}`,
+    }));
+
     return (
       <ul
         id={parentId == null ? undefined : `${idPrefix}-folder-${parentId}-children`}
         className={`matter-folder-branches ${parentId == null ? "matter-folder-roots" : ""}`}
       >
-        {childFolders.map((folder) => {
-          const hasChildren = !!index.children.get(folder.id)?.length || !!index.contents.get(folder.id)?.length;
-          const opened = expanded.has(folder.id);
-          return (
-            <li key={`folder-${folder.id}`} className="matter-folder-branch">
-              <div
-                className="matter-folder-tree-row"
-                draggable={!!canDragFolder?.(folder)}
-                onDragStart={(event) => onFolderDragStart?.(event, folder)}
-                onDragOver={(event) => {
-                  if (canDrop && (!canDropFolder || canDropFolder(folder))) event.preventDefault();
-                }}
-                onDrop={(event) => {
-                  if (!canDrop || (canDropFolder && !canDropFolder(folder))) { event.preventDefault(); event.stopPropagation(); return; }
-                  onDrop?.(event, folder.id);
-                }}
-              >
-                {hasChildren ? (
-                  <button
-                    type="button"
-                    className="matter-folder-tree-toggle"
-                    disabled={disabled}
-                    aria-label={`${opened ? "Collapse" : "Expand"} ${folderLabel(folder)}`}
-                    aria-expanded={opened}
-                    aria-controls={`${idPrefix}-folder-${folder.id}-children`}
-                    onClick={() => onToggle(folder.id)}
-                  >
-                    <span aria-hidden="true">{opened ? "▾" : "▸"}</span>
-                  </button>
-                ) : (
-                  <span className="matter-folder-tree-spacer" aria-hidden="true" />
-                )}
-                <button
-                  type="button"
-                  className="matter-folder-tree-node"
-                  disabled={disabled}
-                  title={folderLabel(folder)}
-                  aria-current={folderId === folder.id && activeFileId == null ? "true" : undefined}
-                  onClick={() => onFolderSelect(folder.id)}
-                >
-                  <AttachmentTypeIcon type={folder.emailUploadGroupId ? "email" : "folder"} direction={folderDirection?.(folder)} />
-                  <span>{folderLabel(folder)}</span>
-                  {folder.emailUploadGroupId && <i className="ri-lock-line text-muted" title="Read-only email folder" aria-label="Read-only email folder" />}
-                </button>
-              </div>
-              {hasChildren && opened && branches(folder.id, new Set([...visited, folder.id]))}
-            </li>
-          );
-        })}
-        {fileRows(childFiles)}
+        {regularFolders.map(renderFolderNode)}
+        {nonFolderEntries.map((entry) =>
+          entry.kind === "email" ? renderFolderNode(entry.item) : fileRow(entry.item),
+        )}
       </ul>
     );
   };

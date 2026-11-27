@@ -74,7 +74,7 @@ const MatterProgressbar = (props) => {
 
   return (
     <div className='full'>
-      <div className='pg-container'>
+      <div className='pg-container matter-progress-track'>
         <div className='pg-label'>
           <p className='mb-0'>Matter Progress</p>
         </div>

@@ -4,6 +4,7 @@ import folderIcon from "../../icons/fileDirectory/folder.svg";
 import rightArrow from "../../icons/fileDirectory/rightArrow.svg";
 import downArrow from "../../icons/fileDirectory/downArrow.svg";
 import { convertTitleCase } from "./helperFunction";
+import { documentComparator } from "../DocumentFolders/documentSort";
 
 const FolderItem = ({
   type,
@@ -160,7 +161,7 @@ const FolderItem = ({
         }
         style={{ display: expanded ? "block" : "none" }}
       >
-        {folder.children.map((folder) => {
+        {[...folder.children].sort(documentComparator("NAME", { isFolder: (item) => !item.isFile })).map((folder) => {
           if (["NORMAL", "LETTER", "FORM"].includes(folder.name)) {
             return null;
           }

@@ -896,10 +896,9 @@ export const allStaffMember = (filters = {}) =>
     }&sortOn=${filters.sortOn ?? ""}&sortType=${filters.sortType ?? ""}`
   );
 
+// Staff choices are fetched afresh so account/site and active-status changes are not cached.
 export const allStaffMemberAndAccountInfoStaff = () =>
-  API.get(
-    `/api/staff/by-account-site?requestId=${uuidv1()}`
-  );
+  API.get(`/api/staff/by-account-site?requestId=${uuidv1()}`);
 
 export const editStaffDetails = (formData) =>
   API.put(`/api/staff`, {

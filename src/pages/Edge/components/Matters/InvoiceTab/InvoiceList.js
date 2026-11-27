@@ -123,7 +123,13 @@ const InvoiceList = (props) => {
     }
   };
 
-  const printInvoice = async (id) => {
+  const formatInvoiceTitle = (id, invoiceNumber) => {
+    const raw = String(invoiceNumber || id || "").trim();
+    if (!raw) return "INV";
+    return /^inv-/i.test(raw) ? raw.toUpperCase() : `INV-${raw}`;
+  };
+
+  const printInvoice = async (id, invoiceNumber) => {
     try {
       const newTab = window.open("about:blank", "_blank"); // Open a blank page in new tab
 
@@ -144,6 +150,8 @@ const InvoiceList = (props) => {
       if (newTab) {
         // Write HTML content to the new tab if it's open and not blocked
         newTab.document.write(html);
+        newTab.document.close();
+        newTab.document.title = formatInvoiceTitle(id, invoiceNumber);
       }
     } catch (error) {
       console.error("Error fetching HTML:", error);
@@ -277,7 +285,7 @@ const InvoiceList = (props) => {
                   </Button>
                   <Button
                     color="primary"
-                    onClick={() => printInvoice(invoice.id)}
+                    onClick={() => printInvoice(invoice.id, invoice.invoiceNumber)}
                   >
                     <AiFillPrinter size={18} />
                   </Button>

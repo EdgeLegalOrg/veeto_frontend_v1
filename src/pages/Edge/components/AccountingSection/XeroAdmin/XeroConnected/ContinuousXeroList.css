@@ -1,0 +1,48 @@
+.xero-continuous-scroll {
+  height: 50vh;
+  min-height: 18rem;
+  overflow: auto;
+  overscroll-behavior: contain;
+  position: relative;
+  overflow-anchor: none;
+}
+.xero-continuous-table {
+  min-width: 760px;
+  table-layout: fixed;
+  width: 100%;
+}
+.xero-continuous-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--vz-secondary-bg, #fff);
+}
+.xero-continuous-table th:first-child {
+  width: 44px;
+}
+.xero-continuous-table th:last-child {
+  width: 108px;
+}
+/* Virtual rows require a stable height; these tables contain short scalar fields. */
+.xero-continuous-table tbody > tr:not(.xero-row-space) {
+  height: 52px;
+}
+.xero-continuous-table tbody > tr:not(.xero-row-space) > td {
+  vertical-align: middle;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+.xero-continuous-table tbody p {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.xero-row-space {
+  background: transparent !important;
+  --vz-table-accent-bg: transparent;
+}
+.xero-continuous-status {
+  padding: 0.75rem;
+  text-align: center;
+  color: var(--vz-secondary-color, #6c757d);
+}
