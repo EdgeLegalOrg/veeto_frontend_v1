@@ -80,7 +80,7 @@ const StatusProgressBar = (props) => {
 
   return (
     <div className='full'>
-      <div className='pg-container matter-status-progress'>
+      <div className='pg-container matter-status-progress matter-progress-track'>
         <div className='pg-label'>
           <p className='mb-0'>Matter Status</p>
         </div>
