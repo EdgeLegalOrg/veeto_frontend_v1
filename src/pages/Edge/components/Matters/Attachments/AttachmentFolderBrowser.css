@@ -338,18 +338,64 @@
 }
 
 /* The email is the parent; attachment rows are inset beyond its icon connector. */
-.matter-folder-table { --email-tree-title-indent: 3.025rem; --email-tree-icon-axis: 2.45rem; }
+.matter-folder-table {
+  --email-tree-title-indent: 3.025rem;
+  --email-tree-icon-axis: 2.45rem;
+}
 .matter-folder-table .email-tree-parent > td,
-.matter-folder-table .email-tree-child > td { background-color: var(--vz-secondary-bg, #fff); }
-.email-tree-heading { display: grid; grid-template-columns: 1.125rem minmax(0, 1fr); align-items: start; gap: 0.25rem; }
-.email-tree-toggle, .email-tree-toggle-spacer { width: 1.125rem; }
-.email-tree-toggle { padding: 0; border: 0; background: transparent; color: inherit; }
-.email-tree-heading .matter-folder-name { display: grid; grid-template-columns: 1.25rem minmax(0, 1fr); gap: 0.4rem; align-items: start; }
-.email-tree-heading .matter-attachment-type-icon { margin-right: 0; }
-.email-tree-details { padding-left: var(--email-tree-title-indent); }
-.matter-folder-table .email-tree-child > td { padding-top: 0.25rem !important; padding-bottom: 0.25rem !important; }
+.matter-folder-table .email-tree-child > td {
+  background-color: var(--vz-secondary-bg, #fff);
+}
+.email-tree-heading {
+  display: grid;
+  grid-template-columns: 1.125rem minmax(0, 1fr);
+  align-items: start;
+  gap: 0.25rem;
+}
+.email-tree-toggle,
+.email-tree-toggle-spacer {
+  width: 1.125rem;
+}
+.email-tree-toggle {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+}
+.email-tree-heading .matter-folder-name {
+  display: grid;
+  grid-template-columns: 1.25rem minmax(0, 1fr);
+  gap: 0.4rem;
+  align-items: start;
+}
+.email-tree-heading .matter-attachment-type-icon {
+  margin-right: 0;
+}
+.email-tree-details {
+  padding-left: var(--email-tree-title-indent);
+}
+.matter-folder-table .email-tree-child > td {
+  padding-top: 0.25rem !important;
+  padding-bottom: 0.25rem !important;
+}
+/* Internal email dividers are inset/dashed; the last row keeps the full group boundary. */
+.matter-folder-table .email-tree-expanded > td,
+.matter-folder-table .email-tree-child:not(.email-tree-last-child) > td {
+  border-bottom-width: 0;
+}
+.matter-folder-table .email-tree-child > td {
+  border-top-width: 0;
+}
+.matter-folder-table .email-tree-child > td:nth-child(2) {
+  background-image: repeating-linear-gradient(to right, var(--vz-border-color, #e9ebec) 0 3px, transparent 3px 7px);
+  background-size: calc(100% - var(--email-tree-title-indent)) 1px;
+  background-position: right top;
+  background-repeat: no-repeat;
+}
 .email-tree-parent > td:nth-child(2),
-.email-tree-child > td:nth-child(2) { position: relative; }
+.email-tree-child > td:nth-child(2) {
+  position: relative;
+}
 .email-tree-expanded > td:nth-child(2)::before,
 .email-tree-child > td:nth-child(2)::before {
   content: "";
@@ -360,8 +406,12 @@
   border-left: 1px solid #c2ccdc;
   pointer-events: none;
 }
-.email-tree-expanded > td:nth-child(2)::before { top: 1.6rem; }
-.email-tree-last-child > td:nth-child(2)::before { bottom: 50%; }
+.email-tree-expanded > td:nth-child(2)::before {
+  top: 1.6rem;
+}
+.email-tree-last-child > td:nth-child(2)::before {
+  bottom: 50%;
+}
 .email-tree-child > td:nth-child(2)::after {
   content: "";
   position: absolute;
@@ -378,7 +428,17 @@
   gap: 0.4rem;
   padding-left: var(--email-tree-title-indent);
 }
-.email-tree-paperclip { position: relative; z-index: 1; background: var(--vz-secondary-bg, #fff); color: #8794a6; font-size: 1rem; }
+.email-tree-paperclip {
+  position: relative;
+  z-index: 1;
+  background: var(--vz-secondary-bg, #fff);
+  color: #8794a6;
+  font-size: 1rem;
+}
 
-.matter-folder-table .document-folder-active-file > td { background-color: var(--vz-primary-bg-subtle, #edf2ff); }
-.document-folder-active-file .email-tree-paperclip { background-color: var(--vz-primary-bg-subtle, #edf2ff); }
+.matter-folder-table .document-folder-active-file > td {
+  background-color: var(--vz-primary-bg-subtle, #edf2ff);
+}
+.document-folder-active-file .email-tree-paperclip {
+  background-color: var(--vz-primary-bg-subtle, #edf2ff);
+}

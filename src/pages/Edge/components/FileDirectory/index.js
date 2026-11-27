@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import "./style.css";
 import { createPortal } from "react-dom";
 import FolderItem from "./FolderItem";
+import { documentComparator } from "../DocumentFolders/documentSort";
 import TemplateErrorModal from "../TemplateErrors/TemplateErrorModal";
 import { templateErrorDetails } from "../TemplateErrors/templateErrors";
 import closeIcon from "../../icons/fileDirectory/close.svg";
@@ -533,7 +534,7 @@ const FileDirectoryModal = ({
                 </div>
                 <div className="file_directory_folder-directory">
                   {!reset &&
-                    filteredData?.map((folder) => (
+                    [...(filteredData || [])].sort(documentComparator("NAME", { isFolder: (item) => !item.isFile })).map((folder) => (
                       <FolderItem
                         key={folder.id}
                         isOpen={isOpen}
@@ -569,7 +570,7 @@ const FileDirectoryModal = ({
                       {!isFile &&
                         selected &&
                         files?.length > 0 &&
-                        files?.map((folder) => (
+                        [...files].sort(documentComparator("NAME", { isFolder: (item) => !item.isFile })).map((folder) => (
                           <FileItem
                             key={folder.id}
                             type={modal.type}

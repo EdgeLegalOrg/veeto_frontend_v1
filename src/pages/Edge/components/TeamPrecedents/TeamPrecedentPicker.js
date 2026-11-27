@@ -8,6 +8,7 @@ import { checkHasPermission } from "../../utils/utilFunc";
 import { documentFoldersApi } from "../Matters/Attachments/documentFoldersApi";
 import { getStorageTypeApi } from "../../apis";
 import TeamPrecedentBrowser from "./TeamPrecedentBrowser";
+import { documentComparator } from "../DocumentFolders/documentSort";
 import { downloadName, precedentError, useTeamPrecedent } from "./api";
 
 /** Matter-only generation/copy controls; library management has no matter actions. */
@@ -204,7 +205,7 @@ const TeamPrecedentPicker = ({ matter, onClose, onSaved, initialFile }) => {
                   onChange={(event) => setFolderId(event.target.value)}
                 >
                   <option value="">{loading ? "Loading folders…" : "Choose a folder"}</option>
-                  {folders.map((folder) => (
+                  {[...folders].sort(documentComparator("NAME", { isFolder: () => true, name: folderLabel })).map((folder) => (
                     <option key={folder.id} value={folder.id}>
                       {folderLabel(folder)}
                     </option>

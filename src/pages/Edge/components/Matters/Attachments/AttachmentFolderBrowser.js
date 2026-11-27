@@ -9,6 +9,7 @@ import { checkHasPermission, formatDateFunc, formatDateTimeFunc } from "../../..
 import { downloadMatterAttach } from "../../../apis";
 import { documentFoldersApi } from "./documentFoldersApi";
 import FileFolderTree from "../../DocumentFolders/FileFolderTree";
+import { documentComparator, documentTimestamp } from "../../DocumentFolders/documentSort";
 import FolderUploadPicker from "../../DocumentFolders/FolderUploadPicker";
 import MasterFileBinderModal from "./MasterFileBinderModal";
 import AttachmentTypeIcon from "./AttachmentTypeIcon";
@@ -673,28 +674,25 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
     setBinder({ focus: file.id, ids: [...selected] });
   };
   const needle = query.trim().toLowerCase();
-  const timestamp = (value) => {
-    const time = new Date(value || 0).getTime();
-    return Number.isNaN(time) ? 0 : time;
-  };
+  const folderOrder = documentComparator(sort, {
+    isFolder: (folder) => !folder.emailUploadGroupId,
+    name: folderLabel,
+    date: (folder) => emailSources.get(folder.id)?.uploadDate || folder.createdDate,
+  });
   const visibleFolders = folders
     .filter(
       (folder) =>
         (scope === "MATTER" && needle ? true : folder.parentId === folderId) &&
         (!needle || folderLabel(folder).toLowerCase().includes(needle)),
     )
-    .sort((a, b) => folderLabel(a).localeCompare(folderLabel(b)));
+    .sort(folderOrder);
   const visibleFiles = files
     .filter(
       (file) =>
         (scope === "MATTER" && needle ? true : (knownFolderIds.has(file.folderId) ? file.folderId : null) === folderId) &&
         (!needle || `${file.name} ${file.uploadedBy || ""}`.toLowerCase().includes(needle)),
     )
-    .sort((a, b) =>
-      sort === "NAME"
-        ? (a.name || "").localeCompare(b.name || "")
-        : timestamp(b.uploadDate) - timestamp(a.uploadDate) || (a.name || "").localeCompare(b.name || ""),
-    );
+    .sort(documentComparator(sort));
 
   const matchesFile = (file) => !needle || `${file.name} ${file.uploadedBy || ""}`.toLowerCase().includes(needle);
   const emailPanels = (
@@ -710,13 +708,26 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
         folderLabel(folder).toLowerCase().includes(needle) ||
         (emailFilesByGroup.get(folder.emailUploadGroupId) || []).some(matchesFile),
     )
-    .sort((a, b) => {
-      if (sort === "NAME") return folderLabel(a).localeCompare(folderLabel(b));
-      const aDate = emailSources.get(a.id)?.uploadDate || a.createdDate;
-      const bDate = emailSources.get(b.id)?.uploadDate || b.createdDate;
-      return timestamp(bDate) - timestamp(aDate) || folderLabel(a).localeCompare(folderLabel(b));
-    });
+    .sort(folderOrder);
   const panelGroups = new Set(emailPanels.map((folder) => folder.emailUploadGroupId));
+  const standaloneFiles = visibleFiles.filter((file) => !panelGroups.has(file.uploadGroupId));
+  const nonFolderItems = [
+    ...emailPanels.map((folder) => ({
+      kind: "email",
+      item: folder,
+      date: documentTimestamp(emailSources.get(folder.id)?.uploadDate || folder.createdDate),
+      name: folderLabel(folder) || "",
+    })),
+    ...standaloneFiles.map((file) => ({
+      kind: "file",
+      item: file,
+      date: documentTimestamp(file.uploadDate),
+      name: file.name || "",
+    })),
+  ].sort(documentComparator(sort, {
+    date: (entry) => entry.date,
+    id: (entry) => `${entry.kind}-${entry.item.id}`,
+  }));
   const renderFileRow = (file, nested = false, lastChild = false) => (
     <tr
       key={`${nested ? "email-child" : "file"}-${file.id}`}
@@ -918,8 +929,10 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
             onToggle={toggleFolder}
             onFolderSelect={openFolder}
             onFilePreview={(file) => openFilePreview(file, true)}
+            sort={sort}
             folderLabel={folderLabel}
             folderDirection={(folder) => emailSources.get(folder.id)?.direction}
+            folderDate={(folder) => emailSources.get(folder.id)?.uploadDate || folder.createdDate}
             disabled={busy}
             canDrop={canEdit && !mutationBusy}
             canDropFolder={(folder) => !emailLocks.within.has(folder.id)}
@@ -1065,11 +1078,11 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
                       </tr>
                     );
                   })}
-                {emailPanels.map((folder) => {
+                {nonFolderItems.map((entry) => {
+                  if (entry.kind === "file") return renderFileRow(entry.item);
+                  const folder = entry.item;
                   const email = emailSources.get(folder.id);
-                  const members = [...(emailFilesByGroup.get(folder.emailUploadGroupId) || [])].sort((a, b) =>
-                    a.id === email?.id ? -1 : b.id === email?.id ? 1 : a.id - b.id,
-                  );
+                  const members = [...(emailFilesByGroup.get(folder.emailUploadGroupId) || [])].sort(documentComparator(sort));
                   const opened = !collapsedEmails.has(folder.id) || !!needle;
                   const headerMatches = !needle || folderLabel(folder).toLowerCase().includes(needle);
                   const attachments = members.filter((file) => file.id !== email?.id);
@@ -1147,7 +1160,6 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
                     </React.Fragment>
                   );
                 })}
-                {visibleFiles.filter((file) => !panelGroups.has(file.uploadGroupId)).map((file) => renderFileRow(file))}
                 {!visibleFiles.length && !visibleFolders.length && !emailPanels.length && (
                   <tr>
                     <td colSpan={5} className="text-muted py-3">
@@ -1225,6 +1237,11 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
                       !emailLocks.within.has(folder.id) &&
                       folder.id !== dialog.item.folderId,
                   )
+                  .sort(documentComparator(sort, {
+                    isFolder: () => true,
+                    name: (folder) => location(folder.id),
+                    date: (folder) => folder.createdDate,
+                  }))
                   .map((folder) => (
                     <option key={folder.id} value={folder.id}>
                       {location(folder.id)}
@@ -1261,6 +1278,11 @@ const AttachmentFolderBrowser = ({ data, refresh, setExtraButtons }) => {
                       !descendants(dialog.item.id).has(folder.id) &&
                       folder.id !== dialog.item.parentId,
                   )
+                  .sort(documentComparator(sort, {
+                    isFolder: () => true,
+                    name: (folder) => location(folder.id),
+                    date: (folder) => folder.createdDate,
+                  }))
                   .map((folder) => (
                     <option key={folder.id} value={folder.id}>
                       {location(folder.id)}

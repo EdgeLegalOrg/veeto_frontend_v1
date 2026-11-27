@@ -96,3 +96,10 @@ Xero-connected Invoices and Payments show one scrollable list without page butto
 Above 400 loaded records, fixed-height virtual rows render only the viewport and an overscan buffer. Spacer rows preserve scroll height; data and selection remain independent of mounted rows. Headers stay visible and the existing Post Invoice/Post Payment actions remain explicit. Duplicate row identities are filtered, page requests are serial, and old query responses are ignored. No new dependency or database migration is required. The backend adds stable invoice/payment identity tie-breakers for equal sort values. Offset pagination is not a frozen snapshot: refresh after records are added/exported by another user.
 
 Validation uses the production build without adding test files or manually operating the application. Manual acceptance should cover more than 400 invoices/payments, scrolling in both directions, selection across batches, all-loaded selection, filters/sort/reset, slow/failed requests with Retry, tab switches and posting followed by refresh.
+
+
+## Shared document browser ordering
+
+Matter Attachments and Team Precedents use `DocumentFolders/documentSort.js` for both the left tree and right contents list, including embedded selection windows. At each folder level, ordinary folders appear first; email upload groups appear alongside files, using their source email upload date and display title. The selected Newest first/Name mode applies to both panels, to ordinary folders and to extracted email attachments. Names use natural numeric ordering (File 2 before File 10), with stable identity tie-breakers. Folder hierarchy, email expansion/protection and storage locations are unchanged. Unassigned files keep their separate tree section and follow the same sort mode.
+
+Precedents/Forms selectors without a sort control use the same comparator in Name mode for folder/file listings. Destination dialogs use the owning browser's sort mode; the Team Precedent output-folder selector uses Name mode. This is display sorting, not workflow document generation order: Admin's explicitly arranged task/document sequence is preserved.

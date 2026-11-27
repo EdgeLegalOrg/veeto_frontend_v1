@@ -5,6 +5,7 @@ import fileDownload from "js-file-download";
 import { toast } from "react-toastify";
 import { formatDateTimeFunc } from "../../utils/utilFunc";
 import FileFolderTree from "../DocumentFolders/FileFolderTree";
+import { documentComparator } from "../DocumentFolders/documentSort";
 import FolderUploadPicker from "../DocumentFolders/FolderUploadPicker";
 import TeamPrecedentPreview from "./TeamPrecedentPreview";
 import AttachmentTypeIcon from "../Matters/Attachments/AttachmentTypeIcon";
@@ -290,10 +291,6 @@ const TeamPrecedentBrowser = ({ siteId, onChoose }) => {
     setPreview(file);
   };
   const needle = query.trim().toLowerCase();
-  const timestamp = (value) => {
-    const time = new Date(value || 0).getTime();
-    return Number.isNaN(time) ? 0 : time;
-  };
   const visible = files
     .filter(
       (file) =>
@@ -301,18 +298,14 @@ const TeamPrecedentBrowser = ({ siteId, onChoose }) => {
         (!needle || `${file.name} ${file.uploadedBy || ""}`.toLowerCase().includes(needle)) &&
         (!showClassificationControls || ((!matterType || file.matterType === matterType) && (!subType || file.matterSubType === subType))),
     )
-    .sort((a, b) =>
-      sort === "NAME"
-        ? (a.name || "").localeCompare(b.name || "")
-        : timestamp(b.uploadDate) - timestamp(a.uploadDate) || (a.name || "").localeCompare(b.name || ""),
-    );
+    .sort(documentComparator(sort));
   const childFolders = folders
     .filter(
       (folder) =>
         ((scope === "LIBRARY" && needle) || (folder.parentId ?? null) === folderId) &&
         (!needle || folder.name.toLowerCase().includes(needle)),
     )
-    .sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+    .sort(documentComparator(sort, { isFolder: () => true, date: (folder) => folder.createdDate }));
   const upload = async () => {
     if (locked || !uploadFiles.length || uploadFiles.some((entry) => !entry.name.trim())) return;
     setBusy(true);
@@ -457,6 +450,7 @@ const TeamPrecedentBrowser = ({ siteId, onChoose }) => {
           <FileFolderTree
             key={`team-${config?.companyId ?? siteId}`}
             idPrefix={`team-${config?.companyId ?? siteId}`}
+            sort={sort}
             folders={folders}
             files={files}
             expanded={expanded}
@@ -813,6 +807,11 @@ const TeamPrecedentBrowser = ({ siteId, onChoose }) => {
                       folder.id !== dialog.item.folderId
                     );
                   })
+                  .sort(documentComparator(sort, {
+                    isFolder: () => true,
+                    name: (folder) => location(folder.id),
+                    date: (folder) => folder.createdDate,
+                  }))
                   .map((folder) => (
                     <option key={folder.id} value={folder.id}>
                       {location(folder.id)}
@@ -847,6 +846,11 @@ const TeamPrecedentBrowser = ({ siteId, onChoose }) => {
                       folder.id !== dialog.item.parentId
                     );
                   })
+                  .sort(documentComparator(sort, {
+                    isFolder: () => true,
+                    name: (folder) => location(folder.id),
+                    date: (folder) => folder.createdDate,
+                  }))
                   .map((folder) => (
                     <option key={folder.id} value={folder.id}>
                       {location(folder.id)}
