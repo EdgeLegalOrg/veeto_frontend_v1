@@ -5,7 +5,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { v1 as uuidv1 } from "uuid";
 import { TextField } from "@mui/material";
 import { withStyles } from "@mui/styles";
-import { Button } from "reactstrap";
+import { Alert, Button } from "reactstrap";
 import { editPropertyDetails } from "../../apis";
 import {
   TextInputField,
@@ -93,6 +93,7 @@ function PopupForm(props) {
     description: "",
   };
   const [chotaForm, setChotaForm] = useState(initialFormState);
+  const [saveError, setSaveError] = useState("");
 
   const isChanged = useMemo(() => {
     return JSON.stringify(chotaForm) !== JSON.stringify(initialFormState);
@@ -108,6 +109,38 @@ function PopupForm(props) {
   // const [cookies, setCookie, removeCookie] = useCookies(['token']);
   // const loggedInToken = cookies.token;
 
+  function submitLotSave() {
+    setSaveError("");
+    setDisableButton(true);
+    const dataToBeSent = {
+      ...specifiedDetails,
+      registeredProperties: [...tempRegistered, chotaForm],
+    };
+
+    editPropertyDetails({
+      requestId: uuidv1(),
+      data: dataToBeSent,
+    })
+      .then((response) => {
+        const res = response?.data;
+        if (!res?.success) {
+          // A checksum/validation failure is not a successful save. Keep the user's lot inputs.
+          setSaveError(res?.error?.message || "Unable to save lot. Please try again.");
+          setDisableButton(false);
+          return;
+        }
+        fetchPropertyData(specifiedDetails.id);
+        setDisableButton(false);
+        setFormStatusNew({ isFormChanged: false, isShowModal: false });
+        setIsPopRForm(false);
+      })
+      .catch((err) => {
+        setSaveError(err?.response?.data?.error?.message || err?.response?.data?.message
+          || "Unable to save lot. Please try again.");
+        setDisableButton(false);
+      });
+  }
+
   function chotaSave(e) {
     e.preventDefault();
     if (
@@ -120,32 +153,13 @@ function PopupForm(props) {
     ) {
       return setSubmitted(true);
     }
-
-    setDisableButton(true);
-    const dataToBeSent = {
-      ...specifiedDetails,
-      registeredProperties: [...tempRegistered, chotaForm],
-    };
-
-    editPropertyDetails({
-      requestId: uuidv1(),
-      data: dataToBeSent,
-    })
-      .then((response) => {
-        fetchPropertyData(specifiedDetails.id);
-        setDisableButton(false);
-        setFormStatusNew({ isFormChanged: false, isShowModal: false });
-        setIsPopRForm(false);
-      })
-      .catch((err) => {
-        console.error(err);
-        setDisableButton(false);
-      });
+    submitLotSave();
   }
   return (
     <div>
       <div className="">
         <form onSubmit={chotaSave}>
+          {saveError && <Alert color="danger" role="alert">{saveError}</Alert>}
           <div className="">
             <div
               className="modal-header"

@@ -6,7 +6,7 @@ import { v1 as uuidv1 } from "uuid";
 import closeBtn from "../../images/close-white-btn.svg";
 import { TextField } from "@mui/material";
 import { withStyles } from "@mui/styles";
-import { Button, Modal, ModalBody, ModalHeader } from "reactstrap";
+import { Alert, Button, Modal, ModalBody, ModalHeader } from "reactstrap";
 import { editPropertyDetails, deleteRegisteredLot } from "../../apis";
 import { TextInputField } from "pages/Edge/components/InputField";
 import "../../stylesheets/property.css";
@@ -161,6 +161,7 @@ function EditRegFormPopup(props) {
     setFormStatusNew,
   } = props;
   const [chotaForm, setChotaForm] = useState(regDetails);
+  const [saveError, setSaveError] = useState("");
   const [openConfirm, setOpenConfirm] = useState(false);
   const [disableButton, setDisableButton] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -181,20 +182,8 @@ function EditRegFormPopup(props) {
     }
   });
 
-  async function chotaSave(e) {
-    e.preventDefault();
-    if (
-      requiredReg.indexOf("titleReference".toLowerCase()) >= 0 ||
-      requiredReg.indexOf("lotNumber".toLowerCase()) >= 0 ||
-      requiredReg.indexOf("section".toLowerCase()) >= 0 ||
-      requiredReg.indexOf("depositedPlanNumber".toLowerCase()) >= 0 ||
-      requiredReg.indexOf("strataPlanNumber".toLowerCase()) >= 0 ||
-      requiredReg.indexOf("description".toLowerCase()) >= 0
-    ) {
-      setSubmitted(true);
-      return;
-    }
-
+  async function submitLotUpdate() {
+    setSaveError("");
     setDisableButton(true);
     const dataToBeSent = {
       ...specifiedDetails,
@@ -210,22 +199,41 @@ function EditRegFormPopup(props) {
       if (data.success) {
         fetchPropertyData(specifiedDetails.id);
       } else {
-        setShowAlert(true);
-        setAlertMsg(data?.error?.message);
+        setSaveError(data?.error?.message || "Unable to save lot. Please try again.");
+        setDisableButton(false);
+        return;
       }
       setDisableButton(false);
       setFormStatusNew({ isFormChanged: false, isShowModal: false });
       setIsEditTrue(false);
     } catch (error) {
       setDisableButton(false);
-      console.error(error);
+      setSaveError(error?.response?.data?.error?.message || error?.response?.data?.message
+        || "Unable to save lot. Please try again.");
     }
+  }
+
+  async function chotaSave(e) {
+    e.preventDefault();
+    if (
+      requiredReg.indexOf("titleReference".toLowerCase()) >= 0 ||
+      requiredReg.indexOf("lotNumber".toLowerCase()) >= 0 ||
+      requiredReg.indexOf("section".toLowerCase()) >= 0 ||
+      requiredReg.indexOf("depositedPlanNumber".toLowerCase()) >= 0 ||
+      requiredReg.indexOf("strataPlanNumber".toLowerCase()) >= 0 ||
+      requiredReg.indexOf("description".toLowerCase()) >= 0
+    ) {
+      setSubmitted(true);
+      return;
+    }
+    await submitLotUpdate();
   }
 
   return (
     <div>
       <div className="">
         <form onSubmit={chotaSave}>
+          {saveError && <Alert color="danger" role="alert">{saveError}</Alert>}
           <div className="">
             <div
               className="modal-header"
